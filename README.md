@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontier DevConsults - Official Website
+
+**Developed by:** Frontier DevConsults  
+**Version:** 1.0.0  
+**Last Updated:** November 24, 2025
+
+## About
+
+This is the official website for Frontier DevConsults - a professional software development company specializing in mobile apps, web platforms, and AI-powered solutions.
+
+**Building Digital Excellence**
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Icons:** Lucide React
+- **Deployment:** Vercel
+- **Features:** 
+  - Progressive Web App (PWA)
+  - SEO Optimized
+  - Admin Dashboard
+  - Contact Forms
+  - Project Showcase
+  - App Store
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
+
+```bash
+npm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+frontier-devconsults/
+├── app/                  # Next.js app directory
+│   ├── about/           # About page
+│   ├── admin/           # Admin dashboard
+│   ├── api/             # API routes
+│   ├── app-store/       # App store page
+│   ├── contact/         # Contact page
+│   ├── pricing/         # Pricing page
+│   ├── projects/        # Projects showcase
+│   └── ...
+├── components/          # Reusable components
+├── public/              # Static assets
+│   └── logos/          # Project logos
+└── ...
+```
 
-## Learn More
+## Admin Access
 
-To learn more about Next.js, take a look at the following resources:
+- **URL:** `/admin`
+- **Keyboard Shortcut:** Ctrl+Shift+A (Cmd+Shift+A on Mac)
+- **Default Password:** See ADMIN_README.md
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed deployment instructions.
 
-## Deploy on Vercel
+## Features
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- 📱 Responsive design for all devices
+- 🚀 Fast page loads with Next.js optimization
+- 🔒 Secure admin dashboard
+- 📧 Contact form with email integration
+- 🎨 Modern UI with Tailwind CSS
+- 📱 PWA support for mobile installation
+- 🔍 SEO optimized with metadata
+- 📊 Project portfolio showcase
+- 🏪 App store for mobile applications
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contact
+
+**Frontier DevConsults**  
+Email: info@frontier-devconsults.com  
+Phone: +233 249 078 976  
+Website: https://www.frontier-devconsults.com
+
+---
+
+© 2024-2025 Frontier DevConsults. All rights reserved.

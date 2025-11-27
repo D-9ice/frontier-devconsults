@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Position Tawk.to widget above WhatsApp button */
+div[id^="tawk"] {
+  bottom: 220px !important;
+}
+
+/* Tawk.to chat window positioning */
+#tawkchat-container,
+#tawkchat-chat-container {
+  bottom: 280px !important;
+}
+
+/* Tawk.to minimized bubble */
+#tawkchat-minified-box {
+  bottom: 220px !important;
+}
