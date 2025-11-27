@@ -10,13 +10,12 @@ export async function POST(request: NextRequest) {
     // Save to Supabase if configured
     if (isSupabaseConfigured() && supabase) {
       const { error } = await supabase
-        .from('visitor_logs')
+        .from('visitors')
         .insert([
           {
             page,
             referrer: referrer || null,
             user_agent: userAgent,
-            ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
           }
         ]);
 
@@ -58,13 +57,13 @@ export async function GET() {
   try {
     // Get total visitors
     const { count: totalVisitors } = await supabase
-      .from('visitor_logs')
+      .from('visitors')
       .select('*', { count: 'exact', head: true });
 
     // Get today's visitors
     const today = new Date().toISOString().split('T')[0];
     const { count: visitsToday } = await supabase
-      .from('visitor_logs')
+      .from('visitors')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', today);
 
