@@ -87,8 +87,8 @@ export default function ContactPage() {
                 <ContactInfo
                   icon={<Phone className="w-6 h-6" />}
                   title="Phone"
-                  info="+233 249 078 976 / +233 596 106 767 / +233 244 809 627"
-                  link="tel:+233249078976"
+                  info="+1 (754) 217-0678 / +233 249 078 976 / +233 596 106 767 / +233 244 809 627"
+                  link="tel:+17542170678"
                 />
                 <ContactInfo
                   icon={<MapPin className="w-6 h-6" />}
