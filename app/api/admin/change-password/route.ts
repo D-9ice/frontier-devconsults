@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
-const CURRENT_PASSWORD = process.env.ADMIN_PASSWORD || 'FrontierAdmin2024!';
+const FALLBACK_PASSWORD = process.env.ADMIN_PASSWORD || 'FrontierAdmin2024!';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,32 +16,98 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify current password
-    if (currentPassword !== CURRENT_PASSWORD) {
+    // Validate new password strength
+    if (newPassword.length < 8) {
+      return NextResponse.json(
+        { error: 'New password must be at least 8 characters long' },
+        { status: 400 }
+      );
+    }
+
+    // Verify current password (check Supabase first, then fallback)
+    let isCurrentPasswordValid = false;
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('admin_credentials')
+          .select('password_hash')
+          .eq('username', 'admin')
+          .single();
+
+        if (!error && data && data.password_hash !== 'placeholder') {
+          isCurrentPasswordValid = await bcrypt.compare(currentPassword, data.password_hash);
+        } else {
+          // Fallback to environment variable
+          isCurrentPasswordValid = currentPassword === FALLBACK_PASSWORD;
+        }
+      } catch (err) {
+        console.error('Error checking current password:', err);
+        isCurrentPasswordValid = currentPassword === FALLBACK_PASSWORD;
+      }
+    } else {
+      isCurrentPasswordValid = currentPassword === FALLBACK_PASSWORD;
+    }
+
+    if (!isCurrentPasswordValid) {
       return NextResponse.json(
         { error: 'Current password is incorrect' },
         { status: 401 }
       );
     }
 
-    // In a production environment, you would:
-    // 1. Hash the new password with bcrypt
-    // 2. Store it in a database
-    // 3. Update the environment variable programmatically (not recommended)
-    // 4. Use a proper authentication system like NextAuth.js
+    // Hash the new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    console.log('⚠️ PASSWORD CHANGE REQUESTED');
-    console.log('New password:', newPassword);
-    console.log('To apply this change:');
-    console.log('1. Update ADMIN_PASSWORD in Vercel environment variables');
-    console.log('2. Or update .env.local file for local development');
-    console.log('3. Redeploy the application');
+    // Save to Supabase
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { error } = await supabase
+          .from('admin_credentials')
+          .upsert({
+            username: 'admin',
+            password_hash: hashedPassword,
+            last_changed: new Date().toISOString(),
+          }, {
+            onConflict: 'username'
+          });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Password change request received. Please update the ADMIN_PASSWORD environment variable in your deployment settings.',
-      newPassword: newPassword,
-    });
+        if (error) {
+          console.error('Error saving password to Supabase:', error);
+          return NextResponse.json(
+            { error: 'Failed to save new password. Please try again.' },
+            { status: 500 }
+          );
+        }
+
+        console.log('✅ Password changed successfully in Supabase');
+
+        return NextResponse.json({
+          success: true,
+          message: 'Password changed successfully! Please log in with your new password.',
+        });
+      } catch (err) {
+        console.error('Supabase password update error:', err);
+        return NextResponse.json(
+          { error: 'Database error. Please try again.' },
+          { status: 500 }
+        );
+      }
+    } else {
+      // Supabase not configured
+      console.log('⚠️ Supabase not configured. Password not saved.');
+      console.log('New password (hashed):', hashedPassword);
+      console.log('To enable password changes:');
+      console.log('1. Configure Supabase credentials');
+      console.log('2. Create admin_credentials table');
+      console.log('3. Redeploy the application');
+
+      return NextResponse.json({
+        success: false,
+        message: 'Supabase is not configured. Password changes require database connection.',
+      }, { status: 503 });
+    }
   } catch (error) {
     console.error('Password change error:', error);
     return NextResponse.json(
