@@ -9,7 +9,6 @@ import TawkToWidget from "@/components/TawkToWidget";
 import PWAInstaller from "@/components/PWAInstaller";
 import AdminShortcut from "@/components/AdminShortcut";
 import VisitorTracker from "@/components/VisitorTracker";
-import AIChatWidget from "@/components/AIChatWidget";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -113,7 +112,6 @@ export default function RootLayout({
         <FloatingButtons />
         <WhatsAppWidget />
         <TawkToWidget />
-        <AIChatWidget />
       </body>
     </html>
   );
