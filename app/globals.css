@@ -44,6 +44,6 @@ div[id^="tawk"] {
 @media (max-width: 639px) {
   #tawkchat-minified-box,
   div[id^="tawk"] {
-    right: 0.3125rem !important;
+    right: 0.0625rem !important;
   }
 }
