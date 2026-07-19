@@ -56,9 +56,12 @@ export default function Home() {
         </picture>
         <div className="absolute inset-0 bg-slate-950/5" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/5 to-slate-950/25 sm:bg-gradient-to-r sm:from-slate-950/25 sm:via-slate-950/10 sm:to-transparent" />
+        <p className="absolute left-6 right-6 top-[44%] z-10 whitespace-nowrap text-2xl font-semibold leading-tight text-blue-200 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)] sm:hidden">
+          Building Digital Excellence
+        </p>
         <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-5 sm:px-6 sm:py-28 lg:px-8 lg:py-32 min-h-[calc(100svh-88px)] sm:min-h-0 flex items-end sm:block">
           <div className="max-w-3xl space-y-5 sm:space-y-7 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)]">
-            <p className="text-3xl sm:text-3xl text-blue-200 font-semibold leading-tight">
+            <p className="hidden text-3xl font-semibold leading-tight text-blue-200 sm:block">
               Building Digital Excellence
             </p>
             <p className="text-xl sm:text-2xl text-gray-100 max-w-3xl leading-snug">
