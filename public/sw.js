@@ -1,6 +1,6 @@
 // Service Worker for Frontier DevConsults PWA
-const CACHE_NAME = 'frontier-devconsults-v1';
-const RUNTIME_CACHE = 'runtime-cache-v1';
+const CACHE_NAME = 'frontier-devconsults-v2';
+const RUNTIME_CACHE = 'runtime-cache-v2';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
@@ -49,35 +49,21 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Return cached response if found
-      if (cachedResponse) {
-        // Update cache in background
-        fetch(event.request).then((response) => {
-          if (response && response.status === 200) {
-            caches.open(RUNTIME_CACHE).then((cache) => {
-              cache.put(event.request, response.clone());
-            });
-          }
-        });
-        return cachedResponse;
-      }
-
-      // If not in cache, fetch from network
-      return fetch(event.request).then((response) => {
-        // Cache successful responses
-        if (response && response.status === 200) {
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && event.request.method === 'GET') {
           const responseToCache = response.clone();
           caches.open(RUNTIME_CACHE).then((cache) => {
             cache.put(event.request, responseToCache);
           });
         }
         return response;
-      }).catch(() => {
-        // If both cache and network fail, show offline page
-        return caches.match('/offline');
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          return cachedResponse || caches.match('/offline');
+        });
+      })
   );
 });
 
