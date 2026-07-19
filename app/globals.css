@@ -40,3 +40,10 @@ div[id^="tawk"] {
 #tawkchat-minified-box {
   bottom: 220px !important;
 }
+
+@media (max-width: 639px) {
+  #tawkchat-minified-box,
+  div[id^="tawk"] {
+    right: 1rem !important;
+  }
+}
