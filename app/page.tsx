@@ -49,36 +49,36 @@ export default function Home() {
         <img
           src="/images/frontier-hero.png"
           alt="Frontier DevConsults office workspace"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-[58%_center] sm:object-center"
         />
-        <div className="absolute inset-0 bg-slate-950/5" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/25 via-slate-950/10 to-transparent" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
-          <div className="max-w-3xl space-y-7 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)]">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
+        <div className="absolute inset-0 bg-slate-950/10 sm:bg-slate-950/5" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/25 via-slate-950/5 to-slate-950/35 sm:bg-gradient-to-r sm:from-slate-950/25 sm:via-slate-950/10 sm:to-transparent" />
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-6 lg:px-8 py-14 sm:py-28 lg:py-32 min-h-[590px] sm:min-h-0 flex items-end sm:block">
+          <div className="max-w-3xl space-y-4 sm:space-y-7 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)]">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[0.95] sm:leading-tight">
               Frontier <span className="text-blue-300">DevConsults</span>
             </h1>
-            <p className="text-2xl sm:text-3xl text-blue-200 font-semibold">
+            <p className="text-2xl sm:text-3xl text-blue-200 font-semibold leading-tight">
               Building Digital Excellence
             </p>
-            <p className="text-xl sm:text-2xl text-gray-100 max-w-3xl">
+            <p className="text-lg sm:text-2xl text-gray-100 max-w-3xl leading-snug">
               Transforming ideas into production-ready applications from our Accra office.
             </p>
-            <p className="text-lg text-gray-300 max-w-2xl">
+            <p className="hidden sm:block text-lg text-gray-300 max-w-2xl">
               Enterprise-grade mobile apps, web platforms, and AI-powered solutions. 
               From concept to deployment, we build software that scales.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2 pb-12 sm:pb-0">
               <Link 
                 href="/projects" 
-                className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors"
+                className="inline-flex items-center justify-center px-7 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors"
               >
                 View Our Work
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
               <Link 
                 href="/contact" 
-                className="inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 rounded-lg font-semibold backdrop-blur-sm transition-colors border border-white/20"
+                className="hidden sm:inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 rounded-lg font-semibold backdrop-blur-sm transition-colors border border-white/20"
               >
                 Get Started
               </Link>
