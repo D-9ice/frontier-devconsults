@@ -9,11 +9,11 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-white">
                 <img 
-                  src="/logos/frontier-logo.jpg" 
+                  src="/logos/frontier-emblem.png" 
                   alt="Frontier DevConsults Logo" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <span className="font-bold text-xl text-white">

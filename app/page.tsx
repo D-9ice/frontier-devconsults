@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Code2, Smartphone, Globe, Zap } from 'lucide-react';
+import { ArrowRight, Code2, Smartphone, Globe, Zap, Building2 } from 'lucide-react';
 
 export default function Home() {
   const jsonLd = {
@@ -8,7 +8,7 @@ export default function Home() {
     name: 'Frontier DevConsults',
     alternateName: 'FrontierDev',
     url: 'https://www.frontier-devconsults.com',
-    logo: 'https://www.frontier-devconsults.com/logo.png',
+    logo: 'https://www.frontier-devconsults.com/logos/frontier-emblem.png',
     description: 'Transforming ideas into production-ready applications. Specialized in mobile apps, web platforms, and AI-powered solutions.',
     slogan: 'Building Digital Excellence',
     foundingDate: '2024',
@@ -31,9 +31,9 @@ export default function Home() {
     ],
     offers: {
       '@type': 'AggregateOffer',
-      priceCurrency: 'USD',
-      lowPrice: '500',
-      highPrice: '15000',
+      priceCurrency: 'GHS',
+      lowPrice: '5800',
+      highPrice: '173100',
       offerCount: '4'
     }
   };
@@ -45,24 +45,30 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
-        <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:60px_60px]" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
-          <div className="text-center space-y-8">
+      <section className="relative overflow-hidden bg-slate-950 text-white">
+        <img
+          src="/images/frontier-hero.png"
+          alt="Frontier DevConsults office workspace"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-slate-950/5" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/25 via-slate-950/10 to-transparent" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32">
+          <div className="max-w-3xl space-y-7 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)]">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
-              Frontier <span className="text-blue-400">DevConsults</span>
+              Frontier <span className="text-blue-300">DevConsults</span>
             </h1>
-            <p className="text-2xl sm:text-3xl text-blue-400 font-semibold mb-2">
+            <p className="text-2xl sm:text-3xl text-blue-200 font-semibold">
               Building Digital Excellence
             </p>
-            <p className="text-xl sm:text-2xl text-gray-300 max-w-3xl mx-auto">
-              Transforming Ideas into Production-Ready Applications
+            <p className="text-xl sm:text-2xl text-gray-100 max-w-3xl">
+              Transforming ideas into production-ready applications from our Accra office.
             </p>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-300 max-w-2xl">
               Enterprise-grade mobile apps, web platforms, and AI-powered solutions. 
               From concept to deployment, we build software that scales.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Link 
                 href="/projects" 
                 className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors"
@@ -76,6 +82,51 @@ export default function Home() {
               >
                 Get Started
               </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Office Showcase */}
+      <section className="py-24 bg-slate-950 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-14 max-w-4xl">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-300">
+              Inside Frontier DevConsults
+            </p>
+            <h2 className="mt-3 text-4xl sm:text-5xl font-bold">
+              Office photos from the workspace behind the build
+            </h2>
+          </div>
+          <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 text-blue-300 font-semibold mb-4">
+                <Building2 className="w-5 h-5" />
+                Frontier DevConsults Office
+              </div>
+              <h2 className="text-4xl font-bold mb-5">A focused space for serious product work</h2>
+              <p className="text-lg text-gray-300 leading-relaxed">
+                Our workspace is built for client strategy sessions, fast prototyping, product reviews,
+                and focused engineering. It gives every project a professional home from first idea to launch.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <img
+                src="/images/frontier-office.png"
+                alt="Frontier DevConsults office interior"
+                className="h-72 w-full rounded-lg object-cover shadow-2xl sm:col-span-2"
+              />
+              <img
+                src="/images/frontier-hero.png"
+                alt="Frontier DevConsults office work area"
+                className="h-48 w-full rounded-lg object-cover shadow-xl"
+              />
+              <div className="h-48 rounded-lg border border-white/10 bg-white/10 p-6 flex flex-col justify-end">
+                <p className="text-sm font-semibold text-blue-200">More media coming next</p>
+                <p className="mt-2 text-gray-300">
+                  Office walkthrough videos and extra project-room shots can plug into this section.
+                </p>
+              </div>
             </div>
           </div>
         </div>

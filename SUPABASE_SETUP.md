@@ -113,6 +113,14 @@ CREATE TABLE projects (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 6. Pricing Settings (admin-editable exchange rate and price bases)
+CREATE TABLE pricing_settings (
+  key VARCHAR(100) PRIMARY KEY,
+  settings JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create indexes for better query performance
 CREATE INDEX idx_contact_submissions_created_at ON contact_submissions(created_at DESC);
 CREATE INDEX idx_build_requests_created_at ON build_requests(created_at DESC);
@@ -120,6 +128,7 @@ CREATE INDEX idx_visitors_created_at ON visitors(created_at DESC);
 CREATE INDEX idx_visitors_page ON visitors(page);
 CREATE INDEX idx_apps_status ON apps(status);
 CREATE INDEX idx_projects_status ON projects(status);
+CREATE INDEX idx_pricing_settings_updated_at ON pricing_settings(updated_at DESC);
 ```
 
 ### Step 5: Enable Row Level Security (RLS)
@@ -133,6 +142,7 @@ ALTER TABLE build_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visitors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE apps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pricing_settings ENABLE ROW LEVEL SECURITY;
 
 -- Allow public inserts (for forms and visitor tracking)
 CREATE POLICY "Allow public inserts" ON contact_submissions
@@ -150,6 +160,17 @@ CREATE POLICY "Allow public reads" ON apps
 
 CREATE POLICY "Allow public reads" ON projects
   FOR SELECT TO anon USING (true);
+
+-- Allow public reads for website pricing display
+CREATE POLICY "Allow public reads" ON pricing_settings
+  FOR SELECT TO anon USING (true);
+
+-- Allow admin API upserts through the current anon-key based admin flow
+CREATE POLICY "Allow pricing admin writes" ON pricing_settings
+  FOR INSERT TO anon WITH CHECK (true);
+
+CREATE POLICY "Allow pricing admin updates" ON pricing_settings
+  FOR UPDATE TO anon USING (true) WITH CHECK (true);
 ```
 
 ### Step 6: Test the Connection

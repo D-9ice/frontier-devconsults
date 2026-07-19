@@ -1,7 +1,13 @@
 import Link from 'next/link';
 import { Check, ArrowRight, MessageCircle, Sparkles } from 'lucide-react';
+import { formatPriceRange, PricingColor } from '@/lib/pricing';
+import { getPricingSettings } from '@/lib/pricing-store';
 
-export default function PricingPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function PricingPage() {
+  const pricing = await getPricingSettings();
+
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -12,8 +18,9 @@ export default function PricingPage() {
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
               From concept to production. Choose the package that fits your needs.
             </p>
-            <p className="text-lg text-blue-300 mt-2">
-              All prices are estimates. Final cost depends on project complexity and requirements.
+            <p className="text-lg text-blue-300 mt-2">{pricing.note}</p>
+            <p className="text-sm text-gray-400 mt-3">
+              Estimates shown in Ghana cedis, rounded from USD at approximately GH₵{pricing.exchangeRate.toFixed(2)} to $1.
             </p>
           </div>
         </div>
@@ -23,78 +30,18 @@ export default function PricingPage() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Basic Website */}
-            <PricingCard
-              title="Basic Website"
-              price="$500 - $1,500"
-              description="Perfect for small businesses and personal portfolios"
-              features={[
-                "1-5 pages",
-                "Responsive design",
-                "Contact form",
-                "SEO optimized",
-                "1 month support",
-                "Hosting setup",
-              ]}
-              timeline="1-2 weeks"
-              color="blue"
-            />
-
-            {/* E-commerce Website */}
-            <PricingCard
-              title="E-commerce Website"
-              price="$2,500 - $7,500"
-              description="Full-featured online store with payment integration"
-              features={[
-                "Product catalog",
-                "Shopping cart",
-                "Payment gateway",
-                "Order management",
-                "Admin dashboard",
-                "Mobile Money integration",
-                "3 months support",
-              ]}
-              timeline="4-8 weeks"
-              color="green"
-              popular
-            />
-
-            {/* Mobile Application */}
-            <PricingCard
-              title="Mobile Application"
-              price="$5,000 - $15,000"
-              description="Native or cross-platform mobile apps"
-              features={[
-                "Android & iOS",
-                "User authentication",
-                "Push notifications",
-                "Offline functionality",
-                "API integration",
-                "Play Store deployment",
-                "6 months support",
-              ]}
-              timeline="2-4 months"
-              color="purple"
-            />
-
-            {/* Enterprise Solution */}
-            <PricingCard
-              title="Enterprise Solution"
-              price="$15,000+"
-              description="Complex web/mobile platforms with AI integration"
-              features={[
-                "Custom architecture",
-                "AI/ML integration",
-                "Advanced features",
-                "Database design",
-                "API development",
-                "Cloud deployment",
-                "12 months support",
-                "Priority updates",
-              ]}
-              timeline="3-6 months"
-              color="orange"
-            />
+            {pricing.tiers.map((tier) => (
+              <PricingCard
+                key={tier.id}
+                title={tier.title}
+                price={formatPriceRange(tier.price, pricing)}
+                description={tier.description}
+                features={tier.features}
+                timeline={tier.timeline}
+                color={tier.color}
+                popular={tier.popular}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -109,14 +56,13 @@ export default function PricingPage() {
             <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Development Services</h3>
               <div className="space-y-4">
-                <ServiceItem service="Landing Page" price="$300 - $800" />
-                <ServiceItem service="Business Website (5-10 pages)" price="$1,000 - $3,000" />
-                <ServiceItem service="Blog/News Website" price="$1,500 - $4,000" />
-                <ServiceItem service="E-commerce Store" price="$2,500 - $7,500" />
-                <ServiceItem service="Custom Web App" price="$5,000 - $20,000" />
-                <ServiceItem service="Mobile App (Single Platform)" price="$3,000 - $10,000" />
-                <ServiceItem service="Mobile App (Cross-Platform)" price="$5,000 - $15,000" />
-                <ServiceItem service="AI-Powered Application" price="$10,000 - $30,000" />
+                {pricing.developmentServices.map((item) => (
+                  <ServiceItem
+                    key={item.id}
+                    service={item.service}
+                    price={formatPriceRange(item.price, pricing)}
+                  />
+                ))}
               </div>
             </div>
 
@@ -124,15 +70,13 @@ export default function PricingPage() {
             <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Additional Services</h3>
               <div className="space-y-4">
-                <ServiceItem service="UI/UX Design" price="$500 - $2,000" />
-                <ServiceItem service="Logo & Branding" price="$200 - $1,000" />
-                <ServiceItem service="Content Writing" price="$100 - $500" />
-                <ServiceItem service="SEO Optimization" price="$300 - $1,500" />
-                <ServiceItem service="Payment Integration" price="$500 - $1,500" />
-                <ServiceItem service="API Development" price="$1,000 - $5,000" />
-                <ServiceItem service="Database Design" price="$500 - $3,000" />
-                <ServiceItem service="Cloud Setup & Deployment" price="$300 - $1,500" />
-                <ServiceItem service="Monthly Maintenance" price="$100 - $500/mo" />
+                {pricing.additionalServices.map((item) => (
+                  <ServiceItem
+                    key={item.id}
+                    service={item.service}
+                    price={formatPriceRange(item.price, pricing)}
+                  />
+                ))}
               </div>
             </div>
           </div>
@@ -246,7 +190,7 @@ interface PricingCardProps {
   description: string;
   features: string[];
   timeline: string;
-  color: 'blue' | 'green' | 'purple' | 'orange';
+  color: PricingColor;
   popular?: boolean;
 }
 

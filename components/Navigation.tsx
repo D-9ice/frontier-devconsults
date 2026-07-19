@@ -21,12 +21,12 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 font-bold text-xl text-gray-900">
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+          <Link href="/" className="flex items-center space-x-3 font-bold text-xl text-gray-900">
+            <div className="w-[45px] h-[45px] rounded-lg flex-shrink-0">
               <img 
-                src="/logos/frontier-logo.jpg" 
+                src="/logos/frontier-emblem.png" 
                 alt="Frontier DevConsults Logo" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
             <span>Frontier <span className="text-blue-600">DevConsults</span></span>

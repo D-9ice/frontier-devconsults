@@ -311,7 +311,7 @@ export default function ProjectsPage() {
                     "Fast performance"
                   ]}
                   link="/"
-                  logoUrl="/logos/frontier-logo.jpg"
+                  logoUrl="/logos/frontier-emblem.png"
                   color="blue"
                 />
               </div>
@@ -372,8 +372,8 @@ function DetailedProjectCard({
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
           {logoUrl ? (
-            <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-gray-200 flex-shrink-0">
-              <img src={logoUrl} alt={`${title} logo`} className="w-full h-full object-cover" />
+            <div className="w-16 h-16 rounded-lg border-2 border-gray-200 flex-shrink-0">
+              <img src={logoUrl} alt={`${title} logo`} className="w-full h-full object-contain" />
             </div>
           ) : (
             <div className={`w-16 h-16 rounded-lg ${colorClasses[color]} flex items-center justify-center flex-shrink-0`}>
