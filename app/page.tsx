@@ -46,11 +46,14 @@ export default function Home() {
       />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-slate-950 text-white">
-        <img
-          src="/images/frontier-hero.png"
-          alt="Frontier DevConsults office workspace"
-          className="absolute inset-0 h-full w-full object-cover object-center"
-        />
+        <picture>
+          <source media="(max-width: 639px)" srcSet="/images/frontier-hero-mobile.png" />
+          <img
+            src="/images/frontier-hero.png"
+            alt="Frontier DevConsults office workspace"
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
+        </picture>
         <div className="absolute inset-0 bg-slate-950/5" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/5 to-slate-950/25 sm:bg-gradient-to-r sm:from-slate-950/25 sm:via-slate-950/10 sm:to-transparent" />
         <div className="relative max-w-7xl mx-auto px-6 sm:px-6 lg:px-8 py-20 sm:py-28 lg:py-32 min-h-[calc(100svh-88px)] sm:min-h-0 flex items-end sm:block">
