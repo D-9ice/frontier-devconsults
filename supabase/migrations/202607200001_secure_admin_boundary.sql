@@ -1,6 +1,13 @@
 -- Run after adding SUPABASE_SERVICE_ROLE_KEY to the application environment.
 -- Server routes use this key; browser clients must never receive it.
 
+CREATE TABLE IF NOT EXISTS pricing_settings (
+  key VARCHAR(100) PRIMARY KEY,
+  settings JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 ALTER TABLE IF EXISTS admin_credentials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS pricing_settings ENABLE ROW LEVEL SECURITY;
 
