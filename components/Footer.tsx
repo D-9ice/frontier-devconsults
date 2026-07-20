@@ -9,7 +9,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 rounded-none flex-shrink-0 bg-white p-0.5">
+              <div className="w-[47px] h-[47px] rounded-none flex-shrink-0 bg-gray-900 p-0.5">
                 <img 
                   src="/logos/frontier-emblem.png" 
                   alt="Frontier DevConsults Logo" 
