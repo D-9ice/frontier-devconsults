@@ -4,6 +4,7 @@ import { formatPriceRange, PricingColor } from '@/lib/pricing';
 import { getPricingSettings } from '@/lib/pricing-store';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function PricingPage() {
   const pricing = await getPricingSettings();

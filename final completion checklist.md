@@ -46,7 +46,8 @@ This checklist reflects the current repository. It separates working features fr
 
 ## Priority 2 - Connect Pricing Fully to Supabase
 
-- [ ] Confirm the live `pricing_settings` table contains a valid `site_pricing` record and that public pricing reads it.
+- [x] Confirm the live `pricing_settings` table contains a valid settings record and that public pricing reads it.
+  - Confirmed on 2026-07-20 through the live public pricing API after an admin save. The homepage has no visible pricing cards; public pricing is displayed on `/pricing`.
 - [x] Change the admin pricing API to use verified admin authentication and the server-only Supabase client.
 - [x] Remove the production reliance on `data/pricing-settings.json`.
   - The local JSON fallback is useful for development but Vercel serverless storage is not durable for admin-edited production data.
