@@ -134,7 +134,7 @@ export default async function PricingPage() {
             </div>
           </div>
           <p className="text-center text-gray-600 mt-8">
-            We accept Mobile Money (MTN, Vodafone, AirtelTigo), Zeepay, Visa, and Mastercard
+            We accept Mobile Money (MTN, Vodafone, AirtelTigo), Cash Payment, Visa, and Mastercard
           </p>
         </div>
       </section>

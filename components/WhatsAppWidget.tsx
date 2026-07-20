@@ -41,11 +41,11 @@ export default function WhatsAppWidget() {
           {/* Header */}
           <div className="bg-[#25D366] text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center overflow-hidden">
+              <div className="w-14 h-14 rounded-sm bg-white p-1 flex items-center justify-center">
                 <img 
                   src="/logos/frontier-emblem.png" 
                   alt={businessName}
-                  className="w-10 h-10 object-contain"
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div>

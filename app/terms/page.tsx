@@ -71,7 +71,7 @@ export default function TermsPage() {
               <li><strong>Milestone Payment:</strong> 40% upon completion of development phase</li>
               <li><strong>Final Payment:</strong> 30% upon project delivery and approval</li>
               <li><strong>Late Payments:</strong> Overdue payments may incur a 2% monthly interest charge</li>
-              <li><strong>Accepted Methods:</strong> MTN Mobile Money, Vodafone Cash, AirtelTigo Money, Zeepay, Visa, Mastercard</li>
+              <li><strong>Accepted Methods:</strong> MTN Mobile Money, Vodafone Cash, AirtelTigo Money, Cash Payment, Visa, Mastercard</li>
             </ul>
           </section>
 

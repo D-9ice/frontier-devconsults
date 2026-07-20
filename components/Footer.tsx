@@ -9,7 +9,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-white">
+              <div className="w-10 h-10 rounded-none flex-shrink-0 bg-white p-0.5">
                 <img 
                   src="/logos/frontier-emblem.png" 
                   alt="Frontier DevConsults Logo" 
@@ -102,7 +102,7 @@ export default function Footer() {
               <span className="text-gray-900 font-bold text-sm">AirtelTigo Money</span>
             </div>
             <div className="bg-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-gray-900 font-bold text-sm">Zeepay</span>
+              <span className="text-gray-900 font-bold text-sm">Cash Payment</span>
             </div>
             
             {/* Card Payments */}
