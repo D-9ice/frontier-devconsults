@@ -1,27 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Settings as SettingsIcon, Globe, Mail, Shield, Database } from 'lucide-react';
 
 export default function SettingsPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dbStatus, setDbStatus] = useState<{
     connected: boolean;
     totalVisitors: number;
     loading: boolean;
   }>({ connected: false, totalVisitors: 0, loading: true });
-  const router = useRouter();
-
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      router.push('/admin');
-      return;
-    }
-    setIsAuthenticated(true);
-    
     // Check database connection status
     fetch('/api/track-visitor')
       .then(res => res.json())
@@ -39,13 +28,7 @@ export default function SettingsPage() {
           loading: false,
         });
       });
-  }, [router]);
-
-  if (!isAuthenticated) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-gray-600">Loading...</div>
-    </div>;
-  }
+  }, []);
 
   return (
     <main className="min-h-screen bg-gray-50">

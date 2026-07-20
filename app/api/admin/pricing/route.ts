@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPricingSettings, savePricingSettings } from '@/lib/pricing-store';
+import { getPricingHistory, getPricingSettings, savePricingSettings } from '@/lib/pricing-store';
 import { mergePricingSettings, PricingSettings } from '@/lib/pricing';
-
-function hasAdminToken(request: NextRequest) {
-  return Boolean(request.headers.get('x-admin-token'));
-}
+import { requireAdmin } from '@/lib/admin-auth';
 
 function validateSettings(settings: PricingSettings) {
   if (!Number.isFinite(settings.exchangeRate) || settings.exchangeRate <= 0) {
@@ -35,11 +32,14 @@ function validateSettings(settings: PricingSettings) {
 }
 
 export async function GET(request: NextRequest) {
-  if (!hasAdminToken(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
 
   try {
+    if (request.nextUrl.searchParams.get('history') === 'true') {
+      return NextResponse.json(await getPricingHistory());
+    }
+
     const settings = await getPricingSettings();
     return NextResponse.json(settings);
   } catch (error) {
@@ -52,9 +52,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  if (!hasAdminToken(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
 
   try {
     const body = await request.json();

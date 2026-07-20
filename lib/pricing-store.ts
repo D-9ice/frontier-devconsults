@@ -1,10 +1,18 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 import { defaultPricingSettings, mergePricingSettings, PricingSettings } from '@/lib/pricing';
 
 const SETTINGS_KEY = 'default';
 const LOCAL_SETTINGS_PATH = path.join(process.cwd(), 'data', 'pricing-settings.json');
+
+export type PricingRevision = {
+  id: string;
+  settings: PricingSettings;
+  action: 'save' | 'restore';
+  editorUsername: string;
+  createdAt: string;
+};
 
 async function readLocalPricingSettings() {
   try {
@@ -21,9 +29,9 @@ async function writeLocalPricingSettings(settings: PricingSettings) {
 }
 
 export async function getPricingSettings(): Promise<PricingSettings> {
-  if (isSupabaseConfigured() && supabase) {
+  if (isSupabaseServerConfigured() && supabaseServer) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseServer
         .from('pricing_settings')
         .select('settings')
         .eq('key', SETTINGS_KEY)
@@ -46,9 +54,9 @@ export async function savePricingSettings(input: PricingSettings): Promise<Prici
     updatedAt: new Date().toISOString(),
   });
 
-  if (isSupabaseConfigured() && supabase) {
+  if (isSupabaseServerConfigured() && supabaseServer) {
     try {
-      const { error } = await supabase
+      const { error } = await supabaseServer
         .from('pricing_settings')
         .upsert(
           {
@@ -60,6 +68,18 @@ export async function savePricingSettings(input: PricingSettings): Promise<Prici
         );
 
       if (!error) {
+        const { error: historyError } = await supabaseServer
+          .from('pricing_settings_history')
+          .insert({
+            settings,
+            action: 'save',
+            editor_username: 'admin',
+          });
+
+        if (historyError) {
+          console.error('Pricing history save failed:', historyError);
+        }
+
         return settings;
       }
 
@@ -69,6 +89,33 @@ export async function savePricingSettings(input: PricingSettings): Promise<Prici
     }
   }
 
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Pricing settings could not be saved because secure Supabase server access is not configured.');
+  }
+
   await writeLocalPricingSettings(settings);
   return settings;
+}
+
+export async function getPricingHistory(): Promise<PricingRevision[]> {
+  if (!isSupabaseServerConfigured() || !supabaseServer) return [];
+
+  const { data, error } = await supabaseServer
+    .from('pricing_settings_history')
+    .select('id, settings, action, editor_username, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('Pricing history fetch failed:', error);
+    return [];
+  }
+
+  return (data || []).map((revision) => ({
+    id: revision.id,
+    settings: mergePricingSettings(revision.settings as Partial<PricingSettings>),
+    action: revision.action === 'restore' ? 'restore' : 'save',
+    editorUsername: revision.editor_username,
+    createdAt: revision.created_at,
+  }));
 }

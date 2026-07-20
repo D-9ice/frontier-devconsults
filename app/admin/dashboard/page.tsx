@@ -6,7 +6,6 @@ import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, C
 import Link from 'next/link';
 
 export default function AdminDashboard() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [stats, setStats] = useState({
     totalSubmissions: 0,
     pendingRequests: 0,
@@ -18,16 +17,7 @@ export default function AdminDashboard() {
   });
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const router = useRouter();
-
   useEffect(() => {
-    // Check authentication
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      router.push('/admin');
-      return;
-    }
-    setIsAuthenticated(true);
-
     // Load stats
     const loadStats = async () => {
       try {
@@ -43,18 +33,12 @@ export default function AdminDashboard() {
       }
     };
     loadStats();
-  }, [router]);
+  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
+  const handleLogout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
     router.push('/admin');
   };
-
-  if (!isAuthenticated) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-gray-600">Loading...</div>
-    </div>;
-  }
 
   return (
     <main className="min-h-screen bg-gray-50">

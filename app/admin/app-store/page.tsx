@@ -1,30 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Smartphone, Plus, Upload, Eye, EyeOff } from 'lucide-react';
 
 export default function AppStoreManagementPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      router.push('/admin');
-      return;
-    }
-    setIsAuthenticated(true);
-  }, [router]);
-
-  if (!isAuthenticated) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-gray-600">Loading...</div>
-    </div>;
-  }
-
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

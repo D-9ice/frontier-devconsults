@@ -1,43 +1,35 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, RefreshCcw, Save, XCircle } from 'lucide-react';
 import { formatPriceRange, PricingSettings } from '@/lib/pricing';
 
+type PricingRevision = {
+  id: string;
+  settings: PricingSettings;
+  action: 'save' | 'restore';
+  editorUsername: string;
+  createdAt: string;
+};
+
 export default function AdminPricingPage() {
   const [settings, setSettings] = useState<PricingSettings | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [history, setHistory] = useState<PricingRevision[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const router = useRouter();
-
-  const adminToken = useMemo(() => {
-    if (typeof window === 'undefined') return '';
-    return localStorage.getItem('admin_token') || '';
-  }, [isAuthenticated]);
-
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      router.push('/admin');
-      return;
-    }
+    loadPricing();
+    loadHistory();
+  }, []);
 
-    setIsAuthenticated(true);
-    loadPricing(token);
-  }, [router]);
-
-  const loadPricing = async (token = adminToken) => {
+  const loadPricing = async () => {
     setIsLoading(true);
     setStatus(null);
 
     try {
-      const response = await fetch('/api/admin/pricing', {
-        headers: { 'x-admin-token': token },
-      });
+      const response = await fetch('/api/admin/pricing', { cache: 'no-store' });
       const data = await response.json();
 
       if (!response.ok) {
@@ -65,7 +57,6 @@ export default function AdminPricingPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': adminToken,
         },
         body: JSON.stringify(settings),
       });
@@ -76,6 +67,7 @@ export default function AdminPricingPage() {
       }
 
       setSettings(data.settings);
+      await loadHistory();
       setStatus({ type: 'success', message: 'Pricing updated successfully. The public pricing page now uses these values.' });
     } catch (error) {
       setStatus({
@@ -87,7 +79,27 @@ export default function AdminPricingPage() {
     }
   };
 
-  if (!isAuthenticated || isLoading) {
+  const loadHistory = async () => {
+    try {
+      const response = await fetch('/api/admin/pricing?history=true', { cache: 'no-store' });
+      if (response.ok) {
+        setHistory(await response.json());
+      }
+    } catch {
+      // The editor stays usable if history is unavailable during initial database setup.
+    }
+  };
+
+  const restoreRevision = (revision: PricingRevision) => {
+    setSettings(revision.settings);
+    setStatus({
+      type: 'success',
+      message: `Revision from ${new Date(revision.createdAt).toLocaleString()} loaded. Save Pricing to make it live.`,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (isLoading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-600">Loading pricing settings...</div>
@@ -225,6 +237,36 @@ export default function AdminPricingPage() {
             });
           }}
         />
+
+        <section className="mb-8 rounded-lg bg-white p-6 shadow-sm">
+          <h2 className="mb-2 text-xl font-bold text-gray-900">Recent Pricing Revisions</h2>
+          <p className="mb-5 text-sm text-gray-600">Load a previous revision, review it above, then save it to publish the rollback.</p>
+          {history.length === 0 ? (
+            <p className="text-sm text-gray-600">No saved revisions yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {history.map((revision) => (
+                <div key={revision.id} className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      USD 1 = GH₵ {revision.settings.exchangeRate.toFixed(2)}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Saved {new Date(revision.createdAt).toLocaleString()} by {revision.editorUsername}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => restoreRevision(revision)}
+                    className="rounded-lg border border-blue-600 px-4 py-2 font-semibold text-blue-600 hover:bg-blue-50"
+                  >
+                    Load Revision
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );

@@ -26,7 +26,8 @@ Create `.env.local` file in project root:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-ADMIN_PASSWORD=YourSecurePasswordHere
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+ADMIN_SESSION_SECRET=generate-a-long-random-secret-here
 ```
 
 #### For Vercel Deployment:
@@ -34,7 +35,10 @@ ADMIN_PASSWORD=YourSecurePasswordHere
 2. Add:
    - `NEXT_PUBLIC_SUPABASE_URL` = your project URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = your anon key
-   - `ADMIN_PASSWORD` = your admin password
+  - `SUPABASE_SERVICE_ROLE_KEY` = your Supabase **service_role** key
+  - `ADMIN_SESSION_SECRET` = a long, unique random secret used to sign the admin session cookie
+
+Never expose either of those two server-only values with a `NEXT_PUBLIC_` prefix. Add them to Production, Preview, and Development in Vercel, then redeploy. The legacy `ADMIN_PASSWORD` is only a local-development fallback and is not used by the production login.
 
 ### Step 4: Create Database Tables
 
@@ -131,6 +135,10 @@ CREATE INDEX idx_projects_status ON projects(status);
 CREATE INDEX idx_pricing_settings_updated_at ON pricing_settings(updated_at DESC);
 ```
 
+### Step 4b: Apply the Security Migration
+
+After the tables exist, run the tracked migrations in order from the `supabase/migrations/` directory in the Supabase SQL Editor. `202607200001_secure_admin_boundary.sql` removes the legacy anon policies that allowed anyone with the browser key to overwrite pricing. `202607200002_pricing_history.sql` adds the revision log used by the dashboard rollback control. The website's server routes use `SUPABASE_SERVICE_ROLE_KEY` for protected data access instead.
+
 ### Step 5: Enable Row Level Security (RLS)
 
 For each table, run in SQL Editor:
@@ -161,16 +169,8 @@ CREATE POLICY "Allow public reads" ON apps
 CREATE POLICY "Allow public reads" ON projects
   FOR SELECT TO anon USING (true);
 
--- Allow public reads for website pricing display
-CREATE POLICY "Allow public reads" ON pricing_settings
-  FOR SELECT TO anon USING (true);
-
--- Allow admin API upserts through the current anon-key based admin flow
-CREATE POLICY "Allow pricing admin writes" ON pricing_settings
-  FOR INSERT TO anon WITH CHECK (true);
-
-CREATE POLICY "Allow pricing admin updates" ON pricing_settings
-  FOR UPDATE TO anon USING (true) WITH CHECK (true);
+-- Pricing is read and updated through secure server routes. Do not add anon
+-- policies for pricing_settings or admin_credentials.
 ```
 
 ### Step 6: Test the Connection

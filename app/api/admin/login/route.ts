@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { setAdminSession } from '@/lib/admin-auth';
+import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
-// Fallback password from environment variable
-const FALLBACK_PASSWORD = process.env.ADMIN_PASSWORD || 'FrontierAdmin2024!';
+const fallbackPassword = process.env.ADMIN_PASSWORD || '';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { password } = body;
-
-    console.log('Login attempt - Password provided:', password ? 'Yes' : 'No');
 
     if (!password) {
       return NextResponse.json(
@@ -21,46 +19,36 @@ export async function POST(request: NextRequest) {
 
     let isValid = false;
 
-    // Try Supabase first
-    if (isSupabaseConfigured() && supabase) {
+    if (isSupabaseServerConfigured() && supabaseServer) {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseServer
           .from('admin_credentials')
           .select('password_hash')
           .eq('username', 'admin')
           .single();
 
-        if (!error && data && data.password_hash !== 'placeholder') {
-          // Compare with hashed password from Supabase
+        if (!error && data?.password_hash && data.password_hash !== 'placeholder') {
           isValid = await bcrypt.compare(password, data.password_hash);
-          console.log('Checked Supabase password:', isValid ? 'Valid' : 'Invalid');
-        } else {
-          console.log('No valid password in Supabase, falling back to env variable');
-          isValid = password === FALLBACK_PASSWORD;
         }
       } catch (err) {
         console.error('Supabase password check error:', err);
-        // Fallback to environment variable
-        isValid = password === FALLBACK_PASSWORD;
       }
-    } else {
-      // Supabase not configured, use environment variable
-      console.log('Supabase not configured, using environment variable');
-      isValid = password === FALLBACK_PASSWORD;
+    }
+
+    // This supports local development before the secure database environment is configured.
+    // Production must use the database-backed credential and ADMIN_SESSION_SECRET.
+    if (!isValid && process.env.NODE_ENV !== 'production' && fallbackPassword) {
+      isValid = password === fallbackPassword;
     }
 
     if (isValid) {
-      console.log('Login successful');
-      // Generate a simple token (in production, use JWT)
-      const token = Buffer.from(`${Date.now()}-${Math.random()}`).toString('base64');
-
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
-        token,
         message: 'Login successful',
       });
+      setAdminSession(response);
+      return response;
     } else {
-      console.log('Login failed - incorrect password');
       return NextResponse.json(
         { error: 'Invalid password' },
         { status: 401 }

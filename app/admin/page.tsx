@@ -28,8 +28,6 @@ export default function AdminLoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store auth token
-        localStorage.setItem('admin_token', data.token);
         router.push('/admin/dashboard');
       } else {
         setError(data.error || 'Invalid password');

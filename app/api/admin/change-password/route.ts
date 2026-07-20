@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-
-const FALLBACK_PASSWORD = process.env.ADMIN_PASSWORD || 'FrontierAdmin2024!';
+import { requireAdmin } from '@/lib/admin-auth';
+import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
+    const unauthorized = requireAdmin(request);
+    if (unauthorized) return unauthorized;
+
     const body = await request.json();
     const { currentPassword, newPassword } = body;
 
@@ -24,30 +26,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify current password (check Supabase first, then fallback)
-    let isCurrentPasswordValid = false;
-
-    if (isSupabaseConfigured() && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('admin_credentials')
-          .select('password_hash')
-          .eq('username', 'admin')
-          .single();
-
-        if (!error && data && data.password_hash !== 'placeholder') {
-          isCurrentPasswordValid = await bcrypt.compare(currentPassword, data.password_hash);
-        } else {
-          // Fallback to environment variable
-          isCurrentPasswordValid = currentPassword === FALLBACK_PASSWORD;
-        }
-      } catch (err) {
-        console.error('Error checking current password:', err);
-        isCurrentPasswordValid = currentPassword === FALLBACK_PASSWORD;
-      }
-    } else {
-      isCurrentPasswordValid = currentPassword === FALLBACK_PASSWORD;
+    if (!isSupabaseServerConfigured() || !supabaseServer) {
+      return NextResponse.json(
+        { error: 'Secure Supabase server access is not configured.' },
+        { status: 503 }
+      );
     }
+
+    const { data, error: loadError } = await supabaseServer
+      .from('admin_credentials')
+      .select('password_hash')
+      .eq('username', 'admin')
+      .single();
+
+    const isCurrentPasswordValid = !loadError && Boolean(data?.password_hash) && data.password_hash !== 'placeholder'
+      ? await bcrypt.compare(currentPassword, data.password_hash)
+      : false;
 
     if (!isCurrentPasswordValid) {
       return NextResponse.json(
@@ -60,54 +54,26 @@ export async function POST(request: NextRequest) {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
-    // Save to Supabase
-    if (isSupabaseConfigured() && supabase) {
-      try {
-        const { error } = await supabase
-          .from('admin_credentials')
-          .upsert({
-            username: 'admin',
-            password_hash: hashedPassword,
-            last_changed: new Date().toISOString(),
-          }, {
-            onConflict: 'username'
-          });
+    const { error: saveError } = await supabaseServer
+      .from('admin_credentials')
+      .upsert({
+        username: 'admin',
+        password_hash: hashedPassword,
+        last_changed: new Date().toISOString(),
+      }, { onConflict: 'username' });
 
-        if (error) {
-          console.error('Error saving password to Supabase:', error);
-          return NextResponse.json(
-            { error: 'Failed to save new password. Please try again.' },
-            { status: 500 }
-          );
-        }
-
-        console.log('✅ Password changed successfully in Supabase');
-
-        return NextResponse.json({
-          success: true,
-          message: 'Password changed successfully! Please log in with your new password.',
-        });
-      } catch (err) {
-        console.error('Supabase password update error:', err);
-        return NextResponse.json(
-          { error: 'Database error. Please try again.' },
-          { status: 500 }
-        );
-      }
-    } else {
-      // Supabase not configured
-      console.log('⚠️ Supabase not configured. Password not saved.');
-      console.log('New password (hashed):', hashedPassword);
-      console.log('To enable password changes:');
-      console.log('1. Configure Supabase credentials');
-      console.log('2. Create admin_credentials table');
-      console.log('3. Redeploy the application');
-
-      return NextResponse.json({
-        success: false,
-        message: 'Supabase is not configured. Password changes require database connection.',
-      }, { status: 503 });
+    if (saveError) {
+      console.error('Error saving password to Supabase:', saveError);
+      return NextResponse.json(
+        { error: 'Failed to save new password. Please try again.' },
+        { status: 500 }
+      );
     }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Password changed successfully! Please log in with your new password.',
+    });
   } catch (error) {
     console.error('Password change error:', error);
     return NextResponse.json(
