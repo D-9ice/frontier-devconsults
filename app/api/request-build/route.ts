@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Save to Supabase if configured
-    if (isSupabaseConfigured() && supabase) {
-      const { data, error } = await supabase
+    if (isSupabaseServerConfigured() && supabaseServer) {
+      const { error } = await supabaseServer
         .from('build_requests')
         .insert([
           {
@@ -54,11 +54,9 @@ export async function POST(request: NextRequest) {
         ])
         .select();
 
-      if (error) {
-        console.error('Supabase error:', error);
-      } else {
-        console.log('✅ Build request saved to Supabase:', data);
-      }
+      if (error) throw error;
+    } else {
+      return NextResponse.json({ error: 'Form storage is temporarily unavailable.' }, { status: 503 });
     }
 
     // Format the email content

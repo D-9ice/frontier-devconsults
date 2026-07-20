@@ -18,7 +18,7 @@ This checklist reflects the current repository. It separates working features fr
   - Signed HTTP-only admin sessions and protected admin APIs are implemented.
   - Custom visitor tracking exists; it does not require Google or Vercel Analytics to function.
   - Project CRUD APIs and editor are implemented; App Store CRUD APIs are implemented but its editor remains to be connected.
-  - Submission management, media uploads, public database-driven listings, hero media CRUD, and email delivery remain active checklist items.
+  - Media uploads, homepage featured-project data, hero media CRUD, dashboard aggregation, and email delivery remain active checklist items.
 
 ## Priority 1 - Secure the Admin and Supabase Boundary
 
@@ -38,8 +38,8 @@ This checklist reflects the current repository. It separates working features fr
   - Keep public read access only if the public pricing route needs it; restrict writes to the server/admin role.
   - Completion test: unauthenticated SQL/API requests cannot change prices.
 
-- [ ] Verify every required table exists in the live Supabase project and apply migrations in a tracked order.
-  - A tracked security migration now exists at `supabase/migrations/202607200001_secure_admin_boundary.sql`; it still needs to be run in the live Supabase project after the required Vercel environment variables are added.
+- [x] Verify every required table exists in the live Supabase project and apply migrations in a tracked order.
+  - The security, pricing history, project, and app migrations were applied through the live Supabase SQL Editor on 2026-07-20.
   - Required baseline: `admin_credentials`, `contact_submissions`, `build_requests`, `visitors`, `apps`, `projects`, and `pricing_settings`.
   - Store schema changes as versioned SQL migrations in the repository rather than only in dashboard history.
   - Completion test: a new environment can be created from migrations without manual reconstruction.
@@ -109,15 +109,14 @@ This checklist reflects the current repository. It separates working features fr
 
 ## Priority 7 - Submissions and Dashboard Data
 
-- [ ] Build authenticated admin APIs to list contact submissions and build requests, filter/search them, mark them responded, add internal notes, and archive/delete when appropriate.
-- [ ] Connect `app/admin/submissions/page.tsx`, which is currently a placeholder, to live Supabase data.
+- [x] Build authenticated admin APIs to list contact submissions and build requests, filter them, and mark them responded.
+- [x] Connect `app/admin/submissions/page.tsx` to live Supabase data.
+- [ ] Add internal notes plus archive/delete actions for submissions.
 - [ ] Connect dashboard submission, pending request, project, and app statistics to real queries.
   - Current dashboard project/app counts are hard-coded.
 - [ ] Add recent activity derived from submissions and publish actions.
-- [ ] Make API failures visible to the user rather than silently logging them.
-  - Current contact/build routes log Supabase errors but may still return a success response.
-- [ ] Connect the standalone `/request-build` page to `/api/request-build`.
-  - Current standalone page only logs the form data and shows an alert.
+- [x] Make contact/build storage failures return an error response to the visitor.
+- [x] Connect the standalone `/request-build` page to `/api/request-build`.
 - [ ] Completion test: submit both forms, confirm database records, view them in admin, mark one responded, and confirm dashboard counts update.
 
 ## Priority 8 - Email Delivery and Forwarding

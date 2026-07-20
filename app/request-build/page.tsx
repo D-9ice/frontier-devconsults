@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { Send, FileText, DollarSign, Calendar } from 'lucide-react';
 
 export default function RequestBuildPage() {
+  const emptyForm = {
+    fullName: '', email: '', phone: '', company: '',
+    projectName: '', projectType: '', description: '',
+    features: '', platforms: [] as string[], timeline: '', budget: '',
+    hasDesigns: '', referenceLinks: '', additionalInfo: '',
+  };
   const [formData, setFormData] = useState({
     // Client Information
     fullName: '',
@@ -27,18 +33,53 @@ export default function RequestBuildPage() {
     referenceLinks: '',
     additionalInfo: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Build request submitted:', formData);
-    alert('Thank you for your request! We will review your project and send you a detailed proposal within 24-48 hours.');
-    // Reset form
-    setFormData({
-      fullName: '', email: '', phone: '', company: '',
-      projectName: '', projectType: '', description: '',
-      features: '', platforms: [], timeline: '', budget: '',
-      hasDesigns: '', referenceLinks: '', additionalInfo: ''
-    });
+    setIsSubmitting(true);
+    setStatus(null);
+
+    try {
+      const features = [
+        formData.features,
+        formData.platforms.length > 0 ? `Target platforms: ${formData.platforms.join(', ')}` : '',
+        formData.hasDesigns ? `Designs/wireframes: ${formData.hasDesigns}` : '',
+        formData.additionalInfo ? `Additional information: ${formData.additionalInfo}` : '',
+      ].filter(Boolean).join('\n\n');
+
+      const response = await fetch('/api/request-build', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          projectName: formData.projectName,
+          projectType: formData.projectType,
+          description: formData.description,
+          features,
+          timeline: formData.timeline,
+          budget: formData.budget,
+          referenceLinks: formData.referenceLinks,
+          additionalInfo: formData.additionalInfo,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Unable to submit your request.');
+
+      setFormData(emptyForm);
+      setStatus({ type: 'success', message: payload.message || 'Your build request has been received.' });
+    } catch (submitError) {
+      setStatus({
+        type: 'error',
+        message: submitError instanceof Error ? submitError.message : 'Unable to submit your request. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -324,11 +365,17 @@ export default function RequestBuildPage() {
 
               {/* Submit Button */}
               <div className="pt-6">
+                {status && (
+                  <div className={`mb-4 rounded-lg border px-4 py-3 text-sm ${status.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-700'}`} role="status">
+                    {status.message}
+                  </div>
+                )}
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center text-lg"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-4 text-lg font-semibold text-white transition-colors hover:from-blue-700 hover:to-blue-900 disabled:cursor-not-allowed disabled:opacity-70 rounded-lg flex items-center justify-center"
                 >
-                  Submit Build Request
+                  {isSubmitting ? 'Submitting...' : 'Submit Build Request'}
                   <Send className="ml-2 w-5 h-5" />
                 </button>
                 <p className="text-center text-sm text-gray-600 mt-4">
