@@ -118,17 +118,17 @@ export default async function PricingPage() {
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Payment Terms</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="text-4xl font-bold text-blue-600 mb-2">30%</div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">50%</div>
               <div className="text-gray-900 font-semibold">Upfront Deposit</div>
               <div className="text-sm text-gray-600 mt-2">To begin development</div>
             </div>
             <div className="text-center p-6 bg-green-50 rounded-lg">
-              <div className="text-4xl font-bold text-green-600 mb-2">40%</div>
+              <div className="text-4xl font-bold text-green-600 mb-2">30%</div>
               <div className="text-gray-900 font-semibold">Midpoint Payment</div>
               <div className="text-sm text-gray-600 mt-2">At 50% completion</div>
             </div>
             <div className="text-center p-6 bg-purple-50 rounded-lg">
-              <div className="text-4xl font-bold text-purple-600 mb-2">30%</div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">20%</div>
               <div className="text-gray-900 font-semibold">Final Payment</div>
               <div className="text-sm text-gray-600 mt-2">Upon delivery</div>
             </div>
@@ -158,7 +158,7 @@ export default async function PricingPage() {
             />
             <FAQItem
               question="Can I pay in installments?"
-              answer="Yes, we offer flexible payment plans split into 3 milestones: 30% upfront, 40% at midpoint, and 30% upon completion."
+              answer="Yes, we offer flexible payment plans split into 3 milestones: 50% upfront, 30% at midpoint, and 20% upon completion."
             />
           </div>
         </div>

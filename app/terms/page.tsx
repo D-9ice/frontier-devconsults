@@ -67,9 +67,9 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Payment Terms</h2>
             <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
-              <li><strong>Upfront Payment:</strong> 30% of total project cost upon agreement signing</li>
-              <li><strong>Milestone Payment:</strong> 40% upon completion of development phase</li>
-              <li><strong>Final Payment:</strong> 30% upon project delivery and approval</li>
+              <li><strong>Upfront Payment:</strong> 50% of total project cost upon agreement signing</li>
+              <li><strong>Milestone Payment:</strong> 30% upon completion of development phase</li>
+              <li><strong>Final Payment:</strong> 20% upon project delivery and approval</li>
               <li><strong>Late Payments:</strong> Overdue payments may incur a 2% monthly interest charge</li>
               <li><strong>Accepted Methods:</strong> MTN Mobile Money, Vodafone Cash, AirtelTigo Money, Cash Payment, Visa, Mastercard</li>
             </ul>

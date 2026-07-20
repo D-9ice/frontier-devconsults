@@ -79,8 +79,8 @@ export default function Home() {
                 View Our Work
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
-              <Link 
-                href="/contact" 
+              <Link
+                href="/contact#request-build"
                 className="inline-flex items-center justify-center px-8 py-4 bg-white/10 hover:bg-white/20 rounded-lg font-semibold backdrop-blur-sm transition-colors border border-white/20"
               >
                 Get Started
