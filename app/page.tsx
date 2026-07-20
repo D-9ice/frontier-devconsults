@@ -51,7 +51,7 @@ export default function Home() {
           <img
             src="/images/frontier-hero.png"
             alt="Frontier DevConsults office workspace"
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className="absolute inset-0 h-full w-full object-cover object-center lg:object-[center_35%]"
           />
         </picture>
         <div className="absolute inset-0 bg-slate-950/5" />
@@ -59,7 +59,7 @@ export default function Home() {
         <p className="absolute left-1/2 top-[44%] z-10 w-max max-w-[calc(100%-3rem)] -translate-x-1/2 whitespace-nowrap text-center text-2xl font-semibold leading-tight text-blue-200 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)] sm:hidden">
           Building Digital Excellence
         </p>
-        <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-5 sm:px-6 sm:py-28 lg:px-8 lg:py-32 min-h-[calc(100svh-88px)] sm:min-h-0 flex items-end sm:block">
+        <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-5 sm:px-6 sm:py-28 lg:px-8 lg:pt-32 lg:pb-12 min-h-[calc(100svh-88px)] sm:min-h-0 lg:min-h-[calc(100svh-64px)] flex items-end sm:block lg:flex lg:items-end">
           <div className="max-w-3xl space-y-5 sm:space-y-7 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)]">
             <p className="hidden text-3xl font-semibold leading-tight text-blue-200 sm:block">
               Building Digital Excellence
