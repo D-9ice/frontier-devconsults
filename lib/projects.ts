@@ -93,7 +93,7 @@ export function validateProjectInput(input: Partial<ProjectInput>) {
   if (!projectStatuses.includes(input.status as ProjectStatus)) return 'Choose a valid project status.';
   if (!['draft', 'published'].includes(input.visibility as string)) return 'Choose a valid visibility.';
   if (!projectColors.includes(input.color as ProjectColor)) return 'Choose a valid project color.';
-  if (!Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
+  if (typeof input.sortOrder !== 'number' || !Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
   return null;
 }
 

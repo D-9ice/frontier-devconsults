@@ -63,7 +63,7 @@ export function validateApp(input: Partial<Omit<AppRecord, 'id'>>) {
   if (!input.name?.trim() || !input.category?.trim() || !input.version?.trim() || !input.description?.trim()) return 'Name, category, version, and description are required.';
   if (!appStatuses.includes(input.status as AppStatus)) return 'Choose a valid app status.';
   if (!['draft', 'published'].includes(input.visibility as string)) return 'Choose a valid visibility.';
-  if (!Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
+  if (typeof input.sortOrder !== 'number' || !Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
   if (input.rating !== null && input.rating !== undefined && (!Number.isFinite(input.rating) || input.rating < 0 || input.rating > 5)) return 'Rating must be between 0 and 5.';
   return null;
 }
