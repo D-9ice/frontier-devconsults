@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import "@fontsource-variable/inter";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -9,8 +9,6 @@ import TawkToWidget from "@/components/TawkToWidget";
 import PWAInstaller from "@/components/PWAInstaller";
 import AdminShortcut from "@/components/AdminShortcut";
 import VisitorTracker from "@/components/VisitorTracker";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.frontier-devconsults.com'),
@@ -107,7 +105,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.className} antialiased`}>
+      <body className="antialiased">
         <PWAInstaller />
         <AdminShortcut />
         <VisitorTracker />
