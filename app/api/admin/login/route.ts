@@ -29,6 +29,23 @@ export async function POST(request: NextRequest) {
 
         if (!error && data?.password_hash && data.password_hash !== 'placeholder') {
           isValid = await bcrypt.compare(password, data.password_hash);
+        } else if (fallbackPassword && password === fallbackPassword) {
+          // Migrate the earlier placeholder credential on the first secure login.
+          // The environment password is only used for this one-time bootstrap.
+          const passwordHash = await bcrypt.hash(password, 12);
+          const { error: saveError } = await supabaseServer
+            .from('admin_credentials')
+            .upsert({
+              username: 'admin',
+              password_hash: passwordHash,
+              last_changed: new Date().toISOString(),
+            }, { onConflict: 'username' });
+
+          if (saveError) {
+            console.error('Admin credential bootstrap failed:', saveError);
+          } else {
+            isValid = true;
+          }
         }
       } catch (err) {
         console.error('Supabase password check error:', err);
