@@ -13,6 +13,12 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Contact and embedded Request a Build forms call API routes.
 - [x] Contact submissions, build requests, visitor tracking, apps, projects, and pricing SQL schemas are documented in `SUPABASE_SETUP.md`.
 - [x] Vercel deployment configuration and PWA assets are present.
+- [x] The legacy dashboard implementation note was reconciled and removed because it no longer reflects the current build.
+  - Supabase/PostgreSQL is in use; Prisma is not required for this architecture.
+  - Signed HTTP-only admin sessions and protected admin APIs are implemented.
+  - Custom visitor tracking exists; it does not require Google or Vercel Analytics to function.
+  - Project CRUD APIs and editor are implemented; App Store CRUD APIs are implemented but its editor remains to be connected.
+  - Submission management, media uploads, public database-driven listings, hero media CRUD, and email delivery remain active checklist items.
 
 ## Priority 1 - Secure the Admin and Supabase Boundary
 
@@ -55,17 +61,18 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Build authenticated admin APIs for project list, create, read, update, publish/unpublish, reorder, and delete actions.
 - [x] Replace `app/admin/projects/page.tsx` placeholder cards and hard-coded counts with live data, edit form, confirmation dialog, and empty/loading/error states.
 - [ ] Replace hard-coded project entries in `app/projects/page.tsx` and the featured-project entries in `app/page.tsx` with database-driven content.
-  - The secured admin project editor and APIs are implemented. Public rendering will be connected after the migration is applied and the existing portfolio is seeded so the live portfolio never becomes empty.
+  - `app/projects/page.tsx` now renders published Supabase projects and retains the existing catalogue as a fallback until the first managed project is published. The homepage featured-project list remains to be connected.
 - [ ] Preserve a deliberate fallback or seed dataset so the public site is never blank on first deployment.
 - [ ] Completion test: create a project in admin, add a logo and details, publish it, reorder it, edit it, unpublish it, and delete it; verify the public pages reflect each operation.
 
 ## Priority 4 - App Store CRUD
 
-- [ ] Complete the `apps` model with the fields the public App Store actually uses: slug, icon, screenshots, features, requirements, version, size, rating, downloads, category, status, featured flag, sort order, Play Store URL, direct download URL, and visibility.
-- [ ] Build authenticated admin APIs for app create/read/update/publish/unpublish/delete and ordering.
-- [ ] Connect `app/admin/app-store/page.tsx` form controls, edit/remove buttons, counters, and app list to those APIs.
+- [x] Complete the `apps` model with the fields the public App Store actually uses: slug, icon, screenshots, features, requirements, version, size, rating, downloads, category, status, featured flag, sort order, Play Store URL, direct download URL, and visibility.
+- [x] Build authenticated admin APIs for app create/read/update/publish/unpublish/delete and ordering.
+- [x] Connect `app/admin/app-store/page.tsx` form controls, edit/remove buttons, counters, and app list to those APIs.
   - Current state: the form is explicitly a demonstration and does not submit or upload files.
-- [ ] Replace hard-coded app data in `app/app-store/page.tsx` with database content.
+- [x] Replace hard-coded app data in `app/app-store/page.tsx` with database content.
+  - The page retains its existing catalogue only until the first published managed app is available, preventing an empty public App Store during the transition.
 - [ ] Add validation for URLs, ratings, permitted statuses, and required published fields.
 - [ ] Completion test: add an app with its icon and store link in admin, publish it, then confirm it appears correctly on the public App Store after refresh and redeploy.
 

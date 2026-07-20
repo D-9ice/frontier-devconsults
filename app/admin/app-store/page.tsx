@@ -1,243 +1,74 @@
 'use client';
 
-import { useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Smartphone, Plus, Upload, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Edit3, Eye, EyeOff, Plus, Save, Smartphone, Trash2, X } from 'lucide-react';
+
+type AppStatus = 'Published' | 'Development' | 'Planning';
+type AppRecord = {
+  id: string; name: string; slug: string | null; category: string; version: string; size: string | null; rating: number | null; downloads: string | null;
+  description: string; features: string[]; requirements: string[]; iconUrl: string | null; screenshotUrls: string[]; videoUrl: string | null;
+  playStoreLink: string | null; downloadLink: string | null; status: AppStatus; visibility: 'draft' | 'published'; featured: boolean; sortOrder: number;
+};
+type AppForm = Omit<AppRecord, 'id'>;
+const emptyApp: AppForm = { name: '', slug: '', category: '', version: '', size: '', rating: null, downloads: '', description: '', features: [], requirements: [], iconUrl: '', screenshotUrls: [], videoUrl: '', playStoreLink: '', downloadLink: '', status: 'Planning', visibility: 'draft', featured: false, sortOrder: 0 };
+const statuses: AppStatus[] = ['Published', 'Development', 'Planning'];
 
 export default function AppStoreManagementPage() {
-  const [showUploadForm, setShowUploadForm] = useState(false);
-  return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <Link
-            href="/admin/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Manage App Store</h1>
-              <p className="text-gray-600 mt-2">Upload and manage your mobile applications</p>
-            </div>
-            <div className="flex gap-3">
-              <Link
-                href="/app-store"
-                className="inline-flex items-center gap-2 px-6 py-3 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-semibold transition-colors"
-              >
-                <Eye className="w-5 h-5" />
-                View App Store
-              </Link>
-              <button
-                onClick={() => setShowUploadForm(!showUploadForm)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Add New App
-              </button>
-            </div>
-          </div>
-        </div>
+  const [apps, setApps] = useState<AppRecord[]>([]);
+  const [form, setForm] = useState<AppForm>(emptyApp);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const stats = useMemo(() => ({ published: apps.filter((app) => app.visibility === 'published').length, development: apps.filter((app) => app.status === 'Development').length, featured: apps.filter((app) => app.featured).length }), [apps]);
 
-        {/* Stats */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="text-sm text-gray-600 mb-1">Published Apps</div>
-            <div className="text-3xl font-bold text-green-600">1</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="text-sm text-gray-600 mb-1">In Development</div>
-            <div className="text-3xl font-bold text-blue-600">3</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Downloads</div>
-            <div className="text-3xl font-bold text-purple-600">1,000+</div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="text-sm text-gray-600 mb-1">Average Rating</div>
-            <div className="text-3xl font-bold text-yellow-600">4.5</div>
-          </div>
-        </div>
+  const loadApps = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/apps', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Unable to load apps.');
+      setApps(data);
+    } catch (error) { setNotice({ type: 'error', text: error instanceof Error ? error.message : 'Unable to load apps.' }); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { loadApps(); }, []);
 
-        {/* Upload Form */}
-        {showUploadForm && (
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-8 border-2 border-blue-600">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New App</h2>
-            <form className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    App Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Lotto Forecaster AI"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Category
-                  </label>
-                  <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white">
-                    <option>Entertainment</option>
-                    <option>Finance</option>
-                    <option>Engineering</option>
-                    <option>Education</option>
-                    <option>Productivity</option>
-                  </select>
-                </div>
-              </div>
+  const close = () => { setIsOpen(false); setEditingId(null); setForm(emptyApp); };
+  const create = () => { setForm({ ...emptyApp, sortOrder: apps.length }); setEditingId(null); setNotice(null); setIsOpen(true); };
+  const edit = (app: AppRecord) => { const { id, ...values } = app; setForm(values); setEditingId(id); setNotice(null); setIsOpen(true); };
+  const submit = async (event: FormEvent) => {
+    event.preventDefault(); setSaving(true); setNotice(null);
+    try {
+      const response = await fetch(editingId ? `/api/admin/apps/${editingId}` : '/api/admin/apps', { method: editingId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Unable to save app.');
+      await loadApps(); close(); setNotice({ type: 'success', text: editingId ? 'App updated.' : 'App created.' });
+    } catch (error) { setNotice({ type: 'error', text: error instanceof Error ? error.message : 'Unable to save app.' }); }
+    finally { setSaving(false); }
+  };
+  const remove = async (app: AppRecord) => {
+    if (!window.confirm(`Delete ${app.name}? This cannot be undone.`)) return;
+    try { const response = await fetch(`/api/admin/apps/${app.id}`, { method: 'DELETE' }); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Unable to delete app.'); setApps((items) => items.filter((item) => item.id !== app.id)); setNotice({ type: 'success', text: 'App deleted.' }); }
+    catch (error) { setNotice({ type: 'error', text: error instanceof Error ? error.message : 'Unable to delete app.' }); }
+  };
 
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Version
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="1.0.0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Size
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="25 MB"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Rating
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="5"
-                    placeholder="4.5"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Description
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="Describe your app..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  App Icon/Logo
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 mb-1">Click to upload or drag and drop</p>
-                  <p className="text-sm text-gray-500">PNG, JPG up to 2MB (512x512px recommended)</p>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Play Store Link
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://play.google.com/store/apps/details?id=..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Direct Download Link (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowUploadForm(false)}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
-                >
-                  Publish App
-                </button>
-              </div>
-            </form>
-
-            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <p className="text-yellow-800 text-sm">
-                <strong>Note:</strong> This form is for demonstration. To make it functional, you need to:
-                implement file upload handling, create database schema for apps, and build API endpoints.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Apps List */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Published Apps</h2>
-          </div>
-          
-          <div className="p-6">
-            <div className="space-y-4">
-              {/* Lotto Forecaster AI */}
-              <div className="border border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Smartphone className="w-8 h-8 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900">Lotto Forecaster AI</h3>
-                    <p className="text-sm text-gray-600 mt-1">Entertainment • v1.0.0 • 25 MB</p>
-                    <div className="flex gap-2 mt-2">
-                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                        Published
-                      </span>
-                      <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
-                        1,000+ downloads
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      Edit
-                    </button>
-                    <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
+  return <main className="min-h-screen bg-gray-50"><div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <Link href="/admin/dashboard" className="mb-4 inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"><ArrowLeft className="h-4 w-4" />Back to Dashboard</Link>
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-3xl font-bold text-gray-900">Manage App Store</h1><p className="mt-2 text-gray-600">Create, publish, edit, and remove application listings.</p></div><div className="flex gap-3"><Link href="/app-store" className="inline-flex items-center justify-center rounded-lg border border-blue-600 px-4 py-3 font-semibold text-blue-600 hover:bg-blue-50">View App Store</Link><button onClick={create} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"><Plus className="h-5 w-5" />Add App</button></div></div>
+    {notice && <div className={`mb-6 rounded-lg border p-4 ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>{notice.text}</div>}
+    <div className="mb-8 grid gap-4 sm:grid-cols-3"><Stat label="Published" value={stats.published} color="text-green-600" /><Stat label="In Development" value={stats.development} color="text-blue-600" /><Stat label="Featured" value={stats.featured} color="text-purple-600" /></div>
+    {isOpen && <AppEditor form={form} setForm={setForm} editing={Boolean(editingId)} saving={saving} onClose={close} onSubmit={submit} />}
+    <section className="overflow-hidden rounded-lg bg-white shadow-sm"><div className="border-b border-gray-200 p-6"><h2 className="text-xl font-bold text-gray-900">All Apps</h2></div>{loading ? <p className="p-8 text-gray-600">Loading apps...</p> : apps.length === 0 ? <div className="p-12 text-center"><Smartphone className="mx-auto mb-4 h-12 w-12 text-gray-300" /><h3 className="font-semibold text-gray-900">No apps yet</h3><p className="mt-2 text-gray-600">Add an app to begin managing the public App Store.</p></div> : <div className="divide-y divide-gray-100">{apps.map((app) => <AppRow key={app.id} app={app} onEdit={() => edit(app)} onDelete={() => remove(app)} />)}</div>}</section>
+  </div></main>;
 }
+
+function Stat({ label, value, color }: { label: string; value: number; color: string }) { return <div className="rounded-lg bg-white p-5 shadow-sm"><p className="text-sm text-gray-600">{label}</p><p className={`mt-1 text-3xl font-bold ${color}`}>{value}</p></div>; }
+function AppRow({ app, onEdit, onDelete }: { app: AppRecord; onEdit: () => void; onDelete: () => void }) { return <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between"><div className="flex min-w-0 items-center gap-4">{app.iconUrl ? <img src={app.iconUrl} alt="" className="h-12 w-12 rounded object-contain" /> : <div className="flex h-12 w-12 items-center justify-center rounded bg-blue-50 text-blue-600"><Smartphone className="h-6 w-6" /></div>}<div className="min-w-0"><p className="truncate font-bold text-gray-900">{app.name}</p><p className="text-sm text-gray-600">{app.category} · v{app.version} · order {app.sortOrder}</p></div></div><div className="flex flex-wrap items-center gap-3"><span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold ${app.visibility === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>{app.visibility === 'published' ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}{app.visibility}</span><button onClick={onEdit} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50" aria-label={`Edit ${app.name}`}><Edit3 className="h-4 w-4" /></button><button onClick={onDelete} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-red-200 text-red-600 hover:bg-red-50" aria-label={`Delete ${app.name}`}><Trash2 className="h-4 w-4" /></button></div></div>; }
+function AppEditor({ form, setForm, editing, saving, onClose, onSubmit }: { form: AppForm; setForm: (value: AppForm) => void; editing: boolean; saving: boolean; onClose: () => void; onSubmit: (event: FormEvent) => void }) { const update = <K extends keyof AppForm>(key: K, value: AppForm[K]) => setForm({ ...form, [key]: value }); return <section className="mb-8 rounded-lg bg-white p-6 shadow-sm"><div className="mb-6 flex items-center justify-between"><h2 className="text-xl font-bold text-gray-900">{editing ? 'Edit App' : 'New App'}</h2><button onClick={onClose} className="rounded p-2 text-gray-500 hover:bg-gray-100" aria-label="Close editor"><X className="h-5 w-5" /></button></div><form onSubmit={onSubmit} className="space-y-5"><div className="grid gap-5 md:grid-cols-2"><Text label="App Name" value={form.name} onChange={(value) => update('name', value)} required /><Text label="Slug (optional)" value={form.slug || ''} onChange={(value) => update('slug', value)} /><Text label="Category" value={form.category} onChange={(value) => update('category', value)} required /><Text label="Version" value={form.version} onChange={(value) => update('version', value)} required /></div><div className="grid gap-5 md:grid-cols-4"><Text label="Size" value={form.size || ''} onChange={(value) => update('size', value)} /><NumberField label="Rating (0-5)" value={form.rating} onChange={(value) => update('rating', value)} /><Text label="Downloads" value={form.downloads || ''} onChange={(value) => update('downloads', value)} /><NumberField label="Sort Order" value={form.sortOrder} onChange={(value) => update('sortOrder', value)} /></div><div className="grid gap-5 md:grid-cols-3"><Select label="Status" value={form.status} options={statuses} onChange={(value) => update('status', value as AppStatus)} /><Select label="Visibility" value={form.visibility} options={['draft', 'published']} onChange={(value) => update('visibility', value as AppForm['visibility'])} /><label className="flex items-end gap-3 pb-3 text-sm font-semibold text-gray-700"><input type="checkbox" checked={form.featured} onChange={(event) => update('featured', event.target.checked)} className="h-4 w-4" />Feature on public page</label></div><TextArea label="Description" value={form.description} onChange={(value) => update('description', value)} required /><div className="grid gap-5 md:grid-cols-2"><TextArea label="Features (one per line)" value={form.features.join('\n')} onChange={(value) => update('features', splitLines(value))} /><TextArea label="Requirements (one per line)" value={form.requirements.join('\n')} onChange={(value) => update('requirements', splitLines(value))} /></div><div className="grid gap-5 md:grid-cols-2"><Text label="App Icon URL" value={form.iconUrl || ''} onChange={(value) => update('iconUrl', value)} /><Text label="Video URL (optional)" value={form.videoUrl || ''} onChange={(value) => update('videoUrl', value)} /><TextArea label="Screenshot URLs (one per line)" value={form.screenshotUrls.join('\n')} onChange={(value) => update('screenshotUrls', splitLines(value))} /><div className="grid gap-5"><Text label="Play Store URL" value={form.playStoreLink || ''} onChange={(value) => update('playStoreLink', value)} /><Text label="Direct Download URL" value={form.downloadLink || ''} onChange={(value) => update('downloadLink', value)} /></div></div><div className="flex justify-end gap-3"><button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button><button disabled={saving} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"><Save className="h-4 w-4" />{saving ? 'Saving...' : editing ? 'Save App' : 'Create App'}</button></div></form></section>; }
+function Text({ label, value, onChange, required = false }: { label: string; value: string; onChange: (value: string) => void; required?: boolean }) { return <label className="block text-sm font-semibold text-gray-700">{label}<input required={required} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900" /></label>; }
+function TextArea({ label, value, onChange, required = false }: { label: string; value: string; onChange: (value: string) => void; required?: boolean }) { return <label className="block text-sm font-semibold text-gray-700">{label}<textarea required={required} rows={4} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900" /></label>; }
+function NumberField({ label, value, onChange }: { label: string; value: number | null; onChange: (value: number | null) => void }) { return <label className="block text-sm font-semibold text-gray-700">{label}<input min="0" max={label.startsWith('Rating') ? '5' : undefined} type="number" value={value ?? ''} onChange={(event) => onChange(event.target.value === '' ? null : Number(event.target.value))} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900" /></label>; }
+function Select({ label, value, options, onChange }: { label: string; value: string; options: readonly string[]; onChange: (value: string) => void }) { return <label className="block text-sm font-semibold text-gray-700">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900">{options.map((option) => <option key={option}>{option}</option>)}</select></label>; }
+function splitLines(value: string) { return value.split('\n').map((item) => item.trim()).filter(Boolean); }

@@ -1,6 +1,20 @@
 import { Download, Star, Shield, Smartphone, Zap, ExternalLink, TrendingUp } from 'lucide-react';
+import { listApps } from '@/lib/apps';
 
-export default function AppStorePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function AppStorePage() {
+  try {
+    const apps = await listApps(false);
+    if (apps.length > 0) return <ManagedAppStore apps={apps} />;
+  } catch (error) {
+    console.error('Public App Store fetch failed:', error);
+  }
+
+  return <LegacyAppStorePage />;
+}
+
+function LegacyAppStorePage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -158,6 +172,37 @@ export default function AppStorePage() {
       </section>
     </main>
   );
+}
+
+function ManagedAppStore({ apps }: { apps: Awaited<ReturnType<typeof listApps>> }) {
+  const featured = apps.filter((app) => app.featured);
+  const remaining = apps.filter((app) => !app.featured);
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <section className="bg-gradient-to-br from-blue-900 via-purple-900 to-blue-900 py-20 text-white">
+        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+          <img src="/logos/frontier-emblem.png" alt="Frontier DevConsults" className="mx-auto mb-5 h-20 w-20 object-contain" />
+          <h1 className="text-5xl font-bold">Frontier App Store</h1>
+          <p className="mx-auto mt-4 max-w-3xl text-xl text-gray-300">Discover and download premium mobile applications built with cutting-edge technology.</p>
+        </div>
+      </section>
+      <section className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {featured.length > 0 && <AppCollection title="Featured Apps" description="Highlighted applications from Frontier DevConsults." apps={featured} />}
+          {remaining.length > 0 && <div className={featured.length > 0 ? 'mt-16' : ''}><AppCollection title="All Applications" description="Published apps and upcoming releases." apps={remaining} /></div>}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function AppCollection({ title, description, apps }: { title: string; description: string; apps: Awaited<ReturnType<typeof listApps>> }) {
+  return <><div className="mb-10"><h2 className="text-3xl font-bold text-gray-900">{title}</h2><p className="mt-2 text-gray-600">{description}</p></div><div className="grid gap-8 md:grid-cols-2">{apps.map((app) => <ManagedAppCard key={app.id} app={app} />)}</div></>;
+}
+
+function ManagedAppCard({ app }: { app: Awaited<ReturnType<typeof listApps>>[number] }) {
+  return <article className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm"><div className="flex gap-5">{app.iconUrl ? <img src={app.iconUrl} alt={`${app.name} icon`} className="h-16 w-16 rounded-lg object-contain" /> : <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-blue-100 text-blue-600"><Smartphone className="h-8 w-8" /></div>}<div><h3 className="text-xl font-bold text-gray-900">{app.name}</h3><p className="font-semibold text-blue-600">{app.category}</p><p className="mt-1 text-sm text-gray-600">v{app.version}{app.size ? ` · ${app.size}` : ''}{app.rating !== null ? ` · ${app.rating}/5` : ''}</p></div></div><p className="mt-5 text-gray-700">{app.description}</p>{app.features.length > 0 && <ul className="mt-5 grid gap-2 text-sm text-gray-600 sm:grid-cols-2">{app.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>}<div className="mt-6 flex flex-wrap gap-3">{app.playStoreLink && <a href={app.playStoreLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700"><ExternalLink className="h-4 w-4" />Play Store</a>}{app.downloadLink && <a href={app.downloadLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 font-semibold text-blue-600 hover:bg-blue-50"><Download className="h-4 w-4" />Download</a>}</div></article>;
 }
 
 interface AppCardProps {

@@ -1,6 +1,20 @@
 import { Code2, Smartphone, Globe, Cpu, Heart, Zap, ExternalLink, Download, GraduationCap } from 'lucide-react';
+import { listProjects } from '@/lib/projects';
 
-export default function ProjectsPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function ProjectsPage() {
+  try {
+    const projects = await listProjects(false);
+    if (projects.length > 0) return <ManagedProjects projects={projects} />;
+  } catch (error) {
+    console.error('Public projects fetch failed:', error);
+  }
+
+  return <LegacyProjectsPage />;
+}
+
+function LegacyProjectsPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -321,6 +335,21 @@ export default function ProjectsPage() {
       </section>
     </main>
   );
+}
+
+function ManagedProjects({ projects }: { projects: Awaited<ReturnType<typeof listProjects>> }) {
+  const groups = [
+    { status: 'Production', title: 'Production' },
+    { status: 'Development', title: 'In Development' },
+    { status: 'Planning', title: 'Planned & Upcoming' },
+  ] as const;
+
+  return <main className="min-h-screen bg-gray-50"><section className="bg-gradient-to-br from-slate-900 to-blue-900 py-20 text-white"><div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><h1 className="text-5xl font-bold">Our Projects</h1><p className="mt-4 text-xl text-gray-300">A showcase of production-ready applications and ongoing developments.</p></div></section><section className="py-16"><div className="mx-auto max-w-7xl space-y-16 px-4 sm:px-6 lg:px-8">{groups.map((group) => { const items = projects.filter((project) => project.status === group.status); return items.length > 0 ? <div key={group.status}><h2 className="mb-8 text-3xl font-bold text-gray-900">{group.title}</h2><div className="grid gap-8 md:grid-cols-2">{items.map((project) => <ManagedProjectCard key={project.id} project={project} />)}</div></div> : null; })}</div></section></main>;
+}
+
+function ManagedProjectCard({ project }: { project: Awaited<ReturnType<typeof listProjects>>[number] }) {
+  const colorClasses = { blue: 'bg-blue-100 text-blue-600', green: 'bg-green-100 text-green-600', purple: 'bg-purple-100 text-purple-600', orange: 'bg-orange-100 text-orange-600', pink: 'bg-pink-100 text-pink-600', yellow: 'bg-yellow-100 text-yellow-600' };
+  return <article className="rounded-lg bg-white p-7 shadow-sm"><div className="flex items-start gap-5">{project.logoUrl ? <img src={project.logoUrl} alt={`${project.title} logo`} className="h-16 w-16 rounded-lg object-contain" /> : <div className={`flex h-16 w-16 items-center justify-center rounded-lg ${colorClasses[project.color]}`}><Code2 className="h-8 w-8" /></div>}<div><h3 className="text-2xl font-bold text-gray-900">{project.title}</h3><p className="mt-1 font-semibold text-blue-600">{project.category}</p><span className="mt-3 inline-block rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">{project.status}</span></div></div><p className="mt-6 text-gray-700">{project.description}</p>{project.technologies.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{project.technologies.map((technology) => <span key={technology} className="rounded bg-gray-100 px-2 py-1 text-sm text-gray-700">{technology}</span>)}</div>}{project.features.length > 0 && <ul className="mt-5 grid gap-2 text-sm text-gray-600 sm:grid-cols-2">{project.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>}<div className="mt-6 flex flex-wrap gap-3">{project.liveLink && <a href={project.liveLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700"><ExternalLink className="h-4 w-4" />View Live</a>}{project.downloadLink && <a href={project.downloadLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 font-semibold text-blue-600 hover:bg-blue-50"><Download className="h-4 w-4" />Download</a>}</div></article>;
 }
 
 interface DetailedProjectCardProps {
