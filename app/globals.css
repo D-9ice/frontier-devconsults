@@ -25,6 +25,19 @@ body {
   font-family: "Inter Variable", Arial, Helvetica, sans-serif;
 }
 
+/* Form values must remain readable when a device prefers dark mode. */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  color: #111827;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
 /* Position Tawk.to widget above WhatsApp button */
 div[id^="tawk"] {
   bottom: 220px !important;
