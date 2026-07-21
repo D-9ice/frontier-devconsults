@@ -44,6 +44,9 @@ This checklist reflects the current repository. It separates working features fr
   - Store schema changes as versioned SQL migrations in the repository rather than only in dashboard history.
   - Completion test: a new environment can be created from migrations without manual reconstruction.
 
+- [ ] Apply `202607210005_submission_management.sql` in the live Supabase SQL Editor.
+  - This adds private submission notes plus archive metadata and indexes used by the admin inbox.
+
 ## Priority 2 - Connect Pricing Fully to Supabase
 
 - [x] Confirm the live `pricing_settings` table contains a valid settings record and that public pricing reads it.
@@ -109,13 +112,11 @@ This checklist reflects the current repository. It separates working features fr
 
 ## Priority 7 - Submissions and Dashboard Data
 
-- [x] Build authenticated admin APIs to list contact submissions and build requests, filter them, and mark them responded.
+- [x] Build authenticated admin APIs to list contact submissions and build requests, filter/search them, mark them responded, save private notes, archive/restore, and delete them.
 - [x] Connect `app/admin/submissions/page.tsx` to live Supabase data.
-- [ ] Add internal notes plus archive/delete actions for submissions.
-- [ ] Connect dashboard submission, pending request, project, and app statistics to real queries.
-  - Current dashboard project/app counts are hard-coded.
-- [ ] Add recent activity derived from submissions and publish actions.
-- [x] Make contact/build storage failures return an error response to the visitor.
+- [x] Connect dashboard submission, pending request, project, app, and visitor statistics to protected Supabase queries.
+- [x] Add recent activity derived from submissions and app/project updates.
+- [x] Make contact/build storage failures visible to the visitor.
 - [x] Connect the standalone `/request-build` page to `/api/request-build`.
 - [ ] Completion test: submit both forms, confirm database records, view them in admin, mark one responded, and confirm dashboard counts update.
 

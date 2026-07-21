@@ -18,8 +18,12 @@ export async function GET(request: NextRequest) {
   }
 
   const filter = request.nextUrl.searchParams.get('type') || 'all';
+  const archived = request.nextUrl.searchParams.get('archived') || 'false';
   if (!['all', 'contact', 'build'].includes(filter)) {
     return NextResponse.json({ error: 'Invalid submission filter.' }, { status: 400 });
+  }
+  if (!['true', 'false'].includes(archived)) {
+    return NextResponse.json({ error: 'Invalid archive filter.' }, { status: 400 });
   }
 
   try {
@@ -29,6 +33,7 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabaseServer
         .from('contact_submissions')
         .select('*')
+        .eq('archived', archived === 'true')
         .order('created_at', { ascending: false });
       if (error) throw error;
       submissions.push(...((data || []) as Submission[]).map((item) => ({ ...item, type: 'contact' as const })));
@@ -38,6 +43,7 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabaseServer
         .from('build_requests')
         .select('*')
+        .eq('archived', archived === 'true')
         .order('created_at', { ascending: false });
       if (error) throw error;
       submissions.push(...((data || []) as Submission[]).map((item) => ({ ...item, type: 'build' as const })));

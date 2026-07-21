@@ -2,34 +2,58 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key } from 'lucide-react';
+import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban } from 'lucide-react';
 import Link from 'next/link';
 
+type DashboardStats = {
+  totalSubmissions: number;
+  pendingRequests: number;
+  activeProjects: number;
+  publishedApps: number;
+  appsInDevelopment: number;
+  totalVisitors: number;
+  visitsToday: number;
+};
+
+type Activity = {
+  id: string;
+  type: 'contact' | 'build' | 'project' | 'app';
+  title: string;
+  detail: string;
+  createdAt: string;
+};
+
+const emptyStats: DashboardStats = {
+  totalSubmissions: 0,
+  pendingRequests: 0,
+  activeProjects: 0,
+  publishedApps: 0,
+  appsInDevelopment: 0,
+  totalVisitors: 0,
+  visitsToday: 0,
+};
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalSubmissions: 0,
-    pendingRequests: 0,
-    activeProjects: 7,
-    publishedApps: 1,
-    appsInDevelopment: 3,
-    totalVisitors: 0,
-    visitsToday: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats>(emptyStats);
+  const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
+  const [dataError, setDataError] = useState('');
+  const [loadingData, setLoadingData] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const router = useRouter();
   useEffect(() => {
-    // Load stats
     const loadStats = async () => {
       try {
-        const response = await fetch('/api/track-visitor');
+        setDataError('');
+        const response = await fetch('/api/admin/dashboard', { cache: 'no-store' });
         const data = await response.json();
-        setStats(prev => ({
-          ...prev,
-          totalVisitors: data.totalVisitors || 0,
-          visitsToday: data.visitsToday || 0,
-        }));
+        if (!response.ok) throw new Error(data.error || 'Failed to load dashboard data.');
+        setStats(data.stats || emptyStats);
+        setRecentActivity(data.recentActivity || []);
       } catch (error) {
         console.error('Failed to load stats:', error);
+        setDataError(error instanceof Error ? error.message : 'Failed to load dashboard data.');
+      } finally {
+        setLoadingData(false);
       }
     };
     loadStats();
@@ -65,48 +89,53 @@ export default function AdminDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {dataError && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700" role="alert">
+            {dataError}
+          </div>
+        )}
         {/* Stats Cards */}
         <div className="grid md:grid-cols-3 lg:grid-cols-7 gap-6 mb-8">
           <StatCard
             icon={<Eye className="w-8 h-8" />}
             title="Total Visitors"
-            value={stats.totalVisitors}
+            value={loadingData ? '...' : stats.totalVisitors}
             color="indigo"
           />
           <StatCard
             icon={<Eye className="w-8 h-8" />}
             title="Today's Visits"
-            value={stats.visitsToday}
+            value={loadingData ? '...' : stats.visitsToday}
             color="cyan"
           />
           <StatCard
             icon={<FileText className="w-8 h-8" />}
             title="Total Submissions"
-            value={stats.totalSubmissions}
+            value={loadingData ? '...' : stats.totalSubmissions}
             color="blue"
           />
           <StatCard
             icon={<Users className="w-8 h-8" />}
             title="Pending Requests"
-            value={stats.pendingRequests}
+            value={loadingData ? '...' : stats.pendingRequests}
             color="yellow"
           />
           <StatCard
             icon={<BarChart3 className="w-8 h-8" />}
             title="Active Projects"
-            value={stats.activeProjects}
+            value={loadingData ? '...' : stats.activeProjects}
             color="green"
           />
           <StatCard
             icon={<Smartphone className="w-8 h-8" />}
             title="Published Apps"
-            value={stats.publishedApps}
+            value={loadingData ? '...' : stats.publishedApps}
             color="purple"
           />
           <StatCard
             icon={<Code2 className="w-8 h-8" />}
             title="Apps in Dev"
-            value={stats.appsInDevelopment}
+            value={loadingData ? '...' : stats.appsInDevelopment}
             color="orange"
           />
         </div>
@@ -157,10 +186,29 @@ export default function AdminDashboard() {
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
-          <div className="text-gray-600 text-center py-8">
-            <p>No recent activity to display.</p>
-            <p className="text-sm mt-2">Form submissions will appear here when received.</p>
-          </div>
+          {loadingData ? (
+            <div className="flex items-center justify-center gap-2 py-8 text-gray-600"><LoaderCircle className="h-5 w-5 animate-spin" /> Loading activity...</div>
+          ) : recentActivity.length === 0 ? (
+            <div className="text-gray-600 text-center py-8">
+              <p>No recent activity to display.</p>
+              <p className="text-sm mt-2">New submissions and content updates will appear here.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
+                  <div className="rounded-md bg-blue-50 p-2 text-blue-600">
+                    {activity.type === 'contact' || activity.type === 'build' ? <MessageSquare className="h-4 w-4" /> : <FolderKanban className="h-4 w-4" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900">{activity.title}</p>
+                    <p className="truncate text-sm text-gray-600">{activity.detail}</p>
+                  </div>
+                  <time className="shrink-0 text-sm text-gray-500">{formatActivityDate(activity.createdAt)}</time>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>
@@ -174,8 +222,12 @@ export default function AdminDashboard() {
 interface StatCardProps {
   icon: React.ReactNode;
   title: string;
-  value: number;
+  value: number | string;
   color: 'blue' | 'yellow' | 'green' | 'purple' | 'orange' | 'indigo' | 'cyan';
+}
+
+function formatActivityDate(value: string) {
+  return new Intl.DateTimeFormat('en-GH', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value));
 }
 
 function StatCard({ icon, title, value, color }: StatCardProps) {
