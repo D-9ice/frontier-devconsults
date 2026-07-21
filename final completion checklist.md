@@ -44,7 +44,7 @@ This checklist reflects the current repository. It separates working features fr
   - Store schema changes as versioned SQL migrations in the repository rather than only in dashboard history.
   - Completion test: a new environment can be created from migrations without manual reconstruction.
 
-- [ ] Apply `202607210005_submission_management.sql` in the live Supabase SQL Editor.
+- [x] Apply `202607210005_submission_management.sql` in the live Supabase SQL Editor.
   - This adds private submission notes plus archive metadata and indexes used by the admin inbox.
 
 ## Priority 2 - Connect Pricing Fully to Supabase
@@ -55,7 +55,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Remove the production reliance on `data/pricing-settings.json`.
   - The local JSON fallback is useful for development but Vercel serverless storage is not durable for admin-edited production data.
 - [x] Add save history/audit metadata: editor identity, saved timestamp, previous value, and rollback option.
-- [ ] Add validation for exchange rate, rounding, and every minimum/maximum USD price.
+- [x] Add validation for exchange rate, rounding, and every minimum/maximum USD price.
+- [x] Connect Request a Build budget options to live Ghana cedi pricing settings.
 - [ ] Completion test: edit a price in the live admin dashboard, refresh the public Pricing page, and verify the new GHS result persists after a redeploy.
 
 ## Priority 3 - Project CRUD
@@ -64,8 +65,8 @@ This checklist reflects the current repository. It separates working features fr
   - Extend the currently documented `projects` table with: slug, sort order, featured flag, visibility, status, color, technologies, features, logo/media references, live URL, download URL, created/updated metadata, and optional publish date.
 - [x] Build authenticated admin APIs for project list, create, read, update, publish/unpublish, reorder, and delete actions.
 - [x] Replace `app/admin/projects/page.tsx` placeholder cards and hard-coded counts with live data, edit form, confirmation dialog, and empty/loading/error states.
-- [ ] Replace hard-coded project entries in `app/projects/page.tsx` and the featured-project entries in `app/page.tsx` with database-driven content.
-  - `app/projects/page.tsx` now renders published Supabase projects and retains the existing catalogue as a fallback until the first managed project is published. The homepage featured-project list remains to be connected.
+- [x] Replace hard-coded project entries in `app/projects/page.tsx` and the featured-project entries in `app/page.tsx` with database-driven content.
+  - `app/projects/page.tsx` renders published Supabase projects. The homepage renders up to six published projects marked featured, while both retain the existing catalogue as a fallback until managed projects are available.
 - [ ] Preserve a deliberate fallback or seed dataset so the public site is never blank on first deployment.
 - [ ] Completion test: create a project in admin, add a logo and details, publish it, reorder it, edit it, unpublish it, and delete it; verify the public pages reflect each operation.
 

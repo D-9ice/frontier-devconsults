@@ -1,7 +1,18 @@
 import Link from 'next/link';
 import { ArrowRight, Code2, Smartphone, Globe, Zap, Building2 } from 'lucide-react';
+import { listProjects } from '@/lib/projects';
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  let featuredProjects: Awaited<ReturnType<typeof listProjects>> = [];
+
+  try {
+    featuredProjects = (await listProjects(false)).filter((project) => project.featured).slice(0, 6);
+  } catch (error) {
+    console.error('Featured projects fetch failed:', error);
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -181,6 +192,17 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredProjects.length > 0 ? featuredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                title={project.title}
+                category={project.category}
+                description={project.description}
+                status={project.status}
+                tags={project.technologies}
+                logoUrl={project.logoUrl || undefined}
+              />
+            )) : <>
             <ProjectCard
               title="MacSunny Electronics"
               category="E-commerce Website"
@@ -277,6 +299,7 @@ export default function Home() {
               tags={["Mobile", "Genealogy", "Collaborative", "Heritage"]}
               logoUrl="/logos/Family-Tree-logo.png"
             />
+            </>}
           </div>
 
           <div className="text-center mt-12">
