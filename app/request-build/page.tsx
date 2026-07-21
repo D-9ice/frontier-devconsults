@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Send, FileText, DollarSign, Calendar } from 'lucide-react';
+import { defaultPricingSettings, formatPriceRange, PricingSettings } from '@/lib/pricing';
 
 export default function RequestBuildPage() {
+  const [pricing, setPricing] = useState<PricingSettings>(defaultPricingSettings);
   const emptyForm = {
     fullName: '', email: '', phone: '', company: '',
     projectName: '', projectType: '', description: '',
@@ -35,6 +37,15 @@ export default function RequestBuildPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/pricing', { cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((settings) => {
+        if (settings) setPricing(settings as PricingSettings);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -293,7 +304,7 @@ export default function RequestBuildPage() {
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <DollarSign className="inline w-4 h-4 mr-1" />
-                        Budget Range *
+                        Budget Range (GH₵) *
                       </label>
                       <select
                         name="budget"
@@ -303,11 +314,11 @@ export default function RequestBuildPage() {
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
                       >
                         <option value="">Select budget range</option>
-                        <option value="small">$500 - $2,000</option>
-                        <option value="medium">$2,000 - $5,000</option>
-                        <option value="large">$5,000 - $10,000</option>
-                        <option value="enterprise">$10,000+</option>
-                        <option value="discuss">Let's Discuss</option>
+                        {pricing.tiers.map((tier) => {
+                          const range = formatPriceRange(tier.price, pricing);
+                          return <option key={tier.id} value={range}>{tier.title}: {range}</option>;
+                        })}
+                        <option value="Prefer to Discuss">Prefer to Discuss</option>
                       </select>
                     </div>
                   </div>

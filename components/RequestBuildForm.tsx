@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Send, Code2, DollarSign, Calendar, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { defaultPricingSettings, formatPriceRange, PricingSettings } from '@/lib/pricing';
 
 export default function RequestBuildForm() {
+  const [pricing, setPricing] = useState<PricingSettings>(defaultPricingSettings);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,6 +24,15 @@ export default function RequestBuildForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    fetch('/api/pricing', { cache: 'no-store' })
+      .then((response) => response.ok ? response.json() : null)
+      .then((settings) => {
+        if (settings) setPricing(settings as PricingSettings);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,7 +313,7 @@ export default function RequestBuildForm() {
                 <div>
                   <label htmlFor="budget" className="block text-sm font-semibold text-gray-700 mb-2">
                     <DollarSign className="w-4 h-4 inline mr-1" />
-                    Budget Range *
+                    Budget Range (GH₵) *
                   </label>
                   <select
                     id="budget"
@@ -311,16 +322,14 @@ export default function RequestBuildForm() {
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
-                  >
-                    <option value="">Select budget range</option>
-                    <option value="under-1000">Under $1,000</option>
-                    <option value="1000-5000">$1,000 - $5,000</option>
-                    <option value="5000-10000">$5,000 - $10,000</option>
-                    <option value="10000-25000">$10,000 - $25,000</option>
-                    <option value="25000-50000">$25,000 - $50,000</option>
-                    <option value="50000-plus">$50,000+</option>
-                    <option value="discuss">Prefer to Discuss</option>
-                  </select>
+                    >
+                      <option value="">Select budget range</option>
+                      {pricing.tiers.map((tier) => {
+                        const range = formatPriceRange(tier.price, pricing);
+                        return <option key={tier.id} value={range}>{tier.title}: {range}</option>;
+                      })}
+                      <option value="Prefer to Discuss">Prefer to Discuss</option>
+                    </select>
                 </div>
                 <div>
                   <label htmlFor="startDate" className="block text-sm font-semibold text-gray-700 mb-2">
