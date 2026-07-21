@@ -11,6 +11,7 @@ export default function RequestBuildPage() {
     projectName: '', projectType: '', description: '',
     features: '', platforms: [] as string[], timeline: '', budget: '',
     hasDesigns: '', referenceLinks: '', additionalInfo: '',
+    website: '',
   };
   const [formData, setFormData] = useState({
     // Client Information
@@ -34,6 +35,7 @@ export default function RequestBuildPage() {
     hasDesigns: '',
     referenceLinks: '',
     additionalInfo: '',
+    website: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -121,6 +123,10 @@ export default function RequestBuildPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
             <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="absolute -left-[10000px]" aria-hidden="true">
+                <label htmlFor="request-page-website">Website</label>
+                <input id="request-page-website" name="website" value={formData.website} onChange={handleChange} tabIndex={-1} autoComplete="off" />
+              </div>
               {/* Client Information */}
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">

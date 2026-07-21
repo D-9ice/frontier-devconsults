@@ -19,6 +19,7 @@ export default function RequestBuildForm() {
     budget: '',
     startDate: '',
     additionalInfo: '',
+    website: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,6 +68,7 @@ export default function RequestBuildForm() {
           budget: '',
           startDate: '',
           additionalInfo: '',
+          website: '',
         });
         
         // Scroll to top of form to show success message
@@ -130,6 +132,10 @@ export default function RequestBuildForm() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="absolute -left-[10000px]" aria-hidden="true">
+              <label htmlFor="request-section-website">Website</label>
+              <input id="request-section-website" name="website" value={formData.website} onChange={handleChange} tabIndex={-1} autoComplete="off" />
+            </div>
             {/* Personal Information */}
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">

@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendAdminNotification } from '@/lib/email';
+import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    const protectionError = validatePublicSubmission(request, body.website);
+    if (protectionError) {
+      return NextResponse.json({ error: protectionError }, { status: 429 });
+    }
     
     // Validate required fields
     const requiredFields = ['name', 'email', 'subject', 'message'];
@@ -60,11 +67,14 @@ ${body.message}
 Submitted on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' })}
 `;
 
-    // Email service integration (same options as request-build)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('=== NEW CONTACT MESSAGE ===');
-      console.log(emailBody);
-      console.log('===========================');
+    try {
+      await sendAdminNotification({
+        subject: emailSubject,
+        text: emailBody,
+        replyTo: body.email,
+      });
+    } catch (emailError) {
+      console.error('Contact submission saved, but notification email failed:', emailError);
     }
 
     return NextResponse.json(

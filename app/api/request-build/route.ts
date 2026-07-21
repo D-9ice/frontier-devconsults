@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendAdminNotification } from '@/lib/email';
+import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    const protectionError = validatePublicSubmission(request, body.website);
+    if (protectionError) {
+      return NextResponse.json({ error: protectionError }, { status: 429 });
+    }
     
     // Validate required fields
     const requiredFields = ['name', 'email', 'phone', 'projectType', 'projectName', 'description'];
@@ -88,71 +95,15 @@ ${body.additionalInfo || 'None provided'}
 Submitted on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' })}
 `;
 
-    // Here you would integrate with your email service
-    // For now, we'll use a placeholder that you can replace with your actual service
-    
-    // Option 1: Using Resend (recommended for Next.js)
-    // const resend = new Resend(process.env.RESEND_API_KEY);
-    // await resend.emails.send({
-    //   from: 'noreply@frontier-devconsults.com',
-    //   to: 'info@frontier-devconsults.com',
-    //   subject: emailSubject,
-    //   text: emailBody,
-    // });
-
-    // Option 2: Using SendGrid
-    // const sgMail = require('@sendgrid/mail');
-    // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    // await sgMail.send({
-    //   to: 'info@frontier-devconsults.com',
-    //   from: 'noreply@frontier-devconsults.com',
-    //   subject: emailSubject,
-    //   text: emailBody,
-    // });
-
-    // Option 3: Using Nodemailer (for SMTP)
-    // const nodemailer = require('nodemailer');
-    // const transporter = nodemailer.createTransport({
-    //   host: process.env.SMTP_HOST,
-    //   port: process.env.SMTP_PORT,
-    //   auth: {
-    //     user: process.env.SMTP_USER,
-    //     pass: process.env.SMTP_PASS,
-    //   },
-    // });
-    // await transporter.sendMail({
-    //   from: process.env.SMTP_FROM,
-    //   to: 'info@frontier-devconsults.com',
-    //   subject: emailSubject,
-    //   text: emailBody,
-    // });
-
-    // For development/testing, log to console
-    if (process.env.NODE_ENV === 'development') {
-      console.log('=== NEW PROJECT REQUEST ===');
-      console.log(emailBody);
-      console.log('===========================');
+    try {
+      await sendAdminNotification({
+        subject: emailSubject,
+        text: emailBody,
+        replyTo: body.email,
+      });
+    } catch (emailError) {
+      console.error('Build request saved, but notification email failed:', emailError);
     }
-
-    // Optionally save to database
-    // const prisma = new PrismaClient();
-    // await prisma.projectRequest.create({
-    //   data: {
-    //     name: body.name,
-    //     email: body.email,
-    //     phone: body.phone,
-    //     company: body.company,
-    //     projectType: body.projectType,
-    //     projectName: body.projectName,
-    //     description: body.description,
-    //     features: body.features,
-    //     timeline: body.timeline,
-    //     budget: body.budget,
-    //     startDate: body.startDate,
-    //     additionalInfo: body.additionalInfo,
-    //     submittedAt: new Date(),
-    //   },
-    // });
 
     return NextResponse.json(
       { 

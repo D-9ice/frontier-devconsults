@@ -128,7 +128,7 @@ This checklist reflects the current repository. It separates working features fr
   - Configure MX/SPF/DKIM/DMARC records and a forward/alias rule from `info@frontier-devconsults.com` to `frontierdevconsults@gmail.com`.
   - Completion test: send an ordinary external email to `info@frontier-devconsults.com` and confirm it arrives at the Gmail inbox.
 
-- [ ] Add transactional form notifications through an email provider such as Resend.
+- [x] Add transactional form notification implementation through Resend.
   - Add a verified sending domain and `RESEND_API_KEY` to Vercel and local environment configuration.
   - Send notification emails to `frontierdevconsults@gmail.com` for contact forms and build requests.
   - Use the client's address as `replyTo`; do not send directly from an unverified visitor address.
@@ -136,7 +136,9 @@ This checklist reflects the current repository. It separates working features fr
   - Completion test: submit each form and verify the Gmail notification, reply-to behavior, client acknowledgement, and Supabase record.
 
 - [ ] Add spam and abuse controls before enabling public email delivery.
-  - Rate limiting, honeypot field or Turnstile/reCAPTCHA, server-side validation, and basic logging.
+  - [x] Server-side validation and best-effort per-instance rate limiting are active.
+  - [x] Browser honeypot fields reject common automated form submissions.
+  - [ ] Add Turnstile/reCAPTCHA for distributed production protection.
   - Completion test: repeated automated submissions are blocked without affecting a normal client submission.
 
 ## Priority 9 - Admin Settings and Operations
