@@ -67,7 +67,7 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Replace `app/admin/projects/page.tsx` placeholder cards and hard-coded counts with live data, edit form, confirmation dialog, and empty/loading/error states.
 - [x] Replace hard-coded project entries in `app/projects/page.tsx` and the featured-project entries in `app/page.tsx` with database-driven content.
   - `app/projects/page.tsx` renders published Supabase projects. The homepage renders up to six published projects marked featured, while both retain the existing catalogue as a fallback until managed projects are available.
-- [ ] Preserve a deliberate fallback or seed dataset so the public site is never blank on first deployment.
+- [x] Preserve a deliberate fallback or seed dataset so the public site is never blank on first deployment.
 - [ ] Completion test: create a project in admin, add a logo and details, publish it, reorder it, edit it, unpublish it, and delete it; verify the public pages reflect each operation.
 
 ## Priority 4 - App Store CRUD
