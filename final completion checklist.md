@@ -83,11 +83,11 @@ This checklist reflects the current repository. It separates working features fr
 
 ## Priority 5 - Image and Video Uploads
 
-- [ ] Create Supabase Storage buckets and policies.
+- [x] Create Supabase Storage buckets and policies.
   - Suggested buckets: `project-media`, `app-media`, and `site-media`.
   - Allow public read only for intentionally public assets.
   - Restrict upload, replacement, and deletion to authenticated admin server routes.
-- [ ] Build a reusable authenticated upload API.
+- [x] Build a reusable authenticated upload API.
   - Validate MIME type, file size, filename, and image/video dimensions before upload.
   - Generate unique paths and return storage URLs plus asset metadata.
   - Add delete/replace behavior that removes orphaned files safely.

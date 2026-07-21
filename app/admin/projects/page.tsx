@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Code2, Edit3, Eye, EyeOff, Plus, Save, Trash2, X } from 'lucide-react';
+import { MediaUpload } from '@/components/admin/media-upload';
 
 type ProjectStatus = 'Production' | 'Development' | 'Planning';
 type ProjectColor = 'blue' | 'green' | 'purple' | 'orange' | 'pink' | 'yellow';
@@ -192,6 +193,7 @@ function ProjectEditor({ form, setForm, editing, isSaving, onClose, onSubmit }: 
       <TextArea label="Description" value={form.description} onChange={(value) => update('description', value)} required />
       <div className="grid gap-5 md:grid-cols-2"><TextArea label="Technologies (one per line)" value={form.technologies.join('\n')} onChange={(value) => update('technologies', splitLines(value))} /><TextArea label="Features (one per line)" value={form.features.join('\n')} onChange={(value) => update('features', splitLines(value))} /></div>
       <div className="grid gap-5 md:grid-cols-3"><Text label="Logo URL" value={form.logoUrl || ''} onChange={(value) => update('logoUrl', value)} /><Text label="Live URL" value={form.liveLink || ''} onChange={(value) => update('liveLink', value)} /><Text label="Download URL" value={form.downloadLink || ''} onChange={(value) => update('downloadLink', value)} /></div>
+      <MediaUpload label="Project logo upload" bucket="project-media" kind="image" value={form.logoUrl || ''} onChange={(value) => update('logoUrl', value)} help="JPEG, PNG, WebP, or GIF up to 8 MB. Save the project after uploading." />
       <div className="flex justify-end gap-3"><button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button><button disabled={isSaving} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"><Save className="h-4 w-4" />{isSaving ? 'Saving...' : editing ? 'Save Project' : 'Create Project'}</button></div>
     </form></section>;
 }
