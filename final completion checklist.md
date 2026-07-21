@@ -78,7 +78,7 @@ This checklist reflects the current repository. It separates working features fr
   - Current state: the form is explicitly a demonstration and does not submit or upload files.
 - [x] Replace hard-coded app data in `app/app-store/page.tsx` with database content.
   - The page retains its existing catalogue only until the first published managed app is available, preventing an empty public App Store during the transition.
-- [ ] Add validation for URLs, ratings, permitted statuses, and required published fields.
+- [x] Add validation for URLs, ratings, permitted statuses, and required published fields.
 - [ ] Completion test: add an app with its icon and store link in admin, publish it, then confirm it appears correctly on the public App Store after refresh and redeploy.
 
 ## Priority 5 - Image and Video Uploads

@@ -65,6 +65,25 @@ export function validateApp(input: Partial<Omit<AppRecord, 'id'>>) {
   if (!['draft', 'published'].includes(input.visibility as string)) return 'Choose a valid visibility.';
   if (typeof input.sortOrder !== 'number' || !Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
   if (input.rating !== null && input.rating !== undefined && (!Number.isFinite(input.rating) || input.rating < 0 || input.rating > 5)) return 'Rating must be between 0 and 5.';
+  const urls = [
+    ['App icon URL', input.iconUrl],
+    ['Video URL', input.videoUrl],
+    ['Play Store URL', input.playStoreLink],
+    ['Direct download URL', input.downloadLink],
+    ...((input.screenshotUrls || []).map((url) => ['Screenshot URL', url] as const)),
+  ];
+  for (const [label, value] of urls) {
+    if (!value?.trim()) continue;
+    try {
+      const parsed = new URL(value);
+      if (!['http:', 'https:'].includes(parsed.protocol)) return `${label} must use http or https.`;
+    } catch {
+      return `${label} must be a valid URL.`;
+    }
+  }
+  if (input.featured && input.visibility !== 'published') return 'Only published apps can be featured on the public App Store.';
+  if (input.status === 'Published' && !input.iconUrl?.trim()) return 'A published app needs an app icon URL.';
+  if (input.status === 'Published' && !input.playStoreLink?.trim() && !input.downloadLink?.trim()) return 'A published app needs a Play Store URL or direct download URL.';
   return null;
 }
 
