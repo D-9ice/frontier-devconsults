@@ -22,6 +22,7 @@ export type Project = {
   technologies: string[];
   features: string[];
   logoUrl: string | null;
+  galleryUrls: string[];
   liveLink: string | null;
   downloadLink: string | null;
   color: ProjectColor;
@@ -48,6 +49,7 @@ function mapProject(row: Record<string, unknown>): Project {
     technologies: Array.isArray(row.technologies) ? row.technologies.map(String) : [],
     features: Array.isArray(row.features) ? row.features.map(String) : [],
     logoUrl: typeof row.logo_url === 'string' ? row.logo_url : null,
+    galleryUrls: Array.isArray(row.gallery_urls) ? row.gallery_urls.filter((url): url is string => typeof url === 'string' && url.length > 0) : [],
     liveLink: typeof row.live_link === 'string' ? row.live_link : null,
     downloadLink: typeof row.download_link === 'string' ? row.download_link : null,
     color: projectColors.includes(row.color as ProjectColor) ? row.color as ProjectColor : 'blue',
@@ -70,6 +72,7 @@ function toRow(input: ProjectInput) {
     technologies: input.technologies,
     features: input.features,
     logo_url: input.logoUrl?.trim() || null,
+    gallery_urls: input.galleryUrls,
     live_link: input.liveLink?.trim() || null,
     download_link: input.downloadLink?.trim() || null,
     color: input.color,
@@ -94,6 +97,7 @@ export function validateProjectInput(input: Partial<ProjectInput>) {
   if (!['draft', 'published'].includes(input.visibility as string)) return 'Choose a valid visibility.';
   if (!projectColors.includes(input.color as ProjectColor)) return 'Choose a valid project color.';
   if (typeof input.sortOrder !== 'number' || !Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
+  if (!Array.isArray(input.galleryUrls) || input.galleryUrls.some((url) => typeof url !== 'string')) return 'Project gallery entries must be valid URLs.';
   return null;
 }
 

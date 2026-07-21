@@ -18,7 +18,7 @@ This checklist reflects the current repository. It separates working features fr
   - Signed HTTP-only admin sessions and protected admin APIs are implemented.
   - Custom visitor tracking exists; it does not require Google or Vercel Analytics to function.
   - Project CRUD APIs and editor are implemented; App Store CRUD APIs are implemented but its editor remains to be connected.
-  - Media uploads, homepage featured-project data, hero media CRUD, dashboard aggregation, and email delivery remain active checklist items.
+  - Homepage featured-project data, dashboard aggregation, and email delivery remain active checklist items. Hero media and media upload completion testing remain active checklist items.
 
 ## Priority 1 - Secure the Admin and Supabase Boundary
 
@@ -91,23 +91,23 @@ This checklist reflects the current repository. It separates working features fr
   - Validate MIME type, file size, filename, and image/video dimensions before upload.
   - Generate unique paths and return storage URLs plus asset metadata.
   - Add delete/replace behavior that removes orphaned files safely.
-- [ ] Add image handling for project logos, project gallery images, app icons, app screenshots, and office media.
-- [ ] Add video handling with poster images, autoplay/mute controls where appropriate, file-size limits, and a fallback image.
+- [x] Add image handling for project logos, project gallery images, app icons, app screenshots, and office media.
+- [x] Add video handling with poster images, autoplay/mute controls where appropriate, file-size limits, and a fallback image.
 - [ ] Add upload progress, preview, replace, remove, retry, and clear error messages in admin forms.
 - [ ] Completion test: upload a valid image and video, publish content that uses them, replace each asset, delete unused assets, and confirm invalid files are rejected.
 
 ## Priority 6 - Hero Background CRUD (Images and Videos)
 
-- [ ] Create a `site_settings` or dedicated `hero_media` table for the homepage hero.
+- [x] Create a `site_settings` or dedicated `hero_media` table for the homepage hero.
   - Required fields: desktop media URL/type, mobile media URL/type, desktop poster image, mobile poster image, alt text, overlay strength, focal position, enabled flag, revision number, updated timestamp, and editor identity.
 - [ ] Build a dedicated Hero Media section in the admin dashboard.
   - Upload or select desktop and mobile assets separately.
   - Support image and video media types.
   - Show device previews before publish.
   - Provide draft, publish, revert, and restore-default actions.
-- [ ] Update `app/page.tsx` to load the published hero settings from Supabase while retaining the current local hero images as a safe fallback.
-- [ ] Preserve the existing responsive rules: wide desktop media on desktop and portrait media on mobile.
-- [ ] Configure safe video behavior: muted, plays inline, no blocking download, poster fallback, and image fallback for reduced-data/reduced-motion environments.
+- [x] Update `app/page.tsx` to load the published hero settings from Supabase while retaining the current local hero images as a safe fallback.
+- [x] Preserve the existing responsive rules: wide desktop media on desktop and portrait media on mobile.
+- [x] Configure safe video behavior: muted, plays inline, no blocking download, poster fallback, and image fallback for reduced-data/reduced-motion environments.
 - [ ] Invalidate or version PWA/runtime caches when hero media changes so mobile visitors do not keep seeing old images.
 - [ ] Completion test: publish a new desktop image, mobile image, desktop video, and mobile video in turn; verify each appears on the correct device and can be rolled back without code deployment.
 

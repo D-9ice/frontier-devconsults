@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { ArrowRight, Code2, Smartphone, Globe, Zap, Building2 } from 'lucide-react';
 import { listProjects } from '@/lib/projects';
+import { getHeroMedia, OfficeMediaItem } from '@/lib/hero-media';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   let featuredProjects: Awaited<ReturnType<typeof listProjects>> = [];
+  const heroMedia = await getHeroMedia();
 
   try {
     featuredProjects = (await listProjects(false)).filter((project) => project.featured).slice(0, 6);
@@ -57,15 +59,8 @@ export default async function Home() {
       />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-slate-950 text-white">
-        <picture>
-          <source media="(max-width: 639px)" srcSet="/images/frontier-hero-mobile.png" />
-          <img
-            src="/images/frontier-hero.png"
-            alt="Frontier DevConsults office workspace"
-            className="absolute inset-0 h-full w-full object-cover object-center lg:object-[center_35%]"
-          />
-        </picture>
-        <div className="absolute inset-0 bg-slate-950/5" />
+        <HeroBackground media={heroMedia} />
+        <div className="absolute inset-0 bg-slate-950" style={{ opacity: heroMedia.overlayStrength / 100 }} />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/5 to-slate-950/25 sm:bg-gradient-to-r sm:from-slate-950/25 sm:via-slate-950/10 sm:to-transparent" />
         <p className="absolute left-1/2 top-[44%] z-10 w-max max-w-[calc(100%-3rem)] -translate-x-1/2 whitespace-nowrap text-center text-2xl font-semibold leading-tight text-blue-200 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)] sm:hidden">
           Building Digital Excellence
@@ -125,22 +120,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <img
-                src="/images/frontier-office.png"
-                alt="Frontier DevConsults office interior"
-                className="h-72 w-full rounded-lg object-cover shadow-2xl sm:col-span-2"
-              />
-              <img
-                src="/images/frontier-hero.png"
-                alt="Frontier DevConsults office work area"
-                className="h-48 w-full rounded-lg object-cover shadow-xl"
-              />
-              <div className="h-48 rounded-lg border border-white/10 bg-white/10 p-6 flex flex-col justify-end">
-                <p className="text-sm font-semibold text-blue-200">More media coming next</p>
-                <p className="mt-2 text-gray-300">
-                  Office walkthrough videos and extra project-room shots can plug into this section.
-                </p>
-              </div>
+              <OfficeShowcase media={heroMedia.officeMedia} />
             </div>
           </div>
         </div>
@@ -366,6 +346,29 @@ export default async function Home() {
       </section>
     </main>
   );
+}
+
+function HeroAsset({ src, type, poster, alt, position, className }: { src: string; type: 'image' | 'video'; poster?: string; alt: string; position: string; className: string }) {
+  return type === 'video'
+    ? <><img src={poster || '/images/frontier-hero.png'} alt="" className={className} style={{ objectPosition: position }} /><video src={src} poster={poster} aria-label={alt} className={className} style={{ objectPosition: position }} autoPlay loop muted playsInline preload="metadata" /></>
+    : <img src={src} alt={alt} className={className} style={{ objectPosition: position }} />;
+}
+
+function HeroBackground({ media }: { media: Awaited<ReturnType<typeof getHeroMedia>> }) {
+  const active = media.enabled ? media : { ...media, desktopMediaUrl: '/images/frontier-hero.png', desktopMediaType: 'image' as const, desktopPosterUrl: '', mobileMediaUrl: '/images/frontier-hero-mobile.png', mobileMediaType: 'image' as const, mobilePosterUrl: '' };
+  return <div className="absolute inset-0"><HeroAsset src={active.desktopMediaUrl} type={active.desktopMediaType} poster={active.desktopPosterUrl} alt={active.altText} position={active.desktopFocalPosition} className="absolute inset-0 hidden h-full w-full object-cover sm:block" /><HeroAsset src={active.mobileMediaUrl} type={active.mobileMediaType} poster={active.mobilePosterUrl} alt={active.altText} position={active.mobileFocalPosition} className="absolute inset-0 h-full w-full object-cover sm:hidden" /></div>;
+}
+
+function OfficeAsset({ item, className, alt }: { item: OfficeMediaItem; className: string; alt: string }) {
+  return item.type === 'video' ? <video src={item.url} poster={item.posterUrl} className={className} controls muted playsInline preload="metadata" /> : <img src={item.url} alt={alt} className={className} />;
+}
+
+function OfficeShowcase({ media }: { media: OfficeMediaItem[] }) {
+  const fallback: OfficeMediaItem[] = [{ url: '/images/frontier-office.png', type: 'image' }, { url: '/images/frontier-hero.png', type: 'image' }];
+  const items = media.length > 0 ? media : fallback;
+  const primary = items[0];
+  const secondary = items[1];
+  return <>{primary && <OfficeAsset item={primary} alt="Frontier DevConsults office interior" className="h-72 w-full rounded-lg object-cover shadow-2xl sm:col-span-2" />}{secondary ? <OfficeAsset item={secondary} alt="Frontier DevConsults office work area" className="h-48 w-full rounded-lg object-cover shadow-xl" /> : <div className="h-48 rounded-lg border border-white/10 bg-white/10 p-6" />}{items.slice(2, 3).map((item) => <OfficeAsset key={item.url} item={item} alt="Frontier DevConsults office" className="h-48 w-full rounded-lg object-cover shadow-xl" />)}{items.length < 3 && <div className="h-48 rounded-lg border border-white/10 bg-white/10 p-6 flex flex-col justify-end"><p className="text-sm font-semibold text-blue-200">More media coming next</p><p className="mt-2 text-gray-300">Office walkthrough videos and extra project-room shots can plug into this section.</p></div>}</>;
 }
 
 interface ServiceCardProps {

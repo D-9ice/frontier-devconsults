@@ -20,6 +20,7 @@ type Project = {
   technologies: string[];
   features: string[];
   logoUrl: string | null;
+  galleryUrls: string[];
   liveLink: string | null;
   downloadLink: string | null;
   color: ProjectColor;
@@ -29,7 +30,7 @@ type ProjectForm = Omit<Project, 'id'>;
 
 const emptyProject: ProjectForm = {
   title: '', slug: '', category: '', status: 'Planning', visibility: 'draft', featured: false,
-  sortOrder: 0, description: '', technologies: [], features: [], logoUrl: '', liveLink: '', downloadLink: '', color: 'blue',
+  sortOrder: 0, description: '', technologies: [], features: [], logoUrl: '', galleryUrls: [], liveLink: '', downloadLink: '', color: 'blue',
 };
 
 const statuses: ProjectStatus[] = ['Production', 'Development', 'Planning'];
@@ -76,7 +77,7 @@ export default function ProjectsPage() {
   const openEdit = (project: Project) => {
     const { id, ...values } = project;
     setEditingId(id);
-    setForm(values);
+    setForm({ ...values, galleryUrls: values.galleryUrls || [] });
     setNotice(null);
     setIsFormOpen(true);
   };
@@ -193,7 +194,12 @@ function ProjectEditor({ form, setForm, editing, isSaving, onClose, onSubmit }: 
       <TextArea label="Description" value={form.description} onChange={(value) => update('description', value)} required />
       <div className="grid gap-5 md:grid-cols-2"><TextArea label="Technologies (one per line)" value={form.technologies.join('\n')} onChange={(value) => update('technologies', splitLines(value))} /><TextArea label="Features (one per line)" value={form.features.join('\n')} onChange={(value) => update('features', splitLines(value))} /></div>
       <div className="grid gap-5 md:grid-cols-3"><Text label="Logo URL" value={form.logoUrl || ''} onChange={(value) => update('logoUrl', value)} /><Text label="Live URL" value={form.liveLink || ''} onChange={(value) => update('liveLink', value)} /><Text label="Download URL" value={form.downloadLink || ''} onChange={(value) => update('downloadLink', value)} /></div>
-      <MediaUpload label="Project logo upload" bucket="project-media" kind="image" value={form.logoUrl || ''} onChange={(value) => update('logoUrl', value)} help="JPEG, PNG, WebP, or GIF up to 8 MB. Save the project after uploading." />
+      <MediaUpload label="Project logo upload" bucket="project-media" kind="image" value={form.logoUrl || ''} onChange={(value) => update('logoUrl', value)} help="Drop a logo here or choose a file. Save the project after uploading." />
+      <div className="space-y-3 rounded-lg border border-gray-200 p-4">
+        <div><h3 className="font-semibold text-gray-900">Project gallery</h3><p className="mt-1 text-sm text-gray-600">Add supporting screenshots or photos. Drag and drop is supported.</p></div>
+        <MediaUpload label="Add gallery image" bucket="project-media" kind="image" value="" onChange={(value) => update('galleryUrls', [...form.galleryUrls, value])} showEmptyState={false} />
+        {form.galleryUrls.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{form.galleryUrls.map((url) => <div key={url} className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50"><img src={url} alt="Project gallery preview" className="h-28 w-full object-cover" /><button type="button" onClick={() => update('galleryUrls', form.galleryUrls.filter((item) => item !== url))} className="absolute right-2 top-2 rounded bg-white/95 p-1.5 text-red-600 shadow hover:bg-white" aria-label="Remove gallery image"><Trash2 className="h-4 w-4" /></button></div>)}</div>}
+      </div>
       <div className="flex justify-end gap-3"><button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button><button disabled={isSaving} className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"><Save className="h-4 w-4" />{isSaving ? 'Saving...' : editing ? 'Save Project' : 'Create Project'}</button></div>
     </form></section>;
 }

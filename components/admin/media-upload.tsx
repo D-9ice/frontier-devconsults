@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, DragEvent, useRef, useState } from 'react';
 import { FileImage, FileVideo, LoaderCircle, Trash2, Upload } from 'lucide-react';
 
 type MediaBucket = 'project-media' | 'app-media' | 'site-media';
@@ -34,6 +34,7 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
   const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const isUploading = progress !== null && progress < 100;
   const accept = kind === 'image' ? 'image/jpeg,image/png,image/webp,image/gif' : 'video/mp4,video/webm';
 
@@ -86,6 +87,13 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
     if (file) void uploadFile(file);
   };
 
+  const onDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    const [file] = Array.from(event.dataTransfer.files);
+    if (file) void uploadFile(file);
+  };
+
   const remove = async () => {
     const path = mediaPathForUrl(value, bucket);
     if (!window.confirm(`Remove this ${kind}?`)) return;
@@ -106,7 +114,12 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
     }
   };
 
-  return <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
+  return <div
+    onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }}
+    onDragLeave={(event) => { if (event.currentTarget === event.target) setIsDragging(false); }}
+    onDrop={onDrop}
+    className={`rounded-lg border border-dashed p-4 transition-colors ${isDragging ? 'border-blue-600 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}
+  >
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div><p className="text-sm font-semibold text-gray-900">{label}</p>{help && <p className="mt-1 text-sm text-gray-600">{help}</p>}</div>
       <input ref={inputRef} onChange={onFileChange} type="file" accept={accept} className="sr-only" />
@@ -120,6 +133,6 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
       {kind === 'image' ? <img src={value} alt="Uploaded preview" className="h-20 w-20 rounded-lg border border-gray-200 object-contain" /> : <video src={value} className="h-20 w-32 rounded-lg bg-black object-cover" controls muted playsInline />}
       <div className="min-w-0 flex-1"><p className="break-all text-xs text-gray-600">{value}</p><button type="button" onClick={() => void remove()} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-red-600 hover:text-red-700"><Trash2 className="h-4 w-4" />Remove</button></div>
     </div>}
-    {!value && showEmptyState && <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">{kind === 'image' ? <FileImage className="h-4 w-4" /> : <FileVideo className="h-4 w-4" />}No {kind} selected.</div>}
+    {!value && showEmptyState && <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">{kind === 'image' ? <FileImage className="h-4 w-4" /> : <FileVideo className="h-4 w-4" />}{isDragging ? `Drop the ${kind} here.` : `Drop a ${kind} here or use Upload.`}</div>}
   </div>;
 }

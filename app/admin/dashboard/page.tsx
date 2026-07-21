@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban } from 'lucide-react';
+import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images } from 'lucide-react';
 import Link from 'next/link';
 
 type DashboardStats = {
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-7 gap-4">
             <ActionButton
               href="/admin/app-store"
               icon={<Smartphone className="w-5 h-5" />}
@@ -168,6 +168,11 @@ export default function AdminDashboard() {
               href="/admin/settings"
               icon={<Settings className="w-5 h-5" />}
               label="Settings"
+            />
+            <ActionButton
+              href="/admin/hero-media"
+              icon={<Images className="w-5 h-5" />}
+              label="Hero & Office Media"
             />
             <button
               onClick={() => setShowPasswordModal(true)}
