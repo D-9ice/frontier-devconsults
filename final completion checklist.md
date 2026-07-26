@@ -17,8 +17,8 @@ This checklist reflects the current repository. It separates working features fr
   - Supabase/PostgreSQL is in use; Prisma is not required for this architecture.
   - Signed HTTP-only admin sessions and protected admin APIs are implemented.
   - Custom visitor tracking exists; it does not require Google or Vercel Analytics to function.
-  - Project CRUD APIs and editor are implemented; App Store CRUD APIs are implemented but its editor remains to be connected.
-  - Homepage featured-project data, dashboard aggregation, and email delivery remain active checklist items. Hero media and media upload completion testing remain active checklist items.
+  - Project and App Store CRUD APIs and editors are implemented.
+  - Homepage featured-project data, dashboard aggregation, and transactional email delivery are implemented. Hero media and media upload completion testing remain active checklist items.
 
 ## Priority 1 - Secure the Admin and Supabase Boundary
 
@@ -46,6 +46,16 @@ This checklist reflects the current repository. It separates working features fr
 
 - [x] Apply `202607210005_submission_management.sql` in the live Supabase SQL Editor.
   - This adds private submission notes plus archive metadata and indexes used by the admin inbox.
+
+## Priority 1A - Admin and Site Hardening
+
+- [x] Keep direct `/admin` inert: it must not render a sign-in page and returns to the previous public page, with `/` as the fallback.
+- [ ] Audit every protected dashboard page and privileged API action to confirm a valid signed admin session is required.
+- [ ] Add per-IP login throttling with temporary lockouts and generic failure messages.
+- [ ] Enforce same-origin and CSRF protections on all state-changing admin API routes.
+- [ ] Apply and verify production security and caching controls: Content Security Policy, frame protection, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for authenticated admin pages.
+- [x] Provide a non-advertised `Cmd/Ctrl + Shift + A` shortcut that opens the in-page password gate; server-signed sessions and protected APIs remain the security boundary.
+- [ ] Completion test: verify direct admin URLs, expired or forged cookies, unauthenticated API calls, cross-site write attempts, and repeated failed logins cannot expose or change protected data.
 
 ## Priority 2 - Connect Pricing Fully to Supabase
 
@@ -75,7 +85,7 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Complete the `apps` model with the fields the public App Store actually uses: slug, icon, screenshots, features, requirements, version, size, rating, downloads, category, status, featured flag, sort order, Play Store URL, direct download URL, and visibility.
 - [x] Build authenticated admin APIs for app create/read/update/publish/unpublish/delete and ordering.
 - [x] Connect `app/admin/app-store/page.tsx` form controls, edit/remove buttons, counters, and app list to those APIs.
-  - Current state: the form is explicitly a demonstration and does not submit or upload files.
+  - App records can be created, edited, published/unpublished, and deleted from the admin dashboard.
 - [x] Replace hard-coded app data in `app/app-store/page.tsx` with database content.
   - The page retains its existing catalogue only until the first published managed app is available, preventing an empty public App Store during the transition.
 - [x] Add validation for URLs, ratings, permitted statuses, and required published fields.
@@ -93,18 +103,18 @@ This checklist reflects the current repository. It separates working features fr
   - Add delete/replace behavior that removes orphaned files safely.
 - [x] Add image handling for project logos, project gallery images, app icons, app screenshots, and office media.
 - [x] Add video handling with poster images, autoplay/mute controls where appropriate, file-size limits, and a fallback image.
-- [ ] Add upload progress, preview, replace, remove, retry, and clear error messages in admin forms.
+- [x] Add drag-and-drop selection, previews, replace/remove controls, and clear upload error messages in the Hero & Office Media admin area.
+- [ ] Add upload progress and retry states across every project, app, and site media form.
 - [ ] Completion test: upload a valid image and video, publish content that uses them, replace each asset, delete unused assets, and confirm invalid files are rejected.
 
-## Priority 6 - Hero Background CRUD (Images and Videos)
+## Priority 6 - Hero Background and Office Media CRUD (Images and Videos)
 
 - [x] Create a `site_settings` or dedicated `hero_media` table for the homepage hero.
   - Required fields: desktop media URL/type, mobile media URL/type, desktop poster image, mobile poster image, alt text, overlay strength, focal position, enabled flag, revision number, updated timestamp, and editor identity.
-- [ ] Build a dedicated Hero Media section in the admin dashboard.
+- [x] Build a dedicated Hero & Office Media section in the admin dashboard.
   - Upload or select desktop and mobile assets separately.
-  - Support image and video media types.
-  - Show device previews before publish.
-  - Provide draft, publish, revert, and restore-default actions.
+  - Support image and video media types, device previews, drag-and-drop upload, and built-in fallback media.
+- [ ] Add a revision browser, explicit draft/publish workflow, and safe rollback-to-previous-version action.
 - [x] Update `app/page.tsx` to load the published hero settings from Supabase while retaining the current local hero images as a safe fallback.
 - [x] Preserve the existing responsive rules: wide desktop media on desktop and portrait media on mobile.
 - [x] Configure safe video behavior: muted, plays inline, no blocking download, poster fallback, and image fallback for reduced-data/reduced-motion environments.
@@ -133,7 +143,7 @@ This checklist reflects the current repository. It separates working features fr
   - Send notification emails to `frontierdevconsults@gmail.com` for contact forms and build requests.
   - Use the client's address as `replyTo`; do not send directly from an unverified visitor address.
   - Send an optional acknowledgement to the client.
-  - Completion test: submit each form and verify the Gmail notification, reply-to behavior, client acknowledgement, and Supabase record.
+  - [x] Completion test: Contact-form and build-request notifications were delivered through Resend to Gmail on 21 July 2026.
 
 - [ ] Add spam and abuse controls before enabling public email delivery.
   - [x] Server-side validation and best-effort per-instance rate limiting are active.

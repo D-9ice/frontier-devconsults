@@ -7,12 +7,12 @@ export default function AdminPageGuard({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(pathname !== '/admin');
-  const [isAuthenticated, setIsAuthenticated] = useState(pathname === '/admin');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     if (pathname === '/admin') {
       setIsChecking(false);
-      setIsAuthenticated(true);
+      setIsAuthenticated(false);
       return;
     }
 
@@ -24,10 +24,12 @@ export default function AdminPageGuard({ children }: { children: React.ReactNode
         if (data.authenticated) {
           setIsAuthenticated(true);
         } else {
-          router.replace('/admin');
+          router.replace('/');
         }
       })
-      .catch(() => router.replace('/admin'))
+      .catch(() => {
+        if (isMounted) router.replace('/');
+      })
       .finally(() => isMounted && setIsChecking(false));
 
     return () => {
@@ -35,7 +37,11 @@ export default function AdminPageGuard({ children }: { children: React.ReactNode
     };
   }, [pathname, router]);
 
-  if (pathname !== '/admin' && (isChecking || !isAuthenticated)) {
+  if (pathname === '/admin') {
+    return <>{children}</>;
+  }
+
+  if (isChecking || !isAuthenticated) {
     return <main className="flex min-h-screen items-center justify-center bg-gray-50 text-gray-600">Loading...</main>;
   }
 
