@@ -50,7 +50,8 @@ This checklist reflects the current repository. It separates working features fr
 ## Priority 1A - Admin and Site Hardening
 
 - [x] Keep direct `/admin` inert: it must not render a sign-in page and returns to the previous public page, with `/` as the fallback.
-- [ ] Audit every protected dashboard page and privileged API action to confirm a valid signed admin session is required.
+- [x] Audit every protected dashboard page and privileged API action to confirm a valid signed admin session is required.
+  - Completed: privileged APIs verify signed cookies and same-origin mutations; protected `/admin/*` routes now reject invalid sessions on the server before page content renders, while direct `/admin` keeps the shortcut-only entry behavior.
 - [ ] Add per-IP login throttling with temporary lockouts and generic failure messages.
 - [x] Enforce same-origin and CSRF protections on all state-changing admin API routes.
 - [x] Apply and verify production security and caching controls: Content Security Policy, frame protection, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for authenticated admin pages.

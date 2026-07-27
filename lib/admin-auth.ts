@@ -3,7 +3,7 @@ import 'server-only';
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
-const ADMIN_SESSION_COOKIE = 'frontier_admin_session';
+export const ADMIN_SESSION_COOKIE = 'frontier_admin_session';
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 
 type AdminSession = {
@@ -58,9 +58,8 @@ export function clearAdminSession(response: NextResponse) {
   });
 }
 
-export function isAdminRequest(request: NextRequest) {
+export function isAdminSessionToken(cookie?: string) {
   try {
-    const cookie = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
     if (!cookie) return false;
 
     const [payload, signature] = cookie.split('.');
@@ -75,6 +74,10 @@ export function isAdminRequest(request: NextRequest) {
   } catch {
     return false;
   }
+}
+
+export function isAdminRequest(request: NextRequest) {
+  return isAdminSessionToken(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
 }
 
 export function requireAdmin(request: NextRequest) {
