@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { setAdminSession } from '@/lib/admin-auth';
+import { requireSameOrigin, setAdminSession } from '@/lib/admin-auth';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 const fallbackPassword = process.env.ADMIN_PASSWORD || '';
 
 export async function POST(request: NextRequest) {
+  const invalidOrigin = requireSameOrigin(request);
+  if (invalidOrigin) return invalidOrigin;
+
   try {
     const body = await request.json();
     const { password } = body;

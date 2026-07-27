@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPricingHistory, getPricingSettings, savePricingSettings } from '@/lib/pricing-store';
 import { mergePricingSettings, PricingSettings } from '@/lib/pricing';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
 
 function validateSettings(settings: PricingSettings) {
   if (!Number.isFinite(settings.exchangeRate) || settings.exchangeRate <= 0) {
@@ -32,7 +32,7 @@ function validateSettings(settings: PricingSettings) {
 }
 
 export async function GET(request: NextRequest) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
 
   try {

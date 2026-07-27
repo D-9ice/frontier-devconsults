@@ -52,8 +52,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Keep direct `/admin` inert: it must not render a sign-in page and returns to the previous public page, with `/` as the fallback.
 - [ ] Audit every protected dashboard page and privileged API action to confirm a valid signed admin session is required.
 - [ ] Add per-IP login throttling with temporary lockouts and generic failure messages.
-- [ ] Enforce same-origin and CSRF protections on all state-changing admin API routes.
-- [ ] Apply and verify production security and caching controls: Content Security Policy, frame protection, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for authenticated admin pages.
+- [x] Enforce same-origin and CSRF protections on all state-changing admin API routes.
+- [x] Apply and verify production security and caching controls: Content Security Policy, frame protection, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for authenticated admin pages.
 - [x] Provide a non-advertised `Cmd/Ctrl + Shift + A` shortcut that opens the in-page password gate; server-signed sessions and protected APIs remain the security boundary.
 - [ ] Completion test: verify direct admin URLs, expired or forged cookies, unauthenticated API calls, cross-site write attempts, and repeated failed logins cannot expose or change protected data.
 

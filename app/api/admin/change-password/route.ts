@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdminMutation } from '@/lib/admin-auth';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
-    const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
     if (unauthorized) return unauthorized;
 
     const body = await request.json();

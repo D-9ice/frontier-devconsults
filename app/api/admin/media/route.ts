@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createMediaUpload, deleteMedia, mediaBuckets, validateMediaUpload } from '@/lib/admin-media';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdminMutation } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
 
   try {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
 
   try {

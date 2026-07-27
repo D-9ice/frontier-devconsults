@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deleteProject, updateProject, validateProjectInput } from '@/lib/projects';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdminMutation } from '@/lib/admin-auth';
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PUT(request: NextRequest, { params }: RouteContext) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
   try {
     const input = await request.json();
@@ -20,7 +20,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
   try {
     const { id } = await params;

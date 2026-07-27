@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdminMutation } from '@/lib/admin-auth';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 type RouteContext = { params: Promise<{ type: string; id: string }> };
 
 export async function PATCH(request: NextRequest, { params }: RouteContext) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
   if (!isSupabaseServerConfigured() || !supabaseServer) return NextResponse.json({ error: 'Secure Supabase server access is not configured.' }, { status: 503 });
 
@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteContext) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
   if (!isSupabaseServerConfigured() || !supabaseServer) return NextResponse.json({ error: 'Secure Supabase server access is not configured.' }, { status: 503 });
 

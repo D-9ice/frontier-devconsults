@@ -81,3 +81,27 @@ export function requireAdmin(request: NextRequest) {
   if (isAdminRequest(request)) return null;
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 }
+
+export function requireSameOrigin(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  if (!origin) {
+    return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
+  }
+
+  try {
+    if (new URL(origin).origin !== request.nextUrl.origin) {
+      return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
+    }
+  } catch {
+    return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
+  }
+
+  return null;
+}
+
+export function requireAdminMutation(request: NextRequest) {
+  const unauthorized = requireAdmin(request);
+  if (unauthorized) return unauthorized;
+
+  return requireSameOrigin(request);
+}

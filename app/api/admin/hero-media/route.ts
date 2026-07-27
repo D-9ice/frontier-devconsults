@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHeroMedia, getHeroMediaRevisions, saveHeroMedia, validateHeroMedia } from '@/lib/hero-media';
-import { requireAdmin } from '@/lib/admin-auth';
+import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
 
 export async function GET(request: NextRequest) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
   try {
     const [settings, revisions] = await Promise.all([getHeroMedia(), getHeroMediaRevisions()]);
