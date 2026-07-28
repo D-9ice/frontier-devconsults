@@ -1,0 +1,56 @@
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Editor state
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+vendor/
+Pods/
+
+# Build and framework output
+.next/
+dist/
+build/
+out/
+coverage/
+.nuxt/
+.svelte-kit/
+.dart_tool/
+.gradle/
+DerivedData/
+
+# Caches, logs, and temporary files
+.cache/
+.tmp/
+tmp/
+temp/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local Codex/session data
+.codex/sessions/
+.codex/logs/
+.codex/cache/
+
+# Backups and archives
+*.bak
+*.backup
+*.old
+backups/
+archives/
