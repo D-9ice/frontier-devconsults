@@ -95,7 +95,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Replace hard-coded app data in `app/app-store/page.tsx` with database content.
   - The page retains its existing catalogue only until the first published managed app is available, preventing an empty public App Store during the transition.
 - [x] Add validation for URLs, ratings, permitted statuses, and required published fields.
-- [ ] Completion test: add an app with its icon and store link in admin, publish it, then confirm it appears correctly on the public App Store after refresh and redeploy.
+- [x] Completion test: add an app with its icon and store link in admin, publish it, then confirm it appears correctly on the public App Store after refresh and redeploy.
+  - Completed on 29 July 2026 with a temporary CRUD Verification App: the draft stayed private; publication exposed its icon, category, version, description, multiline features, and Play Store link; the listing persisted through a fresh production redeployment; and deletion restored the original Lotto Forecaster AI fallback catalogue.
 
 ## Priority 5 - Image and Video Uploads
 
