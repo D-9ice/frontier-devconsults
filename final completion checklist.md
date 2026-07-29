@@ -57,8 +57,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Enforce same-origin and CSRF protections on all state-changing admin API routes.
 - [x] Apply and verify production security and caching controls: Content Security Policy, frame protection, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for authenticated admin pages.
 - [x] Provide a non-advertised `Cmd/Ctrl + Shift + A` shortcut that opens the in-page password gate; server-signed sessions and protected APIs remain the security boundary.
-- [ ] Completion test: verify direct admin URLs, expired or forged cookies, unauthenticated API calls, cross-site write attempts, and repeated failed logins cannot expose or change protected data.
-  - Initial testing on 29 July 2026 passed direct access, forged-session, unauthenticated API, cross-site login, and repeated-login checks. Follow-up browser testing exposed reversed read/write guards in Pricing, Projects, and Hero Media; the correction must deploy and pass protected GET/cross-site PUT verification before this item is complete.
+- [x] Completion test: verify direct admin URLs, expired or forged cookies, unauthenticated API calls, cross-site write attempts, and repeated failed logins cannot expose or change protected data.
+  - Completed on 29 July 2026 after deploying route-guard correction `885d56d`: valid-session reads and same-origin pricing writes succeeded; protected reads returned `401` without a session; forged cross-site writes were rejected; and the earlier direct-access, forged-session, cross-site login, and repeated-login tests passed.
 
 ## Priority 2 - Connect Pricing Fully to Supabase
 
@@ -70,7 +70,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Add save history/audit metadata: editor identity, saved timestamp, previous value, and rollback option.
 - [x] Add validation for exchange rate, rounding, and every minimum/maximum USD price.
 - [x] Connect Request a Build budget options to live Ghana cedi pricing settings.
-- [ ] Completion test: edit a price in the live admin dashboard, refresh the public Pricing page, and verify the new GHS result persists after a redeploy.
+- [x] Completion test: edit a price in the live admin dashboard, refresh the public Pricing page, and verify the new GHS result persists after a redeploy.
+  - Completed on 29 July 2026: Basic Website minimum changed from USD 520 to USD 530, the public page changed from GH₵6,000 to GH₵6,100, and both API value and save timestamp persisted after redeployment. The original USD 520 / GH₵6,000 baseline was then restored and verified publicly.
 
 ## Priority 3 - Project CRUD
 
