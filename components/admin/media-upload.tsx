@@ -3,7 +3,7 @@
 import { ChangeEvent, DragEvent, useRef, useState } from 'react';
 import { FileImage, FileVideo, LoaderCircle, RotateCcw, Trash2, Upload } from 'lucide-react';
 
-type MediaBucket = 'project-media' | 'app-media' | 'site-media';
+export type MediaBucket = 'project-media' | 'app-media' | 'site-media';
 type MediaKind = 'image' | 'video';
 
 type MediaUploadProps = {
@@ -29,6 +29,18 @@ function mediaPathForUrl(value: string, bucket: MediaBucket) {
   } catch {
     return null;
   }
+}
+
+export async function deleteUploadedMedia(value: string, bucket: MediaBucket) {
+  const path = mediaPathForUrl(value, bucket);
+  if (!path) return;
+  const response = await fetch('/api/admin/media', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bucket, path }),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Unable to remove the media asset.');
 }
 
 export function MediaUpload({ label, bucket, kind, value, onChange, help, showEmptyState = true }: MediaUploadProps) {
@@ -89,6 +101,13 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
       setProgress(100);
       setPhase('complete');
       retryFileRef.current = null;
+      if (value && value !== target.publicUrl) {
+        try {
+          await deleteUploadedMedia(value, bucket);
+        } catch {
+          setError('Upload complete, but the replaced asset could not be deleted. Try removing it again.');
+        }
+      }
     } catch (uploadError) {
       setPhase('error');
       setError(uploadError instanceof Error ? uploadError.message : 'Unable to upload the file.');
@@ -110,22 +129,13 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
   };
 
   const remove = async () => {
-    const path = mediaPathForUrl(value, bucket);
     if (!window.confirm(`Remove this ${kind}?`)) return;
     retryFileRef.current = null;
     setProgress(null);
     setPhase('idle');
     setError('');
     try {
-      if (path) {
-        const response = await fetch('/api/admin/media', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bucket, path }),
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Unable to remove the media asset.');
-      }
+      await deleteUploadedMedia(value, bucket);
       onChange('');
     } catch (removeError) {
       setError(removeError instanceof Error ? removeError.message : 'Unable to remove the media asset.');

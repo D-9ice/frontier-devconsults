@@ -15,6 +15,8 @@ test('shared media uploader exposes progress, completion, failure, and retry sta
   assert.match(source, />Retry upload/);
   assert.match(source, /role="progressbar"/);
   assert.match(source, /aria-live="assertive"/);
+  assert.match(source, /await deleteUploadedMedia\(value, bucket\)/);
+  assert.match(source, /if \(value && value !== target\.publicUrl\) \{/);
 });
 
 test('all admin media forms use the shared uploader', async () => {
@@ -26,7 +28,15 @@ test('all admin media forms use the shared uploader', async () => {
 
   for (const file of files) {
     const source = await readFile(file, 'utf8');
-    assert.match(source, /import \{ MediaUpload \} from '@\/components\/admin\/media-upload'/);
+    assert.match(source, /import \{[^}]*MediaUpload[^}]*\} from '@\/components\/admin\/media-upload'/);
     assert.match(source, /<MediaUpload /);
   }
+});
+
+test('office media deletion removes the stored object before dropping its reference', async () => {
+  const source = await readFile('app/admin/(protected)/hero-media/page.tsx', 'utf8');
+
+  assert.match(source, /await deleteUploadedMedia\(item\.url, 'site-media'\)/);
+  assert.match(source, /update\('officeMedia', form\.officeMedia\.filter\(\(entry\) => entry\.url !== item\.url\)\)/);
+  assert.match(source, /Unused office media deleted\. Save Media to publish the gallery change\./);
 });

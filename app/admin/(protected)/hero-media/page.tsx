@@ -3,7 +3,7 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, History, LoaderCircle, Plus, Save, Trash2 } from 'lucide-react';
-import { MediaUpload } from '@/components/admin/media-upload';
+import { deleteUploadedMedia, MediaUpload } from '@/components/admin/media-upload';
 
 type MediaType = 'image' | 'video';
 type OfficeMediaItem = { url: string; type: MediaType; posterUrl?: string };
@@ -32,6 +32,7 @@ export default function HeroMediaPage() {
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [removingUrl, setRemovingUrl] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
   const load = async () => {
@@ -63,6 +64,19 @@ export default function HeroMediaPage() {
     } catch (error) { setNotice({ type: 'error', text: error instanceof Error ? error.message : 'Unable to restore this revision.' }); }
   };
   const addOfficeMedia = (type: MediaType, url: string) => update('officeMedia', [...form.officeMedia, { url, type }]);
+  const removeOfficeMedia = async (item: OfficeMediaItem) => {
+    if (!window.confirm(`Delete this office ${item.type}?`)) return;
+    setRemovingUrl(item.url); setNotice(null);
+    try {
+      await deleteUploadedMedia(item.url, 'site-media');
+      update('officeMedia', form.officeMedia.filter((entry) => entry.url !== item.url));
+      setNotice({ type: 'success', text: 'Unused office media deleted. Save Media to publish the gallery change.' });
+    } catch (error) {
+      setNotice({ type: 'error', text: error instanceof Error ? error.message : 'Unable to delete office media.' });
+    } finally {
+      setRemovingUrl(null);
+    }
+  };
 
   return <main className="min-h-screen bg-gray-50"><div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
     <Link href="/admin/dashboard" className="mb-4 inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"><ArrowLeft className="h-4 w-4" /> Back to Dashboard</Link>
@@ -73,14 +87,14 @@ export default function HeroMediaPage() {
         <div className="grid gap-8 lg:grid-cols-2"><HeroSlot title="Desktop hero" value={form.desktopMediaUrl} type={form.desktopMediaType} poster={form.desktopPosterUrl} alt={form.altText} position={form.desktopFocalPosition} onUrl={(value) => update('desktopMediaUrl', value)} onType={(value) => update('desktopMediaType', value)} onPoster={(value) => update('desktopPosterUrl', value)} onPosition={(value) => update('desktopFocalPosition', value)} /><HeroSlot title="Mobile hero" value={form.mobileMediaUrl} type={form.mobileMediaType} poster={form.mobilePosterUrl} alt={form.altText} position={form.mobileFocalPosition} onUrl={(value) => update('mobileMediaUrl', value)} onType={(value) => update('mobileMediaType', value)} onPoster={(value) => update('mobilePosterUrl', value)} onPosition={(value) => update('mobileFocalPosition', value)} /></div>
         <div className="mt-8 grid gap-5 md:grid-cols-2"><Field label="Accessible hero description" value={form.altText} onChange={(value) => update('altText', value)} /><label className="block text-sm font-semibold text-gray-700">Overlay strength: {form.overlayStrength}%<input className="mt-3 w-full" type="range" min="0" max="95" value={form.overlayStrength} onChange={(event) => update('overlayStrength', Number(event.target.value))} /></label></div>
       </section>
-      <section className="rounded-lg bg-white p-6 shadow-sm"><div className="mb-6"><h2 className="text-xl font-bold text-gray-900">Office gallery</h2><p className="mt-1 text-sm text-gray-600">These items appear in the office showcase. Add images or short videos by dropping files onto the uploader.</p></div><div className="grid gap-5 lg:grid-cols-2"><MediaUpload label="Add office image" bucket="site-media" kind="image" value="" onChange={(url) => addOfficeMedia('image', url)} showEmptyState={false} /><MediaUpload label="Add office video" bucket="site-media" kind="video" value="" onChange={(url) => addOfficeMedia('video', url)} showEmptyState={false} /></div>{form.officeMedia.length > 0 && <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{form.officeMedia.map((item) => <div key={item.url} className="relative overflow-hidden rounded-lg border border-gray-200"><Preview url={item.url} type={item.type} posterUrl={item.posterUrl} alt="Office media preview" position="center" /><button type="button" onClick={() => update('officeMedia', form.officeMedia.filter((entry) => entry.url !== item.url))} className="absolute right-3 top-3 rounded-lg bg-white/95 p-2 text-red-600 shadow hover:bg-white" aria-label="Remove office media"><Trash2 className="h-4 w-4" /></button></div>)}</div>}</section>
+      <section className="rounded-lg bg-white p-6 shadow-sm"><div className="mb-6"><h2 className="text-xl font-bold text-gray-900">Office gallery</h2><p className="mt-1 text-sm text-gray-600">These items appear in the office showcase. Add images or short videos by dropping files onto the uploader.</p></div><div className="grid gap-5 lg:grid-cols-2"><MediaUpload label="Add office image" bucket="site-media" kind="image" value="" onChange={(url) => addOfficeMedia('image', url)} showEmptyState={false} /><MediaUpload label="Add office video" bucket="site-media" kind="video" value="" onChange={(url) => addOfficeMedia('video', url)} showEmptyState={false} /></div>{form.officeMedia.length > 0 && <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{form.officeMedia.map((item) => <div key={item.url} className="relative overflow-hidden rounded-lg border border-gray-200"><Preview url={item.url} type={item.type} posterUrl={item.posterUrl} alt="Office media preview" position="center" /><button type="button" disabled={removingUrl === item.url} onClick={() => void removeOfficeMedia(item)} className="absolute right-3 top-3 rounded-lg bg-white/95 p-2 text-red-600 shadow hover:bg-white disabled:cursor-wait disabled:opacity-60" aria-label={`Delete office ${item.type}`}>{removingUrl === item.url ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}</button></div>)}</div>}</section>
       <section className="rounded-lg bg-white p-6 shadow-sm"><div className="mb-4 flex items-center gap-2"><History className="h-5 w-5 text-blue-600" /><h2 className="text-xl font-bold text-gray-900">Saved Versions</h2></div>{revisions.length === 0 ? <p className="text-gray-600">No saved versions yet.</p> : <div className="divide-y divide-gray-100">{revisions.map((revision) => <div key={revision.id} className="flex flex-wrap items-center justify-between gap-3 py-4"><div><p className="font-semibold text-gray-900">Version {revision.settings.revision} · {revision.action}</p><p className="text-sm text-gray-600">{new Date(revision.createdAt).toLocaleString()}</p></div><button type="button" onClick={() => void restore(revision.id)} className="rounded-lg border border-blue-600 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50">Restore</button></div>)}</div>}</section>
     </div>}
   </div></main>;
 }
 
 function HeroSlot({ title, value, type, poster, alt, position, onUrl, onType, onPoster, onPosition }: { title: string; value: string; type: MediaType; poster: string; alt: string; position: string; onUrl: (value: string) => void; onType: (value: MediaType) => void; onPoster: (value: string) => void; onPosition: (value: string) => void }) {
-  return <div className="space-y-4"><h3 className="font-bold text-gray-900">{title}</h3><Preview url={value} type={type} posterUrl={poster} alt={alt} position={position} /><label className="block text-sm font-semibold text-gray-700">Media type<select value={type} onChange={(event) => onType(event.target.value as MediaType)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900"><option value="image">Image</option><option value="video">Video</option></select></label><Field label="Media URL" value={value} onChange={onUrl} /><MediaUpload label={`Upload ${title.toLowerCase()} ${type}`} bucket="site-media" kind={type} value="" onChange={onUrl} showEmptyState={false} />{type === 'video' && <><Field label="Video poster URL (recommended)" value={poster} onChange={onPoster} /><MediaUpload label="Upload video poster" bucket="site-media" kind="image" value="" onChange={onPoster} showEmptyState={false} /></>}<Field label="Focal position" value={position} onChange={onPosition} help="Examples: center center, center 35%, 50% 20%." /></div>;
+  return <div className="space-y-4"><h3 className="font-bold text-gray-900">{title}</h3><Preview url={value} type={type} posterUrl={poster} alt={alt} position={position} /><label className="block text-sm font-semibold text-gray-700">Media type<select value={type} onChange={(event) => onType(event.target.value as MediaType)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900"><option value="image">Image</option><option value="video">Video</option></select></label><Field label="Media URL" value={value} onChange={onUrl} /><MediaUpload label={`Upload ${title.toLowerCase()} ${type}`} bucket="site-media" kind={type} value={value} onChange={onUrl} showEmptyState={false} />{type === 'video' && <><Field label="Video poster URL (recommended)" value={poster} onChange={onPoster} /><MediaUpload label="Upload video poster" bucket="site-media" kind="image" value={poster} onChange={onPoster} showEmptyState={false} /></>}<Field label="Focal position" value={position} onChange={onPosition} help="Examples: center center, center 35%, 50% 20%." /></div>;
 }
 
 function Field({ label, value, onChange, help }: { label: string; value: string; onChange: (value: string) => void; help?: string }) { return <label className="block text-sm font-semibold text-gray-700">{label}<input value={value} onChange={(event: ChangeEvent<HTMLInputElement>) => onChange(event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900" />{help && <span className="mt-1 block text-xs font-normal text-gray-500">{help}</span>}</label>; }
