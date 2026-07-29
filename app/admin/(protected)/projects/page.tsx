@@ -93,10 +93,15 @@ export default function ProjectsPage() {
     setIsSaving(true);
     setNotice(null);
     try {
+      const payload = {
+        ...form,
+        technologies: cleanLines(form.technologies),
+        features: cleanLines(form.features),
+      };
       const response = await fetch(editingId ? `/api/admin/projects/${editingId}` : '/api/admin/projects', {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Unable to save project.');
@@ -192,7 +197,7 @@ function ProjectEditor({ form, setForm, editing, isSaving, onClose, onSubmit }: 
       <div className="grid gap-5 md:grid-cols-2"><Text label="Title" value={form.title} onChange={(value) => update('title', value)} required /><Text label="Slug (optional)" value={form.slug || ''} onChange={(value) => update('slug', value)} /><Text label="Category" value={form.category} onChange={(value) => update('category', value)} required /><NumberField label="Sort Order" value={form.sortOrder} onChange={(value) => update('sortOrder', value)} /></div>
       <div className="grid gap-5 md:grid-cols-4"><Select label="Status" value={form.status} options={statuses} onChange={(value) => update('status', value as ProjectStatus)} /><Select label="Visibility" value={form.visibility} options={['draft', 'published']} onChange={(value) => update('visibility', value as ProjectForm['visibility'])} /><Select label="Card Color" value={form.color} options={colors} onChange={(value) => update('color', value as ProjectColor)} /><label className="flex items-end gap-3 pb-3 text-sm font-semibold text-gray-700"><input type="checkbox" checked={form.featured} onChange={(event) => update('featured', event.target.checked)} className="h-4 w-4" /> Feature on homepage</label></div>
       <TextArea label="Description" value={form.description} onChange={(value) => update('description', value)} required />
-      <div className="grid gap-5 md:grid-cols-2"><TextArea label="Technologies (one per line)" value={form.technologies.join('\n')} onChange={(value) => update('technologies', splitLines(value))} /><TextArea label="Features (one per line)" value={form.features.join('\n')} onChange={(value) => update('features', splitLines(value))} /></div>
+      <div className="grid gap-5 md:grid-cols-2"><TextArea label="Technologies (one per line)" value={form.technologies.join('\n')} onChange={(value) => update('technologies', preserveLines(value))} /><TextArea label="Features (one per line)" value={form.features.join('\n')} onChange={(value) => update('features', preserveLines(value))} /></div>
       <div className="grid gap-5 md:grid-cols-3"><Text label="Logo URL" value={form.logoUrl || ''} onChange={(value) => update('logoUrl', value)} /><Text label="Live URL" value={form.liveLink || ''} onChange={(value) => update('liveLink', value)} /><Text label="Download URL" value={form.downloadLink || ''} onChange={(value) => update('downloadLink', value)} /></div>
       <MediaUpload label="Project logo upload" bucket="project-media" kind="image" value={form.logoUrl || ''} onChange={(value) => update('logoUrl', value)} help="Drop a logo here or choose a file. Save the project after uploading." />
       <div className="space-y-3 rounded-lg border border-gray-200 p-4">
@@ -208,4 +213,5 @@ function Text({ label, value, onChange, required = false }: { label: string; val
 function TextArea({ label, value, onChange, required = false }: { label: string; value: string; onChange: (value: string) => void; required?: boolean }) { return <label className="block text-sm font-semibold text-gray-700">{label}<textarea required={required} rows={4} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900" /></label>; }
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) { return <label className="block text-sm font-semibold text-gray-700">{label}<input min="0" type="number" value={value} onChange={(event) => onChange(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900" /></label>; }
 function Select({ label, value, options, onChange }: { label: string; value: string; options: readonly string[]; onChange: (value: string) => void }) { return <label className="block text-sm font-semibold text-gray-700">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal text-gray-900">{options.map((option) => <option key={option}>{option}</option>)}</select></label>; }
-function splitLines(value: string) { return value.split('\n').map((item) => item.trim()).filter(Boolean); }
+function preserveLines(value: string) { return value.split('\n'); }
+function cleanLines(values: string[]) { return values.map((item) => item.trim()).filter(Boolean); }

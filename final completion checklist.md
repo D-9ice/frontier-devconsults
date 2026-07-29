@@ -82,7 +82,9 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Replace hard-coded project entries in `app/projects/page.tsx` and the featured-project entries in `app/page.tsx` with database-driven content.
   - `app/projects/page.tsx` renders published Supabase projects. The homepage renders up to six published projects marked featured, while both retain the existing catalogue as a fallback until managed projects are available.
 - [x] Preserve a deliberate fallback or seed dataset so the public site is never blank on first deployment.
-- [ ] Completion test: create a project in admin, add a logo and details, publish it, reorder it, edit it, unpublish it, and delete it; verify the public pages reflect each operation.
+- [x] Completion test: create a project in admin, add a logo and details, publish it, reorder it, edit it, unpublish it, and delete it; verify the public pages reflect each operation.
+  - Completed on 29 July 2026 with a temporary CRUD Verification Project: draft content stayed private; publication exposed its logo, description, technologies, and features; homepage featuring worked; sort order 99 to 0 moved it ahead of Lotto Forecaster AI; title and description edits appeared on both public pages; unpublishing removed it from both pages; and deletion restored the single-project admin baseline.
+  - The test also exposed and corrected controlled multiline fields that discarded newlines while typing. Project technologies/features and App Store features/requirements/screenshot URLs now preserve line breaks during editing and trim empty entries only when saved.
 
 ## Priority 4 - App Store CRUD
 
