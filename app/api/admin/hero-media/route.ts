@@ -3,7 +3,7 @@ import { getHeroMedia, getHeroMediaRevisions, saveHeroMedia, validateHeroMedia }
 import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
 
 export async function GET(request: NextRequest) {
-  const unauthorized = requireAdminMutation(request);
+  const unauthorized = requireAdmin(request);
   if (unauthorized) return unauthorized;
   try {
     const [settings, revisions] = await Promise.all([getHeroMedia(), getHeroMediaRevisions()]);
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
   try {
     const settings = await request.json();

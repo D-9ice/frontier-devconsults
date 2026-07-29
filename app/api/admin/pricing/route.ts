@@ -32,7 +32,7 @@ function validateSettings(settings: PricingSettings) {
 }
 
 export async function GET(request: NextRequest) {
-  const unauthorized = requireAdminMutation(request);
+  const unauthorized = requireAdmin(request);
   if (unauthorized) return unauthorized;
 
   try {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const unauthorized = requireAdmin(request);
+  const unauthorized = requireAdminMutation(request);
   if (unauthorized) return unauthorized;
 
   try {
