@@ -52,8 +52,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Keep direct `/admin` inert: it must not render a sign-in page and returns to the previous public page, with `/` as the fallback.
 - [x] Audit every protected dashboard page and privileged API action to confirm a valid signed admin session is required.
   - Completed: privileged APIs verify signed cookies and same-origin mutations; protected `/admin/*` routes now reject invalid sessions on the server before page content renders, while direct `/admin` keeps the shortcut-only entry behavior.
-- [ ] Add per-IP login throttling with temporary lockouts and generic failure messages.
-  - Repository implementation and production migration `202607290008_admin_login_throttling.sql` completed on 29 July 2026. Deploy and complete the repeated-login production test before marking this item complete.
+- [x] Add per-IP login throttling with temporary lockouts and generic failure messages.
+  - Completed on 29 July 2026 with migrations `202607290008_admin_login_throttling.sql` and `202607290009_fix_admin_login_throttle_timestamp.sql`. Controlled production testing returned `401` for failed attempts 1–4 and `429` with `Retry-After` on attempts 5–6.
 - [x] Enforce same-origin and CSRF protections on all state-changing admin API routes.
 - [x] Apply and verify production security and caching controls: Content Security Policy, frame protection, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for authenticated admin pages.
 - [x] Provide a non-advertised `Cmd/Ctrl + Shift + A` shortcut that opens the in-page password gate; server-signed sessions and protected APIs remain the security boundary.
