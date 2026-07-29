@@ -111,7 +111,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Add image handling for project logos, project gallery images, app icons, app screenshots, and office media.
 - [x] Add video handling with poster images, autoplay/mute controls where appropriate, file-size limits, and a fallback image.
 - [x] Add drag-and-drop selection, previews, replace/remove controls, and clear upload error messages in the Hero & Office Media admin area.
-- [ ] Add upload progress and retry states across every project, app, and site media form.
+- [x] Add upload progress and retry states across every project, app, and site media form.
+  - The shared uploader now shows secure-upload preparation, live transfer percentage, accessible completion/failure states, and a retry action that reuses the selected file after a network or storage failure.
 - [ ] Completion test: upload a valid image and video, publish content that uses them, replace each asset, delete unused assets, and confirm invalid files are rejected.
 
 ## Priority 6 - Hero Background and Office Media CRUD (Images and Videos)
