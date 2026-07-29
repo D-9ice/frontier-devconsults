@@ -57,7 +57,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Enforce same-origin and CSRF protections on all state-changing admin API routes.
 - [x] Apply and verify production security and caching controls: Content Security Policy, frame protection, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for authenticated admin pages.
 - [x] Provide a non-advertised `Cmd/Ctrl + Shift + A` shortcut that opens the in-page password gate; server-signed sessions and protected APIs remain the security boundary.
-- [ ] Completion test: verify direct admin URLs, expired or forged cookies, unauthenticated API calls, cross-site write attempts, and repeated failed logins cannot expose or change protected data.
+- [x] Completion test: verify direct admin URLs, expired or forged cookies, unauthenticated API calls, cross-site write attempts, and repeated failed logins cannot expose or change protected data.
+  - Completed on 29 July 2026: direct `/admin` remained inert; protected pages rejected missing/forged sessions; unauthenticated admin APIs returned `401`; cross-site login returned `403`; cross-site privileged writes were rejected; and login attempts 5–6 returned `429` with `Retry-After`.
 
 ## Priority 2 - Connect Pricing Fully to Supabase
 
