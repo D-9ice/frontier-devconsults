@@ -113,7 +113,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Add drag-and-drop selection, previews, replace/remove controls, and clear upload error messages in the Hero & Office Media admin area.
 - [x] Add upload progress and retry states across every project, app, and site media form.
   - The shared uploader now shows secure-upload preparation, live transfer percentage, accessible completion/failure states, and a retry action that reuses the selected file after a network or storage failure.
-- [ ] Completion test: upload a valid image and video, publish content that uses them, replace each asset, delete unused assets, and confirm invalid files are rejected.
+- [x] Completion test: upload a valid image and video, publish content that uses them, replace each asset, delete unused assets, and confirm invalid files are rejected.
+  - Completed in production on 1 August 2026 through the Hero & Office Media gallery: non-media input was rejected for both image and video uploaders; valid PNG and MP4 assets uploaded and returned the expected public MIME types; replacement assets were published on the homepage; the superseded and cleanup assets were removed from Storage; and the homepage returned to its original local-media fallback after cleanup.
 
 ## Priority 6 - Hero Background and Office Media CRUD (Images and Videos)
 
