@@ -3,19 +3,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { assistantInstructions, buildAssistantContext } from '@/lib/assistant-instructions';
 import { allowAssistantRequest, boundedInteger } from '@/lib/assistant-rate-limit';
+import { sameOrigin, validAssistantSession, validateAssistantMessages } from '@/lib/assistant-safety';
 import { listApps } from '@/lib/apps';
 import { getPricingSettings } from '@/lib/pricing-store';
 
 export const runtime = 'nodejs';
-type Message = { role: 'user' | 'assistant'; content: string };
-
 export async function POST(request: NextRequest) {
   const address = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
-  if (!allowAssistantRequest(address)) return NextResponse.json({ error: 'Too many assistant requests. Please wait a few minutes and try again.' }, { status: 429 });
+  const session = request.headers.get('x-frontier-session');
+  if (!sameOrigin(request.headers.get('origin'), request.url)) return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
+  if (!validAssistantSession(session)) return NextResponse.json({ error: 'Invalid assistant session.' }, { status: 400 });
+  if (!allowAssistantRequest(address, session!)) return NextResponse.json({ error: 'Too many assistant requests. Please wait a few minutes and try again.' }, { status: 429 });
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: 'The assistant is temporarily unavailable.' }, { status: 503 });
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid request.' }, { status: 400 }); }
-  const messages = validateMessages(body);
+  const messages = validateAssistantMessages(body);
   if (!messages) return NextResponse.json({ error: 'Messages must be a short text conversation.' }, { status: 400 });
   const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -39,12 +41,4 @@ export async function POST(request: NextRequest) {
   } finally { clearTimeout(timeout); }
 }
 
-function validateMessages(value: unknown): Message[] | null {
-  if (!value || typeof value !== 'object' || !('messages' in value) || !Array.isArray(value.messages) || value.messages.length < 1 || value.messages.length > 8) return null;
-  const keys = Object.keys(value); if (keys.some((key) => key !== 'messages')) return null;
-  const messages: Message[] = [];
-  for (const item of value.messages) { if (!item || typeof item !== 'object' || Object.keys(item).some((key) => !['role', 'content'].includes(key))) return null; const role = 'role' in item ? item.role : null; const content = 'content' in item ? item.content : null; if (!['user', 'assistant'].includes(String(role)) || typeof content !== 'string' || !content.trim() || content.length > 2000) return null; messages.push({ role: role as Message['role'], content: content.trim() }); }
-  if (messages[messages.length - 1].role !== 'user' || messages.reduce((sum, message) => sum + message.content.length, 0) > 6000) return null;
-  return messages;
-}
 function reasoningEffort(value: string | undefined): 'none' | 'low' | 'medium' | 'high' | 'xhigh' | 'max' { return ['none', 'low', 'medium', 'high', 'xhigh', 'max'].includes(value || '') ? value as any : 'low'; }

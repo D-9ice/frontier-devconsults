@@ -3,7 +3,7 @@ import AppCatalogue, { AppCard } from '@/components/AppCatalogue';
 import { listApps } from '@/lib/apps';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Apps & Solutions', description: 'Explore published applications, web platforms, AI systems and engineering solutions from Frontier DevConsults.', alternates: { canonical: '/app-store' } };
+export const metadata: Metadata = { title: 'Apps & Solutions', description: 'Explore published applications, web platforms, AI systems and engineering solutions from Frontier DevConsults.', alternates: { canonical: '/app-store' }, openGraph: { title: 'Apps & Solutions | Frontier DevConsults', description: 'Published software, AI and engineering solutions with truthful lifecycle and availability information.', url: '/app-store', images: ['/og-image.png'] }, twitter: { card: 'summary_large_image', title: 'Apps & Solutions | Frontier DevConsults', description: 'Published software, AI and engineering solutions.', images: ['/og-image.png'] } };
 
 export default async function AppStorePage() {
   let apps: Awaited<ReturnType<typeof listApps>> = [];

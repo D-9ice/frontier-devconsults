@@ -31,6 +31,8 @@ export interface PricingSettings {
   note: string;
   exchangeRateEffectiveAt: string;
   exchangeRateSourceLabel: string;
+  exchangeRateApproved: boolean;
+  exchangeRateMaxAgeDays: number;
   tiers: PricingTier[];
   developmentServices: ServicePrice[];
   additionalServices: ServicePrice[];
@@ -45,6 +47,8 @@ export const defaultPricingSettings: PricingSettings = {
   note: 'All Ghana cedi prices are planning estimates. Final cost depends on the confirmed project scope and requirements.',
   exchangeRateEffectiveAt: '2026-08-28T00:00:00.000Z',
   exchangeRateSourceLabel: 'Bank of Ghana daily interbank mid-rate',
+  exchangeRateApproved: true,
+  exchangeRateMaxAgeDays: 90,
   updatedAt: '2026-08-31T00:00:00.000Z',
   tiers: [
     {
@@ -151,7 +155,7 @@ export function formatCediAmount(value: number) {
 }
 
 export function formatPriceRange(price: PriceRange, settings: PricingSettings) {
-  return formatGhsPriceRange(price, settings);
+  return formatUsdPriceRange(price);
 }
 
 export function formatUsdPriceRange(price: PriceRange) {
@@ -172,6 +176,11 @@ export function formatGhsPriceRange(price: PriceRange, settings: PricingSettings
   return `${formatCediAmount(min)} - ${formatCediAmount(max)}${suffix}`;
 }
 
+export function ghsConversionAvailable(settings: PricingSettings, now = new Date()) {
+  const effective = Date.parse(settings.exchangeRateEffectiveAt); const maxAge = settings.exchangeRateMaxAgeDays * 86_400_000;
+  return settings.exchangeRateApproved && settings.exchangeRate > 0 && Number.isFinite(effective) && now.getTime() - effective <= maxAge;
+}
+
 export function mergePricingSettings(input: Partial<PricingSettings> | null | undefined): PricingSettings {
   return {
     ...defaultPricingSettings,
@@ -181,6 +190,8 @@ export function mergePricingSettings(input: Partial<PricingSettings> | null | un
     additionalServices: input?.additionalServices || defaultPricingSettings.additionalServices,
     exchangeRateEffectiveAt: input?.exchangeRateEffectiveAt || input?.updatedAt || defaultPricingSettings.exchangeRateEffectiveAt,
     exchangeRateSourceLabel: input?.exchangeRateSourceLabel?.trim() || defaultPricingSettings.exchangeRateSourceLabel,
+    exchangeRateApproved: input?.exchangeRateApproved === true,
+    exchangeRateMaxAgeDays: Number.isInteger(input?.exchangeRateMaxAgeDays) && Number(input?.exchangeRateMaxAgeDays) > 0 ? Number(input?.exchangeRateMaxAgeDays) : defaultPricingSettings.exchangeRateMaxAgeDays,
     currencyCode: 'GHS',
     currencySymbol: 'GH₵',
   };

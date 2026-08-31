@@ -101,7 +101,7 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className="antialiased">
         <PWAInstaller />
-        <SiteChrome>{children}</SiteChrome>
+        <SiteChrome assistantEnabled={Boolean(process.env.OPENAI_API_KEY)}>{children}</SiteChrome>
       </body>
     </html>
   );

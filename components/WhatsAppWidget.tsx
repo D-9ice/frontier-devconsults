@@ -38,7 +38,7 @@ export default function WhatsAppWidget() {
     <>
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-3 w-[calc(100vw-1.5rem)] max-w-[380px] h-[min(500px,calc(100vh-7rem))] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden border-2 border-gray-200 sm:right-6">
+        <div className="fixed right-3 w-[calc(100vw-1.5rem)] max-w-[380px] h-[min(500px,calc(100dvh-7rem))] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden border-2 border-gray-200 sm:right-6" style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
           {/* Header */}
           <div className="bg-[#25D366] text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -125,7 +125,8 @@ export default function WhatsAppWidget() {
       {/* Floating WhatsApp Button */}
       <button
         onClick={() => { const next = !isOpen; setIsOpen(next); if (next) window.dispatchEvent(new Event('frontier-whatsapp-open')); }}
-        className="fixed bottom-6 right-24 w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] rounded-full flex items-center justify-center shadow-lg hover:shadow-green-500/50 transition-all transform hover:scale-110 z-50 group"
+        className="fixed right-24 w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] rounded-full flex items-center justify-center shadow-lg hover:shadow-green-500/50 transition-all transform hover:scale-110 z-50 group"
+        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
         aria-label={isOpen ? "Close WhatsApp chat" : "Open WhatsApp chat"}
       >
         {isOpen ? (

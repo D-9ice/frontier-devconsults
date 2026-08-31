@@ -5,23 +5,23 @@ import Link from 'next/link';
 import { ArrowLeft, Edit3, Eye, EyeOff, Plus, Save, Smartphone, Trash2, X } from 'lucide-react';
 import { MediaUpload } from '@/components/admin/media-upload';
 
-type AppStatus = 'Published' | 'Development' | 'Planning';
+type Lifecycle = 'live' | 'in_development' | 'planning' | 'archived';
 type SolutionKind = 'mobile_application' | 'web_application' | 'website' | 'ai_platform' | 'engineering_solution' | 'engineering_service' | 'client_project' | 'other';
 type Availability = 'available' | 'coming_soon' | 'by_enquiry' | 'unavailable';
 type PrimaryAction = 'automatic' | 'download' | 'visit_live' | 'view_details' | 'request_demo' | 'request_quote' | 'join_waitlist' | 'none';
 type AppRecord = {
   id: string; name: string; slug: string | null; category: string; version: string; size: string | null; rating: number | null; downloads: string | null;
   description: string; features: string[]; requirements: string[]; iconUrl: string | null; screenshotUrls: string[]; videoUrl: string | null;
-  playStoreLink: string | null; downloadLink: string | null; status: AppStatus; visibility: 'draft' | 'published'; featured: boolean; sortOrder: number;
+  playStoreLink: string | null; downloadLink: string | null; lifecycle: Lifecycle; visibility: 'draft' | 'published'; featured: boolean; sortOrder: number;
   solutionKind: SolutionKind; availability: Availability; primaryAction: PrimaryAction; showInProjects: boolean; showInUpworkPortfolio: boolean; showInProducts: boolean;
   commercialModes: Array<'hosted_license' | 'white_label' | 'exclusive_acquisition'>; startingPriceUsdMinor: number | null; priceVisibility: 'show' | 'from' | 'enquire'; demoUrl: string | null;
   technologies: string[]; clientProblem: string | null; solutionSummary: string | null; responsibilities: string[]; challenges: string[];
   outcomes: Array<{ label: string; value: string; evidenceNote?: string }>; confidentialityNote: string | null; deploymentOptions: string[];
-  supportSummary: string | null; customizationAvailable: boolean; licenseTermsUrl: string | null;
+  supportSummary: string | null; customizationAvailable: boolean; licenseTermsUrl: string | null; updatedAt: string;
 };
-type AppForm = Omit<AppRecord, 'id'>;
-const emptyApp: AppForm = { name: '', slug: '', category: '', version: '', size: '', rating: null, downloads: '', description: '', features: [], requirements: [], iconUrl: '', screenshotUrls: [], videoUrl: '', playStoreLink: '', downloadLink: '', status: 'Planning', visibility: 'draft', featured: false, sortOrder: 0, solutionKind: 'other', availability: 'by_enquiry', primaryAction: 'automatic', showInProjects: false, showInUpworkPortfolio: false, showInProducts: false, commercialModes: [], startingPriceUsdMinor: null, priceVisibility: 'enquire', demoUrl: '', technologies: [], clientProblem: '', solutionSummary: '', responsibilities: [], challenges: [], outcomes: [], confidentialityNote: '', deploymentOptions: [], supportSummary: '', customizationAvailable: false, licenseTermsUrl: '' };
-const statuses: AppStatus[] = ['Published', 'Development', 'Planning'];
+type AppForm = Omit<AppRecord, 'id' | 'updatedAt'>;
+const emptyApp: AppForm = { name: '', slug: '', category: '', version: '', size: '', rating: null, downloads: '', description: '', features: [], requirements: [], iconUrl: '', screenshotUrls: [], videoUrl: '', playStoreLink: '', downloadLink: '', lifecycle: 'planning', visibility: 'draft', featured: false, sortOrder: 0, solutionKind: 'other', availability: 'by_enquiry', primaryAction: 'automatic', showInProjects: false, showInUpworkPortfolio: false, showInProducts: false, commercialModes: [], startingPriceUsdMinor: null, priceVisibility: 'enquire', demoUrl: '', technologies: [], clientProblem: '', solutionSummary: '', responsibilities: [], challenges: [], outcomes: [], confidentialityNote: '', deploymentOptions: [], supportSummary: '', customizationAvailable: false, licenseTermsUrl: '' };
+const lifecycles: Lifecycle[] = ['live', 'in_development', 'planning', 'archived'];
 const solutionKindOptions: SolutionKind[] = ['mobile_application', 'web_application', 'website', 'ai_platform', 'engineering_solution', 'engineering_service', 'client_project', 'other'];
 const availabilityOptions: Availability[] = ['available', 'coming_soon', 'by_enquiry', 'unavailable'];
 const primaryActionOptions: PrimaryAction[] = ['automatic', 'download', 'visit_live', 'view_details', 'request_demo', 'request_quote', 'join_waitlist', 'none'];
@@ -34,7 +34,7 @@ export default function AppStoreManagementPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const stats = useMemo(() => ({ published: apps.filter((app) => app.visibility === 'published').length, development: apps.filter((app) => app.status === 'Development').length, featured: apps.filter((app) => app.featured).length }), [apps]);
+  const stats = useMemo(() => ({ published: apps.filter((app) => app.visibility === 'published').length, development: apps.filter((app) => app.lifecycle === 'in_development').length, featured: apps.filter((app) => app.featured).length }), [apps]);
 
   const loadApps = async () => {
     setLoading(true);
@@ -50,7 +50,7 @@ export default function AppStoreManagementPage() {
 
   const close = () => { setIsOpen(false); setEditingId(null); setForm(emptyApp); };
   const create = () => { setForm({ ...emptyApp, sortOrder: apps.length }); setEditingId(null); setNotice(null); setIsOpen(true); };
-  const edit = (app: AppRecord) => { const { id, ...values } = app; setForm(values); setEditingId(id); setNotice(null); setIsOpen(true); };
+  const edit = (app: AppRecord) => { const { id, updatedAt: _updatedAt, ...values } = app; setForm(values); setEditingId(id); setNotice(null); setIsOpen(true); };
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setSaving(true); setNotice(null);
     try {
@@ -95,7 +95,7 @@ function AppEditor({ form, setForm, editing, saving, onClose, onSubmit }: { form
     <form onSubmit={onSubmit} className="space-y-5">
       <div className="grid gap-5 md:grid-cols-2"><Text label="App Name" value={form.name} onChange={(value) => update('name', value)} required /><Text label="Slug (optional)" value={form.slug || ''} onChange={(value) => update('slug', value)} /><Text label="Category" value={form.category} onChange={(value) => update('category', value)} required /><Text label="Version" value={form.version} onChange={(value) => update('version', value)} required /></div>
       <div className="grid gap-5 md:grid-cols-4"><Text label="Size" value={form.size || ''} onChange={(value) => update('size', value)} /><NumberField label="Rating (0-5)" value={form.rating} onChange={(value) => update('rating', value)} /><Text label="Downloads" value={form.downloads || ''} onChange={(value) => update('downloads', value)} /><NumberField label="Sort Order" value={form.sortOrder} onChange={(value) => update('sortOrder', value ?? 0)} /></div>
-      <div className="grid gap-5 md:grid-cols-3"><Select label="Status" value={form.status} options={statuses} onChange={(value) => update('status', value as AppStatus)} /><Select label="Visibility" value={form.visibility} options={['draft', 'published']} onChange={(value) => update('visibility', value as AppForm['visibility'])} /><label className="flex items-end gap-3 pb-3 text-sm font-semibold text-gray-700"><input type="checkbox" checked={form.featured} onChange={(event) => update('featured', event.target.checked)} className="h-4 w-4" />Feature on public page</label></div>
+      <div className="grid gap-5 md:grid-cols-3"><Select label="Lifecycle" value={form.lifecycle} options={lifecycles} onChange={(value) => update('lifecycle', value as Lifecycle)} /><Select label="Visibility" value={form.visibility} options={['draft', 'published']} onChange={(value) => update('visibility', value as AppForm['visibility'])} /><label className="flex items-end gap-3 pb-3 text-sm font-semibold text-gray-700"><input type="checkbox" checked={form.featured} onChange={(event) => update('featured', event.target.checked)} className="h-4 w-4" />Feature on public page</label></div>
       <div className="grid gap-5 md:grid-cols-3"><Select label="Solution kind" value={form.solutionKind} options={solutionKindOptions} onChange={(value) => update('solutionKind', value as SolutionKind)} /><Select label="Availability" value={form.availability} options={availabilityOptions} onChange={(value) => update('availability', value as Availability)} /><Select label="Primary action" value={form.primaryAction} options={primaryActionOptions} onChange={(value) => update('primaryAction', value as PrimaryAction)} /></div>
       <fieldset className="rounded-lg border border-gray-200 p-4"><legend className="px-2 text-sm font-semibold text-gray-700">Approved public surfaces</legend><div className="flex flex-wrap gap-6"><Check label="Projects / case studies" checked={form.showInProjects} onChange={(value) => update('showInProjects', value)} /><Check label="Upwork-safe portfolio" checked={form.showInUpworkPortfolio} onChange={(value) => update('showInUpworkPortfolio', value)} /><Check label="Commercial products" checked={form.showInProducts} onChange={(value) => update('showInProducts', value)} /></div></fieldset>
       <TextArea label="Description" value={form.description} onChange={(value) => update('description', value)} required />

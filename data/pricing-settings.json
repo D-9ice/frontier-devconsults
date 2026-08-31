@@ -5,6 +5,8 @@
   "roundingIncrement": 100,
   "exchangeRateEffectiveAt": "2026-08-28T00:00:00.000Z",
   "exchangeRateSourceLabel": "Bank of Ghana daily interbank mid-rate",
+  "exchangeRateApproved": true,
+  "exchangeRateMaxAgeDays": 90,
   "note": "All Ghana cedi prices are planning estimates. Final cost depends on the confirmed project scope and requirements.",
   "updatedAt": "2026-08-31T00:00:00.000Z",
   "tiers": [

@@ -16,7 +16,7 @@ Rules:
 
 export function buildAssistantContext(apps: AppRecord[], pricing: PricingSettings) {
   const publicApps = apps.map((app) => ({
-    name: canonicalAppName(app.name), category: app.category, lifecycle: lifecycleLabel(app.status), availability: availabilityLabel(app.availability),
+    name: canonicalAppName(app.name), category: app.category, lifecycle: lifecycleLabel(app.lifecycle), availability: availabilityLabel(app.availability),
     description: app.description.slice(0, 600), features: app.features.slice(0, 5), commercial: app.showInProducts && app.commercialModes.length > 0 ? { modes: app.commercialModes, price: app.startingPriceUsdMinor, priceVisibility: app.priceVisibility } : null,
   }));
   return JSON.stringify({

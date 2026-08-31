@@ -1,9 +1,9 @@
 import 'server-only';
 
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { legacyStatus, lifecycles, normalizeLifecycle, type Lifecycle } from '@/lib/application-lifecycle';
 
-export const appStatuses = ['Published', 'Development', 'Planning'] as const;
-export type AppStatus = typeof appStatuses[number];
+export { lifecycles, normalizeLifecycle, type Lifecycle } from '@/lib/application-lifecycle';
 export type AppVisibility = 'draft' | 'published';
 export const solutionKinds = ['mobile_application', 'web_application', 'website', 'ai_platform', 'engineering_solution', 'engineering_service', 'client_project', 'other'] as const;
 export const availabilities = ['available', 'coming_soon', 'by_enquiry', 'unavailable'] as const;
@@ -31,7 +31,7 @@ export type AppRecord = {
   videoUrl: string | null;
   playStoreLink: string | null;
   downloadLink: string | null;
-  status: AppStatus;
+  lifecycle: Lifecycle;
   visibility: AppVisibility;
   featured: boolean;
   sortOrder: number;
@@ -56,7 +56,21 @@ export type AppRecord = {
   supportSummary: string | null;
   customizationAvailable: boolean;
   licenseTermsUrl: string | null;
+  externalUrlVerifiedAt: string | null;
+  thumbnailUrl: string | null;
+  upworkSkillTags: string[];
+  upworkRelevance: string | null;
+  artifactVersion: string | null;
+  artifactPlatform: string | null;
+  artifactByteSize: number | null;
+  artifactReleaseDate: string | null;
+  artifactChecksum: string | null;
+  artifactVerifiedAt: string | null;
+  artifactAvailability: 'available' | 'temporarily_unavailable' | 'unavailable';
+  updatedAt: string;
 };
+
+export type AppInput = Omit<AppRecord, 'id' | 'updatedAt'>;
 
 function ensureServer() {
   if (!isSupabaseServerConfigured() || !supabaseServer) throw new Error('Secure Supabase server access is not configured.');
@@ -72,7 +86,7 @@ function mapApp(row: Record<string, unknown>): AppRecord {
     features: Array.isArray(row.features) ? row.features.map(String) : [], requirements: Array.isArray(row.requirements) ? row.requirements.map(String) : [],
     iconUrl: typeof row.icon_url === 'string' ? row.icon_url : null, screenshotUrls: Array.isArray(row.screenshot_urls) ? row.screenshot_urls.map(String) : [],
     videoUrl: typeof row.video_url === 'string' ? row.video_url : null, playStoreLink: typeof row.play_store_link === 'string' ? row.play_store_link : null,
-    downloadLink: typeof row.download_link === 'string' ? row.download_link : null, status: appStatuses.includes(row.status as AppStatus) ? row.status as AppStatus : 'Planning',
+    downloadLink: typeof row.download_link === 'string' ? row.download_link : null, lifecycle: normalizeLifecycle(row.lifecycle || row.status),
     visibility: row.visibility === 'published' ? 'published' : 'draft', featured: Boolean(row.featured), sortOrder: Number(row.sort_order || 0),
     solutionKind: solutionKinds.includes(row.solution_kind as SolutionKind) ? row.solution_kind as SolutionKind : 'other',
     availability: availabilities.includes(row.availability as Availability) ? row.availability as Availability : 'by_enquiry',
@@ -87,15 +101,27 @@ function mapApp(row: Record<string, unknown>): AppRecord {
     challenges: Array.isArray(row.challenges) ? row.challenges.map(String) : [], outcomes: Array.isArray(row.outcomes) ? row.outcomes.filter((item): item is AppRecord['outcomes'][number] => Boolean(item && typeof item === 'object' && 'label' in item && 'value' in item)) : [],
     confidentialityNote: typeof row.confidentiality_note === 'string' ? row.confidentiality_note : null, deploymentOptions: Array.isArray(row.deployment_options) ? row.deployment_options.map(String) : [],
     supportSummary: typeof row.support_summary === 'string' ? row.support_summary : null, customizationAvailable: Boolean(row.customization_available), licenseTermsUrl: typeof row.license_terms_url === 'string' ? row.license_terms_url : null,
+    externalUrlVerifiedAt: typeof row.external_url_verified_at === 'string' ? row.external_url_verified_at : null,
+    thumbnailUrl: typeof row.thumbnail_url === 'string' ? row.thumbnail_url : null,
+    upworkSkillTags: Array.isArray(row.upwork_skill_tags) ? row.upwork_skill_tags.map(String) : [],
+    upworkRelevance: typeof row.upwork_relevance === 'string' ? row.upwork_relevance : null,
+    artifactVersion: typeof row.artifact_version === 'string' ? row.artifact_version : null,
+    artifactPlatform: typeof row.artifact_platform === 'string' ? row.artifact_platform : null,
+    artifactByteSize: Number.isSafeInteger(Number(row.artifact_byte_size)) && Number(row.artifact_byte_size) > 0 ? Number(row.artifact_byte_size) : null,
+    artifactReleaseDate: typeof row.artifact_release_date === 'string' ? row.artifact_release_date : null,
+    artifactChecksum: typeof row.artifact_checksum === 'string' ? row.artifact_checksum : null,
+    artifactVerifiedAt: typeof row.artifact_verified_at === 'string' ? row.artifact_verified_at : null,
+    artifactAvailability: ['available', 'temporarily_unavailable', 'unavailable'].includes(String(row.artifact_availability)) ? row.artifact_availability as AppRecord['artifactAvailability'] : 'temporarily_unavailable',
+    updatedAt: typeof row.updated_at === 'string' ? row.updated_at : new Date(0).toISOString(),
   };
 }
 
-function row(input: Omit<AppRecord, 'id'>) {
+function row(input: AppInput) {
   return {
     name: input.name.trim(), slug: input.slug?.trim() || null, category: input.category.trim(), version: input.version.trim(), size: input.size?.trim() || null,
     rating: input.rating, downloads: input.downloads?.trim() || null, description: input.description.trim(), features: input.features, requirements: input.requirements,
     icon_url: input.iconUrl?.trim() || null, screenshot_urls: input.screenshotUrls, video_url: input.videoUrl?.trim() || null,
-    play_store_link: input.playStoreLink?.trim() || null, download_link: input.downloadLink?.trim() || null, status: input.status,
+    play_store_link: input.playStoreLink?.trim() || null, download_link: input.downloadLink?.trim() || null, lifecycle: input.lifecycle, status: legacyStatus(input.lifecycle),
     visibility: input.visibility, featured: input.featured, sort_order: input.sortOrder,
     solution_kind: input.solutionKind || 'other', availability: input.availability || 'by_enquiry', primary_action: input.primaryAction || 'automatic',
     show_in_projects: input.showInProjects || false, show_in_upwork_portfolio: input.showInUpworkPortfolio || false, show_in_products: input.showInProducts || false,
@@ -104,13 +130,19 @@ function row(input: Omit<AppRecord, 'id'>) {
     solution_summary: input.solutionSummary?.trim() || null, responsibilities: input.responsibilities || [], challenges: input.challenges || [], outcomes: input.outcomes || [],
     confidentiality_note: input.confidentialityNote?.trim() || null, deployment_options: input.deploymentOptions || [], support_summary: input.supportSummary?.trim() || null,
     customization_available: input.customizationAvailable || false, license_terms_url: input.licenseTermsUrl?.trim() || null,
+    external_url_verified_at: input.externalUrlVerifiedAt || null, thumbnail_url: input.thumbnailUrl?.trim() || null,
+    upwork_skill_tags: input.upworkSkillTags || [], upwork_relevance: input.upworkRelevance?.trim() || null,
+    artifact_version: input.artifactVersion?.trim() || null, artifact_platform: input.artifactPlatform?.trim() || null,
+    artifact_byte_size: input.artifactByteSize ?? null, artifact_release_date: input.artifactReleaseDate || null,
+    artifact_checksum: input.artifactChecksum?.trim() || null, artifact_verified_at: input.artifactVerifiedAt || null,
+    artifact_availability: input.artifactAvailability || 'temporarily_unavailable',
     published_at: input.visibility === 'published' ? new Date().toISOString() : null, updated_at: new Date().toISOString(),
   };
 }
 
-export function validateApp(input: Partial<Omit<AppRecord, 'id'>>) {
+export function validateApp(input: Partial<AppInput>) {
   if (!input.name?.trim() || !input.category?.trim() || !input.version?.trim() || !input.description?.trim()) return 'Name, category, version, and description are required.';
-  if (!appStatuses.includes(input.status as AppStatus)) return 'Choose a valid app status.';
+  if (!lifecycles.includes(input.lifecycle as Lifecycle)) return 'Choose a valid lifecycle.';
   if (!['draft', 'published'].includes(input.visibility as string)) return 'Choose a valid visibility.';
   if (typeof input.sortOrder !== 'number' || !Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
   if (input.rating !== null && input.rating !== undefined && (!Number.isFinite(input.rating) || input.rating < 0 || input.rating > 5)) return 'Rating must be between 0 and 5.';
@@ -138,8 +170,8 @@ export function validateApp(input: Partial<Omit<AppRecord, 'id'>>) {
     }
   }
   if (input.featured && input.visibility !== 'published') return 'Only published apps can be featured on the public App Store.';
-  if (input.status === 'Published' && !input.iconUrl?.trim()) return 'A published app needs an app icon URL.';
-  if (input.status === 'Published' && !input.playStoreLink?.trim() && !input.downloadLink?.trim()) return 'A published app needs a Play Store URL or direct download URL.';
+  if (input.lifecycle === 'live' && !input.iconUrl?.trim()) return 'A live app needs an app icon URL.';
+  if (input.artifactByteSize !== null && input.artifactByteSize !== undefined && (!Number.isSafeInteger(input.artifactByteSize) || input.artifactByteSize <= 0)) return 'Artifact byte size must be a positive whole number.';
   if (input.downloadLink && /\.apk(?:$|[?#])/i.test(input.downloadLink)) { const versions: string[] = input.downloadLink.match(/\d+\.\d+(?:\.\d+)?/g) || []; if (versions.length > 0 && !versions.includes(input.version.replace(/^v/i, ''))) return 'The APK URL version must match the displayed release version.'; }
   return null;
 }
@@ -159,13 +191,13 @@ export async function getPublishedAppBySlug(slug: string) {
   return data ? mapApp(data) : null;
 }
 
-export async function createApp(input: Omit<AppRecord, 'id'>) {
+export async function createApp(input: AppInput) {
   const { data, error } = await ensureServer().from('apps').insert(row(input)).select('*').single();
   if (error) throw error;
   return mapApp(data);
 }
 
-export async function updateApp(id: string, input: Omit<AppRecord, 'id'>) {
+export async function updateApp(id: string, input: AppInput) {
   const { data, error } = await ensureServer().from('apps').update(row(input)).eq('id', id).select('*').single();
   if (error) throw error;
   return mapApp(data);
