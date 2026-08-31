@@ -310,7 +310,7 @@ export default function RequestBuildPage() {
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <DollarSign className="inline w-4 h-4 mr-1" />
-                        Budget Range (GH₵) *
+                        Budget Range (GHS) *
                       </label>
                       <select
                         name="budget"

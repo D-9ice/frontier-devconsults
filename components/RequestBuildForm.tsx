@@ -319,7 +319,7 @@ export default function RequestBuildForm() {
                 <div>
                   <label htmlFor="budget" className="block text-sm font-semibold text-gray-700 mb-2">
                     <DollarSign className="w-4 h-4 inline mr-1" />
-                    Budget Range (GH₵) *
+                    Budget Range (GHS) *
                   </label>
                   <select
                     id="budget"

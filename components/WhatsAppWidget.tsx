@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Send } from 'lucide-react';
 
 export default function WhatsAppWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
+  useEffect(() => { const dismiss = () => setIsOpen(false); window.addEventListener('frontier-assistant-open', dismiss); return () => window.removeEventListener('frontier-assistant-open', dismiss); }, []);
   
   const whatsappNumber = '233249078976';
   const businessName = 'Frontier DevConsults';
@@ -37,7 +38,7 @@ export default function WhatsAppWidget() {
     <>
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-36 right-6 w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden border-2 border-gray-200">
+        <div className="fixed bottom-24 right-3 w-[calc(100vw-1.5rem)] max-w-[380px] h-[min(500px,calc(100vh-7rem))] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden border-2 border-gray-200 sm:right-6">
           {/* Header */}
           <div className="bg-[#25D366] text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -123,8 +124,8 @@ export default function WhatsAppWidget() {
 
       {/* Floating WhatsApp Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-[5.625rem] right-6 sm:bottom-28 w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] rounded-full flex items-center justify-center shadow-lg hover:shadow-green-500/50 transition-all transform hover:scale-110 z-50 group"
+        onClick={() => { const next = !isOpen; setIsOpen(next); if (next) window.dispatchEvent(new Event('frontier-whatsapp-open')); }}
+        className="fixed bottom-6 right-24 w-14 h-14 bg-[#25D366] hover:bg-[#20BA5A] rounded-full flex items-center justify-center shadow-lg hover:shadow-green-500/50 transition-all transform hover:scale-110 z-50 group"
         aria-label={isOpen ? "Close WhatsApp chat" : "Open WhatsApp chat"}
       >
         {isOpen ? (

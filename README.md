@@ -81,6 +81,20 @@ See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed deployment instruc
 - 🔍 SEO optimized with metadata
 - 📊 Project portfolio showcase
 - 🏪 App store for mobile applications
+- 🌍 International USD/GHS pricing presentation
+- 🧰 Searchable Apps & Solutions and evidence-based case-study routes
+- 🔒 Contact-free Upwork portfolio rendering
+- 🤖 First-party OpenAI Responses API assistant (server-side key only)
+
+## Upgrade configuration
+
+Apply `supabase/migrations/202608300010_application_presentation_metadata.sql` before using the extended application editor. The migration is additive; legacy records remain compatible and the existing uploader stays the only application input path. Roll back application code first if needed and leave the added columns intact to avoid deleting owner-entered metadata.
+
+Configure the assistant with `OPENAI_API_KEY`; it defaults to `gpt-5.6-luna`, low reasoning effort, a 500-token output cap, and 12 requests per ten-minute in-memory window. Configure project budget and spend alerts in the OpenAI project. Conversations are not persisted by this application and message text is not sent to website analytics.
+
+Set `UPWORK_PROFILE_URL` only to the owner-approved HTTPS Upwork profile. The CTA stays hidden when it is missing or invalid. The Upwork portfolio itself remains usable and contact-free.
+
+Before production deployment, the owner must approve surface visibility, commercial modes, pricing, the current USD/GHS rate and date, product media, founder wording, legal terms, and downloadable release metadata. Production deployment is a separate authorization.
 
 ## Contact
 

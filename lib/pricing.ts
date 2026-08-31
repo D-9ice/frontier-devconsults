@@ -29,6 +29,8 @@ export interface PricingSettings {
   currencySymbol: 'GH₵';
   roundingIncrement: number;
   note: string;
+  exchangeRateEffectiveAt: string;
+  exchangeRateSourceLabel: string;
   tiers: PricingTier[];
   developmentServices: ServicePrice[];
   additionalServices: ServicePrice[];
@@ -36,12 +38,14 @@ export interface PricingSettings {
 }
 
 export const defaultPricingSettings: PricingSettings = {
-  exchangeRate: 11.54,
+  exchangeRate: 11.25,
   currencyCode: 'GHS',
   currencySymbol: 'GH₵',
   roundingIncrement: 100,
-  note: 'All prices are estimates. Final cost depends on project complexity and requirements.',
-  updatedAt: '2026-07-17T00:00:00.000Z',
+  note: 'All Ghana cedi prices are planning estimates. Final cost depends on the confirmed project scope and requirements.',
+  exchangeRateEffectiveAt: '2026-08-28T00:00:00.000Z',
+  exchangeRateSourceLabel: 'Bank of Ghana daily interbank mid-rate',
+  updatedAt: '2026-08-31T00:00:00.000Z',
   tiers: [
     {
       id: 'basic-website',
@@ -147,6 +151,16 @@ export function formatCediAmount(value: number) {
 }
 
 export function formatPriceRange(price: PriceRange, settings: PricingSettings) {
+  return formatGhsPriceRange(price, settings);
+}
+
+export function formatUsdPriceRange(price: PriceRange) {
+  const suffix = price.suffix || '';
+  const format = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+  return price.maxUsd ? `${format(price.minUsd)} – ${format(price.maxUsd)}${suffix}` : `From ${format(price.minUsd)}${suffix}`;
+}
+
+export function formatGhsPriceRange(price: PriceRange, settings: PricingSettings) {
   const min = roundPrice(price.minUsd * settings.exchangeRate, settings.roundingIncrement);
   const suffix = price.suffix || '';
 
@@ -165,6 +179,8 @@ export function mergePricingSettings(input: Partial<PricingSettings> | null | un
     tiers: input?.tiers || defaultPricingSettings.tiers,
     developmentServices: input?.developmentServices || defaultPricingSettings.developmentServices,
     additionalServices: input?.additionalServices || defaultPricingSettings.additionalServices,
+    exchangeRateEffectiveAt: input?.exchangeRateEffectiveAt || input?.updatedAt || defaultPricingSettings.exchangeRateEffectiveAt,
+    exchangeRateSourceLabel: input?.exchangeRateSourceLabel?.trim() || defaultPricingSettings.exchangeRateSourceLabel,
     currencyCode: 'GHS',
     currencySymbol: 'GH₵',
   };

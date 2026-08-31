@@ -53,6 +53,8 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <section className="bg-slate-950 py-16 text-white"><div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8"><p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-300">Technical leadership</p><h2 className="mt-3 text-4xl font-bold">Hands-on accountability from engineering through delivery</h2><p className="mt-6 text-lg leading-8 text-slate-300">Frontier DevConsults connects software delivery with practical electrical and electronics engineering discipline. Work is approached through clear requirements, careful implementation, validation, security awareness, and final human review.</p></div></section>
+
       {/* Values */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

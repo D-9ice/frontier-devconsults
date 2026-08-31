@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/inter";
 import "./globals.css";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
-import FloatingButtons from "@/components/FloatingButtons";
-import WhatsAppWidget from "@/components/WhatsAppWidget";
-import TawkToWidget from "@/components/TawkToWidget";
 import PWAInstaller from "@/components/PWAInstaller";
-import AdminShortcut from "@/components/AdminShortcut";
-import VisitorTracker from "@/components/VisitorTracker";
+import SiteChrome from "@/components/SiteChrome";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.frontier-devconsults.com'),
@@ -107,14 +101,7 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className="antialiased">
         <PWAInstaller />
-        <AdminShortcut />
-        <VisitorTracker />
-        <Navigation />
-        {children}
-        <Footer />
-        <FloatingButtons />
-        <WhatsAppWidget />
-        <TawkToWidget />
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );

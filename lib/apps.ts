@@ -5,6 +5,14 @@ import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-serve
 export const appStatuses = ['Published', 'Development', 'Planning'] as const;
 export type AppStatus = typeof appStatuses[number];
 export type AppVisibility = 'draft' | 'published';
+export const solutionKinds = ['mobile_application', 'web_application', 'website', 'ai_platform', 'engineering_solution', 'engineering_service', 'client_project', 'other'] as const;
+export const availabilities = ['available', 'coming_soon', 'by_enquiry', 'unavailable'] as const;
+export const primaryActions = ['automatic', 'download', 'visit_live', 'view_details', 'request_demo', 'request_quote', 'join_waitlist', 'none'] as const;
+export const commercialModes = ['hosted_license', 'white_label', 'exclusive_acquisition'] as const;
+export type SolutionKind = typeof solutionKinds[number];
+export type Availability = typeof availabilities[number];
+export type PrimaryAction = typeof primaryActions[number];
+export type CommercialMode = typeof commercialModes[number];
 
 export type AppRecord = {
   id: string;
@@ -27,6 +35,27 @@ export type AppRecord = {
   visibility: AppVisibility;
   featured: boolean;
   sortOrder: number;
+  solutionKind: SolutionKind;
+  availability: Availability;
+  primaryAction: PrimaryAction;
+  showInProjects: boolean;
+  showInUpworkPortfolio: boolean;
+  showInProducts: boolean;
+  commercialModes: CommercialMode[];
+  startingPriceUsdMinor: number | null;
+  priceVisibility: 'show' | 'from' | 'enquire';
+  demoUrl: string | null;
+  technologies: string[];
+  clientProblem: string | null;
+  solutionSummary: string | null;
+  responsibilities: string[];
+  challenges: string[];
+  outcomes: Array<{ label: string; value: string; evidenceNote?: string }>;
+  confidentialityNote: string | null;
+  deploymentOptions: string[];
+  supportSummary: string | null;
+  customizationAvailable: boolean;
+  licenseTermsUrl: string | null;
 };
 
 function ensureServer() {
@@ -45,6 +74,19 @@ function mapApp(row: Record<string, unknown>): AppRecord {
     videoUrl: typeof row.video_url === 'string' ? row.video_url : null, playStoreLink: typeof row.play_store_link === 'string' ? row.play_store_link : null,
     downloadLink: typeof row.download_link === 'string' ? row.download_link : null, status: appStatuses.includes(row.status as AppStatus) ? row.status as AppStatus : 'Planning',
     visibility: row.visibility === 'published' ? 'published' : 'draft', featured: Boolean(row.featured), sortOrder: Number(row.sort_order || 0),
+    solutionKind: solutionKinds.includes(row.solution_kind as SolutionKind) ? row.solution_kind as SolutionKind : 'other',
+    availability: availabilities.includes(row.availability as Availability) ? row.availability as Availability : 'by_enquiry',
+    primaryAction: primaryActions.includes(row.primary_action as PrimaryAction) ? row.primary_action as PrimaryAction : 'automatic',
+    showInProjects: Boolean(row.show_in_projects), showInUpworkPortfolio: Boolean(row.show_in_upwork_portfolio), showInProducts: Boolean(row.show_in_products),
+    commercialModes: Array.isArray(row.commercial_modes) ? row.commercial_modes.filter((mode): mode is CommercialMode => commercialModes.includes(mode as CommercialMode)) : [],
+    startingPriceUsdMinor: Number.isSafeInteger(Number(row.starting_price_usd_minor)) && Number(row.starting_price_usd_minor) >= 0 ? Number(row.starting_price_usd_minor) : null,
+    priceVisibility: ['show', 'from', 'enquire'].includes(String(row.price_visibility)) ? row.price_visibility as AppRecord['priceVisibility'] : 'enquire',
+    demoUrl: typeof row.demo_url === 'string' ? row.demo_url : null,
+    technologies: Array.isArray(row.technologies) ? row.technologies.map(String) : [], clientProblem: typeof row.client_problem === 'string' ? row.client_problem : null,
+    solutionSummary: typeof row.solution_summary === 'string' ? row.solution_summary : null, responsibilities: Array.isArray(row.responsibilities) ? row.responsibilities.map(String) : [],
+    challenges: Array.isArray(row.challenges) ? row.challenges.map(String) : [], outcomes: Array.isArray(row.outcomes) ? row.outcomes.filter((item): item is AppRecord['outcomes'][number] => Boolean(item && typeof item === 'object' && 'label' in item && 'value' in item)) : [],
+    confidentialityNote: typeof row.confidentiality_note === 'string' ? row.confidentiality_note : null, deploymentOptions: Array.isArray(row.deployment_options) ? row.deployment_options.map(String) : [],
+    supportSummary: typeof row.support_summary === 'string' ? row.support_summary : null, customizationAvailable: Boolean(row.customization_available), licenseTermsUrl: typeof row.license_terms_url === 'string' ? row.license_terms_url : null,
   };
 }
 
@@ -55,6 +97,13 @@ function row(input: Omit<AppRecord, 'id'>) {
     icon_url: input.iconUrl?.trim() || null, screenshot_urls: input.screenshotUrls, video_url: input.videoUrl?.trim() || null,
     play_store_link: input.playStoreLink?.trim() || null, download_link: input.downloadLink?.trim() || null, status: input.status,
     visibility: input.visibility, featured: input.featured, sort_order: input.sortOrder,
+    solution_kind: input.solutionKind || 'other', availability: input.availability || 'by_enquiry', primary_action: input.primaryAction || 'automatic',
+    show_in_projects: input.showInProjects || false, show_in_upwork_portfolio: input.showInUpworkPortfolio || false, show_in_products: input.showInProducts || false,
+    commercial_modes: input.commercialModes || [], starting_price_usd_minor: input.startingPriceUsdMinor ?? null, price_visibility: input.priceVisibility || 'enquire',
+    demo_url: input.demoUrl?.trim() || null, technologies: input.technologies || [], client_problem: input.clientProblem?.trim() || null,
+    solution_summary: input.solutionSummary?.trim() || null, responsibilities: input.responsibilities || [], challenges: input.challenges || [], outcomes: input.outcomes || [],
+    confidentiality_note: input.confidentialityNote?.trim() || null, deployment_options: input.deploymentOptions || [], support_summary: input.supportSummary?.trim() || null,
+    customization_available: input.customizationAvailable || false, license_terms_url: input.licenseTermsUrl?.trim() || null,
     published_at: input.visibility === 'published' ? new Date().toISOString() : null, updated_at: new Date().toISOString(),
   };
 }
@@ -65,11 +114,18 @@ export function validateApp(input: Partial<Omit<AppRecord, 'id'>>) {
   if (!['draft', 'published'].includes(input.visibility as string)) return 'Choose a valid visibility.';
   if (typeof input.sortOrder !== 'number' || !Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
   if (input.rating !== null && input.rating !== undefined && (!Number.isFinite(input.rating) || input.rating < 0 || input.rating > 5)) return 'Rating must be between 0 and 5.';
+  if (input.solutionKind !== undefined && !solutionKinds.includes(input.solutionKind as SolutionKind)) return 'Choose a valid solution kind.';
+  if (input.availability !== undefined && !availabilities.includes(input.availability as Availability)) return 'Choose a valid availability.';
+  if (input.primaryAction !== undefined && !primaryActions.includes(input.primaryAction as PrimaryAction)) return 'Choose a valid primary action.';
+  if (input.priceVisibility !== undefined && !['show', 'from', 'enquire'].includes(input.priceVisibility as string)) return 'Choose a valid price visibility.';
+  if (input.startingPriceUsdMinor !== null && input.startingPriceUsdMinor !== undefined && (!Number.isSafeInteger(input.startingPriceUsdMinor) || input.startingPriceUsdMinor < 0)) return 'Starting price must be a non-negative USD minor-unit amount.';
   const urls = [
     ['App icon URL', input.iconUrl],
     ['Video URL', input.videoUrl],
     ['Play Store URL', input.playStoreLink],
     ['Direct download URL', input.downloadLink],
+    ['Demo URL', input.demoUrl],
+    ['License terms URL', input.licenseTermsUrl],
     ...((input.screenshotUrls || []).map((url) => ['Screenshot URL', url] as const)),
   ];
   for (const [label, value] of urls) {
@@ -84,6 +140,7 @@ export function validateApp(input: Partial<Omit<AppRecord, 'id'>>) {
   if (input.featured && input.visibility !== 'published') return 'Only published apps can be featured on the public App Store.';
   if (input.status === 'Published' && !input.iconUrl?.trim()) return 'A published app needs an app icon URL.';
   if (input.status === 'Published' && !input.playStoreLink?.trim() && !input.downloadLink?.trim()) return 'A published app needs a Play Store URL or direct download URL.';
+  if (input.downloadLink && /\.apk(?:$|[?#])/i.test(input.downloadLink)) { const versions: string[] = input.downloadLink.match(/\d+\.\d+(?:\.\d+)?/g) || []; if (versions.length > 0 && !versions.includes(input.version.replace(/^v/i, ''))) return 'The APK URL version must match the displayed release version.'; }
   return null;
 }
 
@@ -94,6 +151,12 @@ export async function listApps(includeDrafts = true) {
   const { data, error } = await query;
   if (error) throw error;
   return (data || []).map((item) => mapApp(item));
+}
+
+export async function getPublishedAppBySlug(slug: string) {
+  const { data, error } = await ensureServer().from('apps').select('*').eq('visibility', 'published').eq('slug', slug).maybeSingle();
+  if (error) throw error;
+  return data ? mapApp(data) : null;
 }
 
 export async function createApp(input: Omit<AppRecord, 'id'>) {

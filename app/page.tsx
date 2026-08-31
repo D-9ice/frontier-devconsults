@@ -24,7 +24,6 @@ export default async function Home() {
     logo: 'https://www.frontier-devconsults.com/logos/frontier-emblem.png',
     description: 'Transforming ideas into production-ready applications. Specialized in mobile apps, web platforms, and AI-powered solutions.',
     slogan: 'Building Digital Excellence',
-    foundingDate: '2024',
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Accra',
@@ -41,14 +40,7 @@ export default async function Home() {
     sameAs: [
       'https://github.com/frontierdevconsults',
       'https://linkedin.com/company/frontierdevconsults'
-    ],
-    offers: {
-      '@type': 'AggregateOffer',
-      priceCurrency: 'GHS',
-      lowPrice: '5800',
-      highPrice: '173100',
-      offerCount: '4'
-    }
+    ]
   };
 
   return (
@@ -74,8 +66,7 @@ export default async function Home() {
               Transforming ideas into production-ready applications from our Accra office.
             </p>
             <p className="hidden sm:block text-lg text-gray-300 max-w-2xl">
-              Enterprise-grade mobile apps, web platforms, and AI-powered solutions. 
-              From concept to deployment, we build software that scales.
+              Mobile apps, web platforms, AI integrations, and engineering solutions—from planning and implementation through validation and deployment.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <Link 

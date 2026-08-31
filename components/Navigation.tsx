@@ -9,8 +9,9 @@ export default function Navigation() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
+    { href: '/services', label: 'Services' },
     { href: '/projects', label: 'Projects' },
-    { href: '/app-store', label: 'App Store' },
+    { href: '/app-store', label: 'Apps & Solutions' },
     { href: '/pricing', label: 'Pricing' },
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },

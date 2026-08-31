@@ -11,6 +11,7 @@ function validateSettings(settings: PricingSettings) {
   if (!Number.isFinite(settings.roundingIncrement) || settings.roundingIncrement <= 0) {
     return 'Rounding increment must be greater than 0.';
   }
+  if (!settings.exchangeRateSourceLabel.trim() || !Number.isFinite(Date.parse(settings.exchangeRateEffectiveAt))) return 'Exchange-rate source and effective date are required.';
 
   const prices = [
     ...settings.tiers.map((item) => item.price),

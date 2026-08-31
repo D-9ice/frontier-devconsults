@@ -1,10 +1,12 @@
 {
-  "exchangeRate": 11.54,
+  "exchangeRate": 11.25,
   "currencyCode": "GHS",
   "currencySymbol": "GH₵",
   "roundingIncrement": 100,
-  "note": "All prices are estimates. Final cost depends on project complexity and requirements.",
-  "updatedAt": "2026-07-19T00:25:50.990Z",
+  "exchangeRateEffectiveAt": "2026-08-28T00:00:00.000Z",
+  "exchangeRateSourceLabel": "Bank of Ghana daily interbank mid-rate",
+  "note": "All Ghana cedi prices are planning estimates. Final cost depends on the confirmed project scope and requirements.",
+  "updatedAt": "2026-08-31T00:00:00.000Z",
   "tiers": [
     {
       "id": "basic-website",

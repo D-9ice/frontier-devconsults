@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, RefreshCcw, Save, XCircle } from 'lucide-react';
-import { formatPriceRange, PricingSettings } from '@/lib/pricing';
+import { formatGhsPriceRange, PricingSettings } from '@/lib/pricing';
 
 type PricingRevision = {
   id: string;
@@ -139,8 +139,12 @@ export default function AdminPricingPage() {
             </Link>
             <h1 className="text-3xl font-bold text-gray-900">Pricing Editor</h1>
             <p className="mt-2 text-gray-600">
-              Update exchange rate and base USD prices. The public page converts them to Ghana cedis automatically.
+              Maintain the protected internal USD calculation basis and the public Ghana cedi estimates.
             </p>
+          </div>
+          <div className="mt-5 grid gap-5 md:grid-cols-2">
+            <label className="block text-sm font-semibold text-gray-700">Rate source label<input value={settings.exchangeRateSourceLabel} onChange={(event) => setSettings({ ...settings, exchangeRateSourceLabel: event.target.value })} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900" /></label>
+            <label className="block text-sm font-semibold text-gray-700">Rate effective date<input type="datetime-local" value={settings.exchangeRateEffectiveAt.slice(0, 16)} onChange={(event) => setSettings({ ...settings, exchangeRateEffectiveAt: new Date(event.target.value).toISOString() })} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900" /></label>
           </div>
           <button
             onClick={savePricing}
@@ -349,7 +353,7 @@ function PriceSection({ title, settings, items, onChange }: PriceSectionProps) {
                     className="w-32 rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-blue-600"
                   />
                 </td>
-                <td className="py-3 font-bold text-blue-600">{formatPriceRange(item.price, settings)}</td>
+                <td className="py-3 font-bold text-blue-600">{formatGhsPriceRange(item.price, settings)}</td>
               </tr>
             ))}
           </tbody>

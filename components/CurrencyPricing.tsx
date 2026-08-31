@@ -1,0 +1,12 @@
+'use client';
+
+import Link from 'next/link';
+import { Check } from 'lucide-react';
+import type { PriceRange, PricingSettings } from '@/lib/pricing';
+import { formatGhsPriceRange } from '@/lib/pricing';
+
+export default function CurrencyPricing({ pricing }: { pricing: PricingSettings }) {
+  const display = (price: PriceRange) => formatGhsPriceRange(price, pricing);
+  return <><div className="mb-10 text-center"><p className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">Prices shown in Ghana cedis (GHS)</p><p className="mt-2 text-sm text-gray-600">These planning estimates are subject to a written quotation.</p></div><div className="grid gap-7 md:grid-cols-2 xl:grid-cols-4">{pricing.tiers.map((tier) => <article key={tier.id} className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"><p className="text-sm font-bold uppercase tracking-wide text-blue-700">{tier.popular ? 'Popular package' : 'Engagement package'}</p><h2 className="mt-2 text-2xl font-bold text-gray-900">{tier.title}</h2><p className="mt-4 text-3xl font-bold text-gray-950">{display(tier.price)}</p><p className="mt-3 text-gray-600">{tier.description}</p><p className="mt-3 text-sm font-semibold text-gray-700">Typical starting scope: {tier.timeline}</p><ul className="mt-6 space-y-3">{tier.features.map((feature) => <li key={feature} className="flex gap-2 text-sm text-gray-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />{feature}</li>)}</ul><Link href="/contact#request-build" className="mt-auto pt-7"><span className="block rounded-lg bg-blue-700 px-4 py-3 text-center font-bold text-white hover:bg-blue-800">Request a quotation</span></Link></article>)}</div><section className="mt-14 grid gap-8 lg:grid-cols-2"><PriceList title="Development services" items={pricing.developmentServices} display={display} /><PriceList title="Additional services" items={pricing.additionalServices} display={display} /></section></>;
+}
+function PriceList({ title, items, display }: { title: string; items: PricingSettings['developmentServices']; display: (price: PriceRange) => string }) { return <div className="rounded-2xl border border-gray-200 bg-white p-6"><h2 className="text-2xl font-bold text-gray-900">{title}</h2><dl className="mt-5 divide-y divide-gray-100">{items.map((item) => <div key={item.id} className="flex items-start justify-between gap-5 py-3"><dt className="text-gray-700">{item.service}</dt><dd className="text-right font-bold text-blue-700">{display(item.price)}</dd></div>)}</dl></div>; }

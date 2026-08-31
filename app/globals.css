@@ -38,24 +38,6 @@ textarea::placeholder {
   opacity: 1;
 }
 
-/* Position Tawk.to widget above WhatsApp button */
-div[id^="tawk"] {
-  bottom: 220px !important;
-}
-
-/* Tawk.to chat window positioning */
-#tawkchat-container,
-#tawkchat-chat-container {
-  bottom: 280px !important;
-}
-
-/* Tawk.to minimized bubble */
-#tawkchat-minified-box {
-  bottom: 220px !important;
-}
-
-@media (max-width: 639px) {
-  iframe[src*="tawk.to"] {
-    transform: translateX(4px) !important;
-  }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
