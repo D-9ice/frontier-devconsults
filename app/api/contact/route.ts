@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendAdminNotification } from '@/lib/email';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { sendWhatsAppContactAlert } from '@/lib/whatsapp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,15 +68,23 @@ ${body.message}
 Submitted on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' })}
 `;
 
-    try {
-      await sendAdminNotification({
+    const submittedAt = new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' });
+    const [emailNotification, whatsAppNotification] = await Promise.allSettled([
+      sendAdminNotification({
         subject: emailSubject,
         text: emailBody,
         replyTo: body.email,
-      });
-    } catch (emailError) {
-      console.error('Contact submission saved, but notification email failed:', emailError);
-    }
+      }),
+      sendWhatsAppContactAlert({
+        name: String(body.name),
+        email: String(body.email),
+        subject: String(body.subject),
+        message: String(body.message),
+        submittedAt,
+      }),
+    ]);
+    if (emailNotification.status === 'rejected') console.error('Contact submission saved, but notification email failed:', emailNotification.reason);
+    if (whatsAppNotification.status === 'rejected') console.error('Contact submission saved, but WhatsApp alert failed:', whatsAppNotification.reason);
 
     return NextResponse.json(
       { 

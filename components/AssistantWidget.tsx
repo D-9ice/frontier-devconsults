@@ -1,6 +1,6 @@
 'use client';
 
-import { Bot, RotateCcw, Send, X } from 'lucide-react';
+import { RotateCcw, Send, UserRound, X } from 'lucide-react';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 
 type Message = { role: string; content: string };
@@ -111,7 +111,7 @@ export default function AssistantWidget() {
       <div className="fixed inset-0 z-[55] bg-slate-950/35" aria-hidden="true" onClick={dismiss} />
       <section id="frontier-assistant-dialog" ref={panel} role="dialog" aria-modal="true" aria-labelledby="assistant-title" className="fixed right-3 z-[60] flex max-h-[min(38rem,calc(100dvh-7rem))] w-[calc(100vw-1.5rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl sm:right-6" style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
         <header className="flex items-center justify-between bg-gradient-to-r from-blue-700 to-indigo-700 p-4 text-white">
-          <div className="flex items-center gap-3"><Bot className="h-6 w-6" aria-hidden="true" /><div><h2 id="assistant-title" className="font-bold">Frontier Assistant</h2><p className="text-xs text-blue-100">AI-generated website guidance</p></div></div>
+          <div className="flex items-center gap-3"><UserRound className="h-6 w-6" aria-hidden="true" /><h2 id="assistant-title" className="font-bold">Frontier Assistant</h2></div>
           <button ref={closeButton} type="button" onClick={dismiss} aria-label="Close Frontier Assistant" className="min-h-11 min-w-11 rounded-lg p-2 hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white"><X className="h-5 w-5" /></button>
         </header>
         <div className="flex-1 space-y-3 overflow-y-auto bg-gray-50 p-4" aria-live="polite" aria-atomic="false">
@@ -127,6 +127,6 @@ export default function AssistantWidget() {
         </form>
       </section>
     </>}
-    <button ref={launcher} type="button" onClick={toggle} aria-expanded={open} aria-controls="frontier-assistant-dialog" className="fixed right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-700 text-white shadow-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200" style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }} aria-label={open ? 'Close Frontier Assistant' : 'Open Frontier Assistant'}>{open ? <X className="h-6 w-6" /> : <Bot className="h-7 w-7" />}</button>
+    <button ref={launcher} type="button" onClick={toggle} aria-expanded={open} aria-controls="frontier-assistant-dialog" className="fixed right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-700 text-white shadow-lg hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200" style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }} aria-label={open ? 'Close Frontier Assistant' : 'Open Frontier Assistant'}>{open ? <X className="h-6 w-6" /> : <span aria-hidden="true" className="flex flex-col items-center text-[11px] font-black leading-[0.9] tracking-wide"><span>ASK</span><span>ME</span></span>}</button>
   </>;
 }

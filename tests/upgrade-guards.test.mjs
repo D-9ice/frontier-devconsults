@@ -140,6 +140,22 @@ test('assistant restores launcher focus and placeholder verification is absent',
   assert.equal(layout.includes('your-google-verification-code'), false);
 });
 
+test('contact alerts and mobile controls use the approved WhatsApp and plain-language UI', async () => {
+  const route = await read('app/api/contact/route.ts');
+  const whatsapp = await read('lib/whatsapp.ts');
+  const assistant = await read('components/AssistantWidget.tsx');
+  const navigation = await read('components/Navigation.tsx');
+  assert.match(route, /sendWhatsAppContactAlert/);
+  assert.match(whatsapp, /messaging_product: 'whatsapp'/);
+  assert.match(whatsapp, /type: 'template'/);
+  assert.match(whatsapp, /'WHATSAPP_ACCESS_TOKEN'/);
+  assert.match(assistant, /<span>ASK<\/span><span>ME<\/span>/);
+  assert.match(assistant, /UserRound/);
+  assert.equal(assistant.includes('AI-generated website guidance'), false);
+  assert.match(navigation, /isOpen \? 'Close' : 'Menu'/);
+  assert.equal(navigation.includes('<Menu'), false);
+});
+
 test('assistant validates origin, session and bounded message schemas', () => {
   assert.equal(sameOrigin('https://example.com', 'https://example.com/api/assistant'), true);
   assert.equal(sameOrigin('https://evil.example', 'https://example.com/api/assistant'), false);
