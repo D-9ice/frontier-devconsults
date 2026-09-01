@@ -48,7 +48,16 @@ socket.addEventListener('message', ({ data }) => {
 function send(method, params = {}, sessionId) {
   const id = ++sequence;
   socket.send(JSON.stringify({ id, method, params, ...(sessionId ? { sessionId } : {}) }));
-  return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      reject(new Error(`Chrome DevTools command timed out: ${method}`));
+    }, 30_000);
+    pending.set(id, {
+      resolve: (value) => { clearTimeout(timer); resolve(value); },
+      reject: (error) => { clearTimeout(timer); reject(error); },
+    });
+  });
 }
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -59,6 +68,7 @@ async function evaluate(expression) {
 }
 
 async function navigate(url) {
+  events.length = 0;
   await send('Page.navigate', { url }, sessionId);
   const deadline = Date.now() + 20_000;
   while (Date.now() < deadline) {
@@ -79,6 +89,12 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function assertNoSiteErrors(context) {
+  const siteErrors = events.filter((event) => event.method === 'Runtime.exceptionThrown' || (event.method === 'Log.entryAdded' && event.params?.entry?.level === 'error'));
+  const details = siteErrors.map((event) => event.params?.entry?.text || event.params?.exceptionDetails?.text || event.method);
+  assert(siteErrors.length === 0, `${context} reported ${siteErrors.length} browser error(s): ${JSON.stringify(details)}`);
+}
+
 const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
 const attached = await send('Target.attachToTarget', { targetId, flatten: true });
 const sessionId = attached.sessionId;
@@ -96,7 +112,7 @@ try {
       await new Promise((resolve) => setTimeout(resolve, 80));
       await Promise.race([
         image.decode().catch(() => undefined),
-        new Promise((resolve) => setTimeout(resolve, 5_000)),
+        new Promise((resolve) => setTimeout(resolve, 2_000)),
       ]);
     }
     scrollTo(0, 0);
@@ -118,6 +134,7 @@ try {
   assert(catalogue.failed.length === 0, `Artwork has zero natural width: ${catalogue.failed.join(', ')}`);
   assert(catalogue.fallbacks.length === 0, `Artwork fallbacks rendered: ${catalogue.fallbacks.join(', ')}`);
   assert(catalogue.optimized.every((item) => item.src.includes('/_next/image?url=')), 'At least one app artwork bypassed the Next image optimizer.');
+  console.log('Catalogue artwork passed: 18/18.');
   const png = catalogue.optimized.find((item) => item.type === 'png');
   const webp = catalogue.optimized.find((item) => item.type === 'webp');
   assert(png && webp, 'The catalogue must exercise at least one PNG and one WebP source.');
@@ -125,6 +142,7 @@ try {
     const response = await fetch(sample.src);
     assert(response.ok && response.headers.get('content-type')?.startsWith('image/'), `${sample.type.toUpperCase()} optimizer request failed with ${response.status}.`);
   }
+  assertNoSiteErrors('Catalogue');
   await screenshot('app-store-1440');
 
   for (const slug of catalogue.cards) {
@@ -134,6 +152,8 @@ try {
       return { image: Boolean(image), width: image?.naturalWidth || 0, fallback: Boolean(document.querySelector('[data-app-artwork-fallback]')) };
     })()`);
     assert(detail.image && detail.width > 0 && !detail.fallback, `Detail artwork failed for ${slug}.`);
+    assertNoSiteErrors(`Detail route ${slug}`);
+    console.log(`Detail artwork passed: ${slug}`);
   }
 
   for (const width of [320, 360, 390, 768, 1024, 1440]) {
@@ -150,7 +170,9 @@ try {
     })()`);
     assert(!layout.overflow, `Horizontal overflow at ${width}px: ${JSON.stringify(layout.offenders)}`);
     assert(layout.reducedMotion, `Reduced-motion preference was not applied at ${width}px.`);
+    assertNoSiteErrors(`Responsive viewport ${width}px`);
     await screenshot(`app-store-${width}`);
+    console.log(`Responsive viewport passed: ${width}px.`);
   }
 
   await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 900, deviceScaleFactor: 1, mobile: true }, sessionId);
@@ -171,8 +193,7 @@ try {
   })()`);
   assert(focus, 'Assistant focus did not return to its launcher after Escape.');
 
-  const siteErrors = events.filter((event) => event.method === 'Runtime.exceptionThrown' || (event.method === 'Log.entryAdded' && event.params?.entry?.level === 'error'));
-  assert(siteErrors.length === 0, `Browser reported ${siteErrors.length} site error(s).`);
+  assertNoSiteErrors('Home page widgets');
   console.log(`Production UI passed: 18 card artworks, 18 detail artworks, PNG/WebP optimization, six responsive widths, reduced motion, widget spacing, and assistant focus at ${baseUrl}.`);
   if (screenshotDir) console.log(`Screenshots: ${screenshotDir}`);
 } finally {
