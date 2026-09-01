@@ -51,11 +51,38 @@ test('public catalogue uses owner-published records and no synthetic production 
 
 test('catalogue fails closed for mismatched release metadata and flags missing artwork', async () => {
   const detail = await read('app/app-store/[slug]/page.tsx');
+  const publicApps = await read('lib/public-apps.ts');
+  const artwork = await read('components/AppArtwork.tsx');
+  const config = await read('next.config.js');
   const admin = await read('app/admin/(protected)/app-store/page.tsx');
-  assert.match(detail, /releaseArtifactReady\(app\)/);
+  assert.match(publicApps, /releaseArtifactReady\(app\)/);
+  assert.match(publicApps, /!isWebsiteSolution\(app\)/);
   assert.match(detail, /Download temporarily unavailable while release metadata is being verified/);
-  assert.match(detail, /releaseReady && app\.artifactVersion/);
+  assert.match(detail, /detail\.showArtifactVerificationNotice/);
+  assert.match(artwork, /data-app-artwork-fallback/);
+  assert.match(config, /dfvrmaiqiyhtturtxykf\.supabase\.co/);
+  assert.match(config, /\/storage\/v1\/object\/public\/app-media\/\*\*/);
   assert.match(admin, /Artwork needed/);
+});
+
+test('public application payloads are allowlisted before reaching client components', async () => {
+  const page = await read('app/app-store/page.tsx');
+  const catalogue = await read('components/AppCatalogue.tsx');
+  const dto = await read('lib/public-apps.ts');
+  assert.match(page, /apps\.map\(toPublicAppCard\)/);
+  assert.match(catalogue, /PublicAppCard/);
+  for (const field of ['showInUpworkPortfolio', 'downloadLink', 'artifactAvailability', 'externalUrlVerifiedAt']) {
+    assert.equal(dto.includes(`${field}:`), false, field);
+    assert.equal(catalogue.includes(`.${field}`), false, field);
+  }
+});
+
+test('active production config has complete security and exact image policy', async () => {
+  const config = await read('next.config.js');
+  for (const directive of ['script-src', 'style-src', 'img-src', 'font-src', 'connect-src', 'frame-src', 'base-uri', 'form-action', 'frame-ancestors', 'object-src']) {
+    assert.equal(config.includes(directive), true, directive);
+  }
+  assert.match(config, /pathname: '\/storage\/v1\/object\/public\/app-media\/\*\*'/);
 });
 
 test('public pricing is USD-first with controlled optional GHS conversion', async () => {
@@ -95,6 +122,17 @@ test('central CTA resolver never creates detail self-links or unverified downloa
   assert.notEqual(primaryCta(base, 'detail')?.href, '/app-store/app');
   assert.equal(primaryCta({ ...base, availability: 'by_enquiry' }, 'detail')?.label, 'Request a Quotation');
   assert.equal(releaseArtifactReady({ ...base, solutionKind: 'mobile_application', downloadLink: 'https://example.test/app.apk' }), false);
+  const verifiedWebsite = { ...base, downloadLink: 'https://example.test', externalUrlVerifiedAt: '2026-09-01T00:00:00Z' };
+  assert.equal(primaryCta(verifiedWebsite, 'detail')?.label, 'Visit Live Website');
+  assert.equal(releaseArtifactReady(verifiedWebsite), false);
+});
+
+test('assistant restores launcher focus and placeholder verification is absent', async () => {
+  const assistant = await read('components/AssistantWidget.tsx');
+  const layout = await read('app/layout.tsx');
+  assert.match(assistant, /restoreLauncherFocus/);
+  assert.match(assistant, /frontier-assistant-dialog/);
+  assert.equal(layout.includes('your-google-verification-code'), false);
 });
 
 test('assistant validates origin, session and bounded message schemas', () => {

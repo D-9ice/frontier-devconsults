@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { X, Send } from 'lucide-react';
 
 export default function WhatsAppWidget() {
@@ -43,9 +44,12 @@ export default function WhatsAppWidget() {
           <div className="bg-[#25D366] text-white p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-sm bg-white p-1 flex items-center justify-center">
-                <img 
+                <Image
                   src="/logos/frontier-emblem.png" 
                   alt={businessName}
+                  width={48}
+                  height={48}
+                  sizes="48px"
                   className="w-full h-full object-contain"
                 />
               </div>

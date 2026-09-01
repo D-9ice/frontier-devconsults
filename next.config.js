@@ -1,10 +1,34 @@
 /** @type {import('next').NextConfig} */
+const publicSupabaseHost = 'dfvrmaiqiyhtturtxykf.supabase.co';
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "frame-src 'none'",
+  "object-src 'none'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self' data:",
+  `img-src 'self' data: blob: https://${publicSupabaseHost}`,
+  `media-src 'self' https://${publicSupabaseHost}`,
+  `connect-src 'self' https://${publicSupabaseHost}`,
+  "upgrade-insecure-requests",
+].join('; ');
+
 const nextConfig = {
   // Image optimization
   images: {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: publicSupabaseHost,
+        pathname: '/storage/v1/object/public/app-media/**',
+      },
+    ],
   },
 
   // Production-only optimizations
@@ -38,7 +62,11 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "base-uri 'self'; frame-ancestors 'none'; object-src 'none';"
+            value: contentSecurityPolicy
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
           },
         ],
       },

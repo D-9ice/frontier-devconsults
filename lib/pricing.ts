@@ -44,7 +44,7 @@ export const defaultPricingSettings: PricingSettings = {
   currencyCode: 'GHS',
   currencySymbol: 'GH₵',
   roundingIncrement: 100,
-  note: 'All Ghana cedi prices are planning estimates. Final cost depends on the confirmed project scope and requirements.',
+  note: 'All displayed prices are planning estimates. Final cost depends on the confirmed project scope and requirements.',
   exchangeRateEffectiveAt: '2026-08-28T00:00:00.000Z',
   exchangeRateSourceLabel: 'Bank of Ghana daily interbank mid-rate',
   exchangeRateApproved: true,
@@ -179,6 +179,10 @@ export function formatGhsPriceRange(price: PriceRange, settings: PricingSettings
 export function ghsConversionAvailable(settings: PricingSettings, now = new Date()) {
   const effective = Date.parse(settings.exchangeRateEffectiveAt); const maxAge = settings.exchangeRateMaxAgeDays * 86_400_000;
   return settings.exchangeRateApproved && settings.exchangeRate > 0 && Number.isFinite(effective) && now.getTime() - effective <= maxAge;
+}
+
+export function publicPricingNote(note: string) {
+  return note.replace(/^All Ghana cedi prices are planning estimates\./i, 'All displayed prices are planning estimates.');
 }
 
 export function mergePricingSettings(input: Partial<PricingSettings> | null | undefined): PricingSettings {

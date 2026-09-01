@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
@@ -24,9 +25,12 @@ export default function Navigation() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 font-bold text-xl text-gray-900">
             <div className="w-[45px] h-[45px] rounded-lg flex-shrink-0">
-              <img 
+              <Image
                 src="/logos/frontier-emblem.png" 
                 alt="Frontier DevConsults Logo" 
+                width={45}
+                height={45}
+                sizes="45px"
                 className="w-full h-full object-contain"
               />
             </div>

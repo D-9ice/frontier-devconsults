@@ -1,18 +1,19 @@
 import type { NextConfig } from "next";
 
-const supabaseHost = (() => { try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || '').hostname; } catch { return ''; } })();
+const supabaseHost = 'dfvrmaiqiyhtturtxykf.supabase.co';
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
+  "frame-src 'none'",
   "object-src 'none'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  `img-src 'self' data: blob:${supabaseHost ? ` https://${supabaseHost}` : ''}`,
-  `media-src 'self'${supabaseHost ? ` https://${supabaseHost}` : ''}`,
-  `connect-src 'self'${supabaseHost ? ` https://${supabaseHost}` : ''}`,
+  `img-src 'self' data: blob: https://${supabaseHost}`,
+  `media-src 'self' https://${supabaseHost}`,
+  `connect-src 'self' https://${supabaseHost}`,
   "upgrade-insecure-requests",
 ].join('; ');
 
@@ -21,7 +22,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     formats: ['image/webp', 'image/avif'],
-    remotePatterns: supabaseHost ? [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }] : [],
+    remotePatterns: [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/app-media/**' }],
   },
   async headers() {
     return [{
