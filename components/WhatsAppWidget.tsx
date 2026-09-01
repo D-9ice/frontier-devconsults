@@ -45,7 +45,7 @@ export default function WhatsAppWidget() {
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-sm bg-white p-1 flex items-center justify-center">
                 <Image
-                  src="/logos/frontier-emblem.png" 
+                  src="/logos/frontier-emblem.webp"
                   alt={businessName}
                   width={48}
                   height={48}

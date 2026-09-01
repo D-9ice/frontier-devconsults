@@ -12,7 +12,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <div className="w-[47px] h-[47px] rounded-none flex-shrink-0 bg-gray-900 p-0.5">
                 <Image
-                  src="/logos/frontier-emblem.png" 
+                  src="/logos/frontier-emblem.webp"
                   alt="Frontier DevConsults Logo" 
                   width={47}
                   height={47}

@@ -26,7 +26,7 @@ export default function Navigation() {
           <Link href="/" className="flex items-center space-x-3 font-bold text-xl text-gray-900">
             <div className="w-[45px] h-[45px] rounded-lg flex-shrink-0">
               <Image
-                src="/logos/frontier-emblem.png" 
+                src="/logos/frontier-emblem.webp"
                 alt="Frontier DevConsults Logo" 
                 width={45}
                 height={45}

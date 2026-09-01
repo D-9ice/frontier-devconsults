@@ -21,7 +21,7 @@ export default async function Home() {
     name: 'Frontier DevConsults',
     alternateName: 'FrontierDev',
     url: 'https://www.frontier-devconsults.com',
-    logo: 'https://www.frontier-devconsults.com/logos/frontier-emblem.png',
+    logo: 'https://www.frontier-devconsults.com/logos/frontier-emblem.webp',
     description: 'Transforming ideas into production-ready applications. Specialized in mobile apps, web platforms, and AI-powered solutions.',
     slogan: 'Building Digital Excellence',
     address: {
