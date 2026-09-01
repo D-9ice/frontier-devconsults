@@ -90,11 +90,16 @@ try {
   await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1200, deviceScaleFactor: 1, mobile: false }, sessionId);
   await navigate(`${baseUrl}/app-store`);
   const catalogue = await evaluate(`(async () => {
-    for (let top = 0; top < document.documentElement.scrollHeight; top += Math.max(320, innerHeight * 0.75)) {
-      scrollTo(0, top); await new Promise((resolve) => setTimeout(resolve, 120));
-    }
-    await new Promise((resolve) => setTimeout(resolve, 800));
     const images = [...document.querySelectorAll('img[data-app-artwork]')];
+    for (const image of images) {
+      image.scrollIntoView({ block: 'center' });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      await Promise.race([
+        image.decode().catch(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, 5_000)),
+      ]);
+    }
+    scrollTo(0, 0);
     const fallbacks = [...document.querySelectorAll('[data-app-artwork-fallback]')];
     const cards = [...new Set([...document.querySelectorAll('[data-app-card]')].map((item) => item.dataset.appCard))];
     return {
@@ -102,7 +107,10 @@ try {
       uniqueArtwork: [...new Set(images.map((image) => image.dataset.appArtwork))],
       failed: images.filter((image) => image.naturalWidth <= 0).map((image) => image.dataset.appArtwork),
       fallbacks: fallbacks.map((item) => item.dataset.appArtworkFallback),
-      optimized: images.map((image) => ({ name: image.dataset.appArtwork, src: image.currentSrc, width: image.naturalWidth, type: image.src.endsWith('.webp') ? 'webp' : image.src.endsWith('.png') ? 'png' : 'other' })),
+      optimized: images.map((image) => {
+        const source = new URL(image.src, location.href).searchParams.get('url') || image.src;
+        return { name: image.dataset.appArtwork, src: image.currentSrc, width: image.naturalWidth, type: source.endsWith('.webp') ? 'webp' : source.endsWith('.png') ? 'png' : 'other' };
+      }),
     };
   })()`);
   assert(catalogue.cards.length === 18, `Expected 18 unique app cards, found ${catalogue.cards.length}.`);
@@ -132,8 +140,15 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 768 }, sessionId);
     await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] }, sessionId);
     await navigate(`${baseUrl}/app-store`);
-    const layout = await evaluate(`(() => ({ overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches }))()`);
-    assert(!layout.overflow, `Horizontal overflow at ${width}px.`);
+    const layout = await evaluate(`(() => {
+      const viewport = document.documentElement.clientWidth;
+      const offenders = [...document.querySelectorAll('body *')].filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.left < -1 || rect.right > viewport + 1;
+      }).slice(0, 8).map((element) => ({ tag: element.tagName, className: element.className, text: element.textContent?.trim().slice(0, 80) }));
+      return { overflow: document.documentElement.scrollWidth > viewport, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, offenders };
+    })()`);
+    assert(!layout.overflow, `Horizontal overflow at ${width}px: ${JSON.stringify(layout.offenders)}`);
     assert(layout.reducedMotion, `Reduced-motion preference was not applied at ${width}px.`);
     await screenshot(`app-store-${width}`);
   }
