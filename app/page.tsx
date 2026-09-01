@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, Code2, Smartphone, Globe, Zap, Building2 } from 'lucide-react';
 import { listProjects } from '@/lib/projects';
 import { getHeroMedia, OfficeMediaItem } from '@/lib/hero-media';
+import ProjectArtwork from '@/components/ProjectArtwork';
 
 export const dynamic = 'force-dynamic';
 
@@ -406,11 +407,9 @@ function ProjectCard({ title, category, description, status, tags, logoUrl }: Pr
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-      {logoUrl && (
-        <div className="mb-4">
-          <img src={logoUrl} alt={title} className="w-16 h-16 object-contain" />
-        </div>
-      )}
+      <div className="mb-4">
+        <ProjectArtwork title={title} src={logoUrl} />
+      </div>
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-semibold text-blue-600">{category}</span>
         <span className={`text-xs px-3 py-1 rounded-full font-semibold ${statusColors[status]}`}>

@@ -87,8 +87,8 @@ export default function ContactPage() {
                 />
                 <ContactInfo
                   icon={<Phone className="w-6 h-6" />}
-                  title="Phone"
-                  info="+1 (754) 217-0678 / +233 249 078 976 / +233 596 106 767 / +233 244 809 627"
+                  title="WhatsApp & Phone"
+                  info="+1 (754) 217-0678 / +233 249 078 976 / +233 596 106 767"
                   link="tel:+17542170678"
                 />
                 <ContactInfo
