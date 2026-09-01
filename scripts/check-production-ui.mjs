@@ -147,8 +147,14 @@ try {
 
   for (const slug of catalogue.cards) {
     await navigate(`${baseUrl}/app-store/${encodeURIComponent(slug)}`);
-    const detail = await evaluate(`(() => {
+    const detail = await evaluate(`(async () => {
       const image = document.querySelector('img[data-app-artwork][data-app-artwork-surface="detail"]');
+      if (image) {
+        await Promise.race([
+          image.decode().catch(() => undefined),
+          new Promise((resolve) => setTimeout(resolve, 2_000)),
+        ]);
+      }
       return { image: Boolean(image), width: image?.naturalWidth || 0, fallback: Boolean(document.querySelector('[data-app-artwork-fallback]')) };
     })()`);
     assert(detail.image && detail.width > 0 && !detail.fallback, `Detail artwork failed for ${slug}.`);
