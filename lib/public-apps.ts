@@ -42,8 +42,12 @@ export type PublicAppDetail = PublicAppCard & {
   commercialModes: string[];
   releaseReady: boolean;
   artifactVersion: string | null;
+  artifactBuild: number | null;
+  artifactFilename: string | null;
   artifactPlatform: string | null;
   artifactByteSize: number | null;
+  artifactReleaseDate: string | null;
+  artifactChecksum: string | null;
   showArtifactVerificationNotice: boolean;
 };
 
@@ -84,8 +88,12 @@ export function toPublicAppDetail(app: AppRecord): PublicAppDetail {
     commercialModes: app.commercialModes.slice(0, 3),
     releaseReady,
     artifactVersion: releaseReady ? app.artifactVersion : null,
+    artifactBuild: releaseReady ? app.artifactBuild : null,
+    artifactFilename: releaseReady ? app.artifactFilename : null,
     artifactPlatform: releaseReady ? app.artifactPlatform : null,
     artifactByteSize: releaseReady ? app.artifactByteSize : null,
+    artifactReleaseDate: releaseReady ? app.artifactReleaseDate : null,
+    artifactChecksum: releaseReady ? app.artifactChecksum : null,
     showArtifactVerificationNotice: !isWebsiteSolution(app) && app.artifactAvailability === 'temporarily_unavailable' && Boolean(app.downloadLink),
     cta: primaryCta(app, 'detail'),
   };

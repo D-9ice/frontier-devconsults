@@ -64,8 +64,15 @@ export function isCommercialProduct(app: AppRecord) { return app.showInProducts 
 export function compactSummary(text: string, max = 220) { const normalized = text.replace(/\s+/g, ' ').trim(); if (normalized.length <= max) return normalized; const cut = normalized.slice(0, max + 1).lastIndexOf(' '); return `${normalized.slice(0, cut > 120 ? cut : max).trim()}…`; }
 export function releaseArtifactReady(app: AppRecord) {
   if (isWebsiteSolution(app)) return false;
-  if (app.artifactAvailability !== 'available' || !app.downloadLink || !app.artifactVersion || !app.artifactPlatform || !app.artifactByteSize || !app.artifactReleaseDate || !app.artifactChecksum || !app.artifactVerifiedAt) return false;
+  if (app.artifactAvailability !== 'available' || !app.downloadLink || !app.artifactVersion || !app.artifactBuild || !app.artifactFilename || !app.artifactPlatform || !app.artifactByteSize || !app.artifactReleaseDate || !app.artifactChecksum || !app.artifactVerifiedAt) return false;
   if (Number.isNaN(Date.parse(app.artifactReleaseDate)) || Number.isNaN(Date.parse(app.artifactVerifiedAt))) return false;
-  return app.artifactVersion.replace(/^v/i, '') === app.version.replace(/^v/i, '');
+  if (!/^(?:sha256:)?[a-f\d]{64}$/i.test(app.artifactChecksum)) return false;
+  try {
+    const filename = decodeURIComponent(new URL(app.downloadLink).pathname.split('/').pop() || '');
+    if (filename !== app.artifactFilename) return false;
+  } catch { return false; }
+  return app.artifactVersion.replace(/^v/i, '') === app.version.replace(/^v/i, '')
+    && app.artifactFilename.includes(app.artifactVersion.replace(/^v/i, ''))
+    && app.artifactFilename.includes(`build-${app.artifactBuild}`);
 }
 export const releaseMetadataMatches = releaseArtifactReady;

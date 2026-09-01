@@ -12,6 +12,10 @@ function validateSettings(settings: PricingSettings) {
     return 'Rounding increment must be greater than 0.';
   }
   if (!settings.exchangeRateSourceLabel.trim() || !Number.isFinite(Date.parse(settings.exchangeRateEffectiveAt))) return 'Exchange-rate source and effective date are required.';
+  try {
+    const source = new URL(settings.exchangeRateSourceUrl);
+    if (source.protocol !== 'https:') return 'Exchange-rate source URL must use HTTPS.';
+  } catch { return 'Exchange-rate source URL must be valid.'; }
 
   const prices = [
     ...settings.tiers.map((item) => item.price),

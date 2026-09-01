@@ -61,6 +61,8 @@ export type AppRecord = {
   upworkSkillTags: string[];
   upworkRelevance: string | null;
   artifactVersion: string | null;
+  artifactBuild: number | null;
+  artifactFilename: string | null;
   artifactPlatform: string | null;
   artifactByteSize: number | null;
   artifactReleaseDate: string | null;
@@ -106,6 +108,8 @@ function mapApp(row: Record<string, unknown>): AppRecord {
     upworkSkillTags: Array.isArray(row.upwork_skill_tags) ? row.upwork_skill_tags.map(String) : [],
     upworkRelevance: typeof row.upwork_relevance === 'string' ? row.upwork_relevance : null,
     artifactVersion: typeof row.artifact_version === 'string' ? row.artifact_version : null,
+    artifactBuild: Number.isSafeInteger(Number(row.artifact_build)) && Number(row.artifact_build) > 0 ? Number(row.artifact_build) : null,
+    artifactFilename: typeof row.artifact_filename === 'string' ? row.artifact_filename : null,
     artifactPlatform: typeof row.artifact_platform === 'string' ? row.artifact_platform : null,
     artifactByteSize: Number.isSafeInteger(Number(row.artifact_byte_size)) && Number(row.artifact_byte_size) > 0 ? Number(row.artifact_byte_size) : null,
     artifactReleaseDate: typeof row.artifact_release_date === 'string' ? row.artifact_release_date : null,
@@ -132,7 +136,8 @@ function row(input: AppInput) {
     customization_available: input.customizationAvailable || false, license_terms_url: input.licenseTermsUrl?.trim() || null,
     external_url_verified_at: input.externalUrlVerifiedAt || null, thumbnail_url: input.thumbnailUrl?.trim() || null,
     upwork_skill_tags: input.upworkSkillTags || [], upwork_relevance: input.upworkRelevance?.trim() || null,
-    artifact_version: input.artifactVersion?.trim() || null, artifact_platform: input.artifactPlatform?.trim() || null,
+    artifact_version: input.artifactVersion?.trim() || null, artifact_build: input.artifactBuild ?? null,
+    artifact_filename: input.artifactFilename?.trim() || null, artifact_platform: input.artifactPlatform?.trim() || null,
     artifact_byte_size: input.artifactByteSize ?? null, artifact_release_date: input.artifactReleaseDate || null,
     artifact_checksum: input.artifactChecksum?.trim() || null, artifact_verified_at: input.artifactVerifiedAt || null,
     artifact_availability: input.artifactAvailability || 'temporarily_unavailable',
@@ -172,6 +177,7 @@ export function validateApp(input: Partial<AppInput>) {
   if (input.featured && input.visibility !== 'published') return 'Only published apps can be featured on the public App Store.';
   if (input.lifecycle === 'live' && !input.iconUrl?.trim()) return 'A live app needs an app icon URL.';
   if (input.artifactByteSize !== null && input.artifactByteSize !== undefined && (!Number.isSafeInteger(input.artifactByteSize) || input.artifactByteSize <= 0)) return 'Artifact byte size must be a positive whole number.';
+  if (input.artifactBuild !== null && input.artifactBuild !== undefined && (!Number.isSafeInteger(input.artifactBuild) || input.artifactBuild <= 0)) return 'Artifact build must be a positive whole number.';
   if (input.downloadLink && /\.apk(?:$|[?#])/i.test(input.downloadLink)) { const versions: string[] = input.downloadLink.match(/\d+\.\d+(?:\.\d+)?/g) || []; if (versions.length > 0 && !versions.includes(input.version.replace(/^v/i, ''))) return 'The APK URL version must match the displayed release version.'; }
   return null;
 }

@@ -142,8 +142,9 @@ export default function AdminPricingPage() {
               Maintain the protected internal USD calculation basis and the public Ghana cedi estimates.
             </p>
           </div>
-          <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <div className="mt-5 grid gap-5 md:grid-cols-3">
             <label className="block text-sm font-semibold text-gray-700">Rate source label<input value={settings.exchangeRateSourceLabel} onChange={(event) => setSettings({ ...settings, exchangeRateSourceLabel: event.target.value })} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900" /></label>
+            <label className="block text-sm font-semibold text-gray-700">Rate source URL<input type="url" value={settings.exchangeRateSourceUrl} onChange={(event) => setSettings({ ...settings, exchangeRateSourceUrl: event.target.value })} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900" /></label>
             <label className="block text-sm font-semibold text-gray-700">Rate effective date<input type="datetime-local" value={settings.exchangeRateEffectiveAt.slice(0, 16)} onChange={(event) => setSettings({ ...settings, exchangeRateEffectiveAt: new Date(event.target.value).toISOString() })} className="mt-2 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-normal text-gray-900" /></label>
           </div>
           <button

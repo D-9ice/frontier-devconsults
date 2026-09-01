@@ -92,7 +92,9 @@ test('public pricing is USD-first with controlled optional GHS conversion', asyn
   const detail = await read('app/app-store/[slug]/page.tsx');
   const publicPricing = `${pricingPage}\n${pricingUi}\n${catalogue}\n${detail}`;
   assert.match(pricingPage, /USD-first planning estimates/);
-  assert.match(pricingUi, /Prices shown in/);
+  assert.match(pricingUi, /Authoritative prices in US dollars/);
+  assert.match(pricingUi, /Approximate prices in Ghana cedis/);
+  assert.match(pricingUi, /exchangeRateSourceUrl/);
   assert.match(pricingUi, /sessionStorage/);
   assert.match(publicPricing, /Commercial terms by enquiry/);
   assert.match(catalogue, /Commercial terms by enquiry/);
@@ -125,6 +127,9 @@ test('central CTA resolver never creates detail self-links or unverified downloa
   const verifiedWebsite = { ...base, downloadLink: 'https://example.test', externalUrlVerifiedAt: '2026-09-01T00:00:00Z' };
   assert.equal(primaryCta(verifiedWebsite, 'detail')?.label, 'Visit Live Website');
   assert.equal(releaseArtifactReady(verifiedWebsite), false);
+  const verifiedArtifact = { ...base, solutionKind: 'mobile_application', availability: 'available', version: '1.0.10', downloadLink: 'https://storage.example.test/lotto-forecaster-ai-1.0.10-build-11.apk', artifactAvailability: 'available', artifactVersion: '1.0.10', artifactBuild: 11, artifactFilename: 'lotto-forecaster-ai-1.0.10-build-11.apk', artifactPlatform: 'Android universal signed APK', artifactByteSize: 63254638, artifactReleaseDate: '2026-08-30', artifactChecksum: '571b6afd99c40ba5e2fafe9ff6ce32b622f4bf46c8f1fbbba783e6dddf80e48e', artifactVerifiedAt: '2026-09-01T00:00:00Z' };
+  assert.equal(releaseArtifactReady(verifiedArtifact), true);
+  assert.equal(primaryCta(verifiedArtifact, 'detail')?.label, 'Download Verified Release');
 });
 
 test('assistant restores launcher focus and placeholder verification is absent', async () => {
@@ -150,4 +155,22 @@ test('GHS pricing migration preserves owner-maintained package data', async () =
   assert.match(migration, /WHERE key = 'default'/);
   assert.equal(/DELETE\s+FROM|DROP\s+TABLE/i.test(migration), false);
   assert.equal(/'\{tiers\}'|'\{developmentServices\}'|'\{additionalServices\}'/.test(migration), false);
+});
+
+test('owner-approved readiness migration contains the exact four production corrections', async () => {
+  const migration = await read('supabase/migrations/202609010013_complete_upwork_readiness.sql');
+  const portfolio = await read('app/upwork-portfolio/page.tsx');
+  for (const expected of [
+    'https://www.macsunny.com/',
+    'https://busibazaar.com/',
+    'https://www.bethelforethel.org/',
+    'lotto-forecaster-ai-1.0.10-build-11.apk',
+    '571b6afd99c40ba5e2fafe9ff6ce32b622f4bf46c8f1fbbba783e6dddf80e48e',
+    'Bank of Ghana Daily Interbank FX Rates',
+    "'exchangeRateMaxAgeDays', 7",
+  ]) assert.equal(migration.includes(expected), true, expected);
+  assert.equal(migration.includes('macsunnyelectronics.com'), false);
+  assert.equal(portfolio.includes('No case studies are currently approved'), false);
+  assert.match(migration, /WHERE slug = 'lotto-forecaster-ai'/);
+  assert.match(migration, /WHERE slug = 'busibazaar'/);
 });

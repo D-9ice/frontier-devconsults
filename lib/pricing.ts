@@ -31,6 +31,7 @@ export interface PricingSettings {
   note: string;
   exchangeRateEffectiveAt: string;
   exchangeRateSourceLabel: string;
+  exchangeRateSourceUrl: string;
   exchangeRateApproved: boolean;
   exchangeRateMaxAgeDays: number;
   tiers: PricingTier[];
@@ -44,12 +45,13 @@ export const defaultPricingSettings: PricingSettings = {
   currencyCode: 'GHS',
   currencySymbol: 'GH₵',
   roundingIncrement: 100,
-  note: 'All displayed prices are planning estimates. Final cost depends on the confirmed project scope and requirements.',
-  exchangeRateEffectiveAt: '2026-08-28T00:00:00.000Z',
-  exchangeRateSourceLabel: 'Bank of Ghana daily interbank mid-rate',
+  note: 'USD amounts are the authoritative planning estimates. GHS amounts are approximate conversions for convenience; final cost depends on the confirmed project scope and requirements.',
+  exchangeRateEffectiveAt: '2026-08-31T00:00:00.000Z',
+  exchangeRateSourceLabel: 'Bank of Ghana Daily Interbank FX Rates (USD/GHS mid rate)',
+  exchangeRateSourceUrl: 'https://www.bog.gov.gh/treasury-and-the-markets/daily-interbank-fx-rates/',
   exchangeRateApproved: true,
-  exchangeRateMaxAgeDays: 90,
-  updatedAt: '2026-08-31T00:00:00.000Z',
+  exchangeRateMaxAgeDays: 7,
+  updatedAt: '2026-09-01T00:00:00.000Z',
   tiers: [
     {
       id: 'basic-website',
@@ -177,8 +179,8 @@ export function formatGhsPriceRange(price: PriceRange, settings: PricingSettings
 }
 
 export function ghsConversionAvailable(settings: PricingSettings, now = new Date()) {
-  const effective = Date.parse(settings.exchangeRateEffectiveAt); const maxAge = settings.exchangeRateMaxAgeDays * 86_400_000;
-  return settings.exchangeRateApproved && settings.exchangeRate > 0 && Number.isFinite(effective) && now.getTime() - effective <= maxAge;
+  const effective = Date.parse(settings.exchangeRateEffectiveAt); const maxAge = Math.min(settings.exchangeRateMaxAgeDays, 7) * 86_400_000; const age = now.getTime() - effective;
+  return settings.exchangeRateApproved && settings.exchangeRate > 0 && Number.isFinite(effective) && age >= 0 && age <= maxAge;
 }
 
 export function publicPricingNote(note: string) {
@@ -194,6 +196,7 @@ export function mergePricingSettings(input: Partial<PricingSettings> | null | un
     additionalServices: input?.additionalServices || defaultPricingSettings.additionalServices,
     exchangeRateEffectiveAt: input?.exchangeRateEffectiveAt || input?.updatedAt || defaultPricingSettings.exchangeRateEffectiveAt,
     exchangeRateSourceLabel: input?.exchangeRateSourceLabel?.trim() || defaultPricingSettings.exchangeRateSourceLabel,
+    exchangeRateSourceUrl: input?.exchangeRateSourceUrl?.trim() || defaultPricingSettings.exchangeRateSourceUrl,
     exchangeRateApproved: input?.exchangeRateApproved === true,
     exchangeRateMaxAgeDays: Number.isInteger(input?.exchangeRateMaxAgeDays) && Number(input?.exchangeRateMaxAgeDays) > 0 ? Number(input?.exchangeRateMaxAgeDays) : defaultPricingSettings.exchangeRateMaxAgeDays,
     currencyCode: 'GHS',
