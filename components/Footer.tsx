@@ -97,31 +97,31 @@ export default function Footer() {
           <h3 className="text-white font-semibold mb-4 text-center">We Accept</h3>
           <div className="flex flex-wrap justify-center items-center gap-6">
             {/* Ghana Payment Platforms */}
-            <div className="bg-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-gray-900 font-bold text-sm">MTN Mobile Money</span>
+            <div className="flex h-11 w-48 items-center justify-center gap-2 rounded-lg bg-white px-4 text-center shadow-md">
+              <span className="whitespace-nowrap text-sm font-bold text-gray-900">MTN Mobile Money</span>
             </div>
-            <div className="bg-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-gray-900 font-bold text-sm">Vodafone Cash</span>
+            <div className="flex h-11 w-48 items-center justify-center gap-2 rounded-lg bg-white px-4 text-center shadow-md">
+              <span className="whitespace-nowrap text-sm font-bold text-gray-900">Vodafone Cash</span>
             </div>
-            <div className="bg-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-gray-900 font-bold text-sm">AirtelTigo Money</span>
+            <div className="flex h-11 w-48 items-center justify-center gap-2 rounded-lg bg-white px-4 text-center shadow-md">
+              <span className="whitespace-nowrap text-sm font-bold text-gray-900">AirtelTigo Money</span>
             </div>
-            <div className="bg-white px-4 py-2 rounded-lg shadow-md">
-              <span className="text-gray-900 font-bold text-sm">Cash Payment</span>
+            <div className="flex h-11 w-48 items-center justify-center gap-2 rounded-lg bg-white px-4 text-center shadow-md">
+              <span className="whitespace-nowrap text-sm font-bold text-gray-900">Cash Payment</span>
             </div>
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-md">
-              <Landmark className="w-5 h-5 text-emerald-700" />
-              <span className="text-gray-900 font-bold text-sm">Bank Payment</span>
+            <div className="flex h-11 w-48 items-center justify-center gap-2 rounded-lg bg-white px-4 text-center shadow-md">
+              <Landmark className="h-5 w-5 shrink-0 text-emerald-700" />
+              <span className="whitespace-nowrap text-sm font-bold text-gray-900">Bank Payment</span>
             </div>
             
             {/* Card Payments */}
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-md">
-              <CreditCard className="w-5 h-5 text-blue-600" />
-              <span className="text-gray-900 font-bold text-sm">Visa</span>
+            <div className="flex h-11 w-48 items-center justify-center gap-2 rounded-lg bg-white px-4 text-center shadow-md">
+              <CreditCard className="h-5 w-5 shrink-0 text-blue-600" />
+              <span className="whitespace-nowrap text-sm font-bold text-gray-900">Visa</span>
             </div>
-            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-md">
-              <CreditCard className="w-5 h-5 text-orange-600" />
-              <span className="text-gray-900 font-bold text-sm">Mastercard</span>
+            <div className="flex h-11 w-48 items-center justify-center gap-2 rounded-lg bg-white px-4 text-center shadow-md">
+              <CreditCard className="h-5 w-5 shrink-0 text-orange-600" />
+              <span className="whitespace-nowrap text-sm font-bold text-gray-900">Mastercard</span>
             </div>
           </div>
         </div>
