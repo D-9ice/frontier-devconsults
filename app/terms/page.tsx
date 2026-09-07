@@ -39,9 +39,16 @@ export default function TermsPage() {
               <li>E-commerce solutions</li>
               <li>AI integration and machine learning services</li>
               <li>Custom software solutions</li>
+              <li>Custom specialized solutions spanning electronics, electrical systems, embedded control, monitoring, connectivity, software, diagnostics, retrofit, and related system integration</li>
               <li>Maintenance and support services</li>
               <li>Owner-approved application acquisition, licensing, white-label, deployment, and partnership opportunities</li>
             </ul>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">3.4 Specialized Engineering Assessments</h2>
+            <p className="text-gray-600 mb-4">A specialized-project submission, reference number, consultation, preliminary concept, architecture, estimate, or feasibility discussion is not a certification, statutory approval, final safety determination, or commitment to deliver. Project-specific feasibility, risks, operating conditions, acceptance criteria, responsibilities, and commercial terms must be confirmed in writing.</p>
+            <p className="text-gray-600 mb-4">Where law, safety, installation, regulated products, hazardous energy, radio equipment, machinery, or other requirements call for licensed professionals, accredited laboratories, authorities, or certified installers, those approvals and services remain separately required.</p>
           </section>
 
           <section className="mb-8">

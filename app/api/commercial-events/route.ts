@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
-const allowedEvents = ['product_view', 'product_demo_click', 'acquisition_cta_click', 'acquisition_form_started', 'acquisition_form_completed', 'acquisition_request_submitted', 'licensing_inquiry', 'partnership_inquiry', 'custom_completion_inquiry', 'request_build_click'];
+const allowedEvents = ['product_view', 'product_demo_click', 'acquisition_cta_click', 'acquisition_form_started', 'acquisition_form_completed', 'acquisition_request_submitted', 'licensing_inquiry', 'partnership_inquiry', 'custom_completion_inquiry', 'request_build_click', 'specialized_solution_page_view', 'specialized_solution_cta_click', 'specialized_project_form_started', 'specialized_project_form_submitted', 'specialized_capability_view', 'specialized_example_view'];
 const clean = (value: unknown, max: number) => typeof value === 'string' ? value.trim().slice(0, max) : '';
 const eventWindows = new Map<string, number[]>();
 function eventRateLimited(request: NextRequest) {

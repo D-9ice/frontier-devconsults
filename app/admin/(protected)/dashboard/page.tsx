@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
+import { BarChart3, CircuitBoard, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 type DashboardStats = {
@@ -12,13 +12,14 @@ type DashboardStats = {
   publishedApps: number;
   appsInDevelopment: number;
   pendingAcquisitions: number;
+  openSpecializedRequests: number;
   totalVisitors: number;
   visitsToday: number;
 };
 
 type Activity = {
   id: string;
-  type: 'contact' | 'build' | 'project' | 'app' | 'acquisition';
+  type: 'contact' | 'build' | 'project' | 'app' | 'acquisition' | 'specialized';
   title: string;
   detail: string;
   createdAt: string;
@@ -31,6 +32,7 @@ const emptyStats: DashboardStats = {
   publishedApps: 0,
   appsInDevelopment: 0,
   pendingAcquisitions: 0,
+  openSpecializedRequests: 0,
   totalVisitors: 0,
   visitsToday: 0,
 };
@@ -146,6 +148,12 @@ export default function AdminDashboard() {
             value={loadingData ? '...' : stats.pendingAcquisitions}
             color="teal"
           />
+          <StatCard
+            icon={<CircuitBoard className="w-8 h-8" />}
+            title="Open Specialized"
+            value={loadingData ? '...' : stats.openSpecializedRequests}
+            color="blue"
+          />
         </div>
 
         {/* Quick Actions */}
@@ -156,6 +164,11 @@ export default function AdminDashboard() {
               href="/admin/acquisitions"
               icon={<ShieldCheck className="w-5 h-5" />}
               label="Acquisition Requests"
+            />
+            <ActionButton
+              href="/admin/specialized-requests"
+              icon={<CircuitBoard className="w-5 h-5" />}
+              label="Specialized Requests"
             />
             <ActionButton
               href="/admin/app-store"
@@ -216,7 +229,7 @@ export default function AdminDashboard() {
               {recentActivity.map((activity) => (
                 <div key={activity.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
                   <div className="rounded-md bg-blue-50 p-2 text-blue-600">
-                    {activity.type === 'contact' || activity.type === 'build' ? <MessageSquare className="h-4 w-4" /> : activity.type === 'acquisition' ? <ShieldCheck className="h-4 w-4" /> : <FolderKanban className="h-4 w-4" />}
+                    {activity.type === 'contact' || activity.type === 'build' ? <MessageSquare className="h-4 w-4" /> : activity.type === 'acquisition' ? <ShieldCheck className="h-4 w-4" /> : activity.type === 'specialized' ? <CircuitBoard className="h-4 w-4" /> : <FolderKanban className="h-4 w-4" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-900">{activity.title}</p>

@@ -37,6 +37,7 @@ export default function PrivacyPage() {
               <li>Name and contact information (email address, phone number)</li>
               <li>Company name and business details</li>
               <li>Project requirements and specifications</li>
+              <li>Specialized engineering requirements, equipment details, control, monitoring, interface, connectivity, environment, and development-scope information</li>
               <li>Application acquisition, licensing, deployment, completion, support, budget, and timeline preferences</li>
               <li>Payment information (processed securely through third-party payment processors)</li>
               <li>Communication preferences</li>
@@ -57,6 +58,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
               <li>To provide and maintain our services</li>
               <li>To process your project requests and quotations</li>
+              <li>To assess the feasibility, safety, scope, consultation needs, and delivery approach for specialized engineering requests</li>
               <li>To evaluate and respond to application acquisition and licensing inquiries</li>
               <li>To communicate with you about projects, updates, and marketing</li>
               <li>To improve our website and services</li>
@@ -100,7 +102,7 @@ export default function PrivacyPage() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Data Retention</h2>
-            <p className="text-gray-600 mb-4">We retain inquiry and acquisition-request information only for as long as reasonably necessary to evaluate the request, conduct related commercial discussions, maintain appropriate business records, resolve disputes, and meet legal obligations. You may request deletion subject to records we must lawfully retain.</p>
+            <p className="text-gray-600 mb-4">We retain inquiry, specialized-engineering, and acquisition-request information only for as long as reasonably necessary to evaluate the request, conduct related technical or commercial discussions, maintain appropriate business records, resolve disputes, and meet legal obligations. Technical files are not accepted through the public specialized-project form; secure file exchange may be arranged after initial review. You may request deletion subject to records we must lawfully retain.</p>
           </section>
 
           <section className="mb-8">

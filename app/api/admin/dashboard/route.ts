@@ -4,7 +4,7 @@ import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-serve
 
 type Activity = {
   id: string;
-  type: 'contact' | 'build' | 'project' | 'app' | 'acquisition';
+  type: 'contact' | 'build' | 'project' | 'app' | 'acquisition' | 'specialized';
   title: string;
   detail: string;
   createdAt: string;
@@ -37,6 +37,8 @@ export async function GET(request: NextRequest) {
       appsResult,
       acquisitionCountResult,
       acquisitionsResult,
+      specializedCountResult,
+      specializedResult,
     ] = await Promise.all([
       supabaseServer.from('visitors').select('*', { count: 'exact', head: true }),
       supabaseServer.from('visitors').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
@@ -53,12 +55,14 @@ export async function GET(request: NextRequest) {
       supabaseServer.from('apps').select('id, name, visibility, updated_at').order('updated_at', { ascending: false }).limit(4),
       supabaseServer.from('application_acquisition_requests').select('*', { count: 'exact', head: true }).not('status', 'in', '(acquisition_completed,declined,withdrawn,closed)'),
       supabaseServer.from('application_acquisition_requests').select('id, reference_number, product_name, buyer_company, created_at').order('created_at', { ascending: false }).limit(4),
+      supabaseServer.from('specialized_engineering_requests').select('*', { count: 'exact', head: true }).not('status', 'in', '(completed,declined,archived)'),
+      supabaseServer.from('specialized_engineering_requests').select('id, reference_number, full_name, company, project_types, created_at').order('created_at', { ascending: false }).limit(4),
     ]);
 
     const results = [
       totalVisitorsResult, visitsTodayResult, contactCountResult, buildCountResult, pendingContactResult,
       pendingBuildResult, activeProjectsResult, publishedAppsResult, appsInDevelopmentResult, contactsResult,
-      buildsResult, projectsResult, appsResult, acquisitionCountResult, acquisitionsResult,
+      buildsResult, projectsResult, appsResult, acquisitionCountResult, acquisitionsResult, specializedCountResult, specializedResult,
     ];
     const error = results.find((result) => result.error)?.error;
     if (error) throw error;
@@ -99,6 +103,13 @@ export async function GET(request: NextRequest) {
         detail: `${item.buyer_company} · ${item.reference_number}`,
         createdAt: item.created_at,
       }))),
+      ...((specializedResult.data || []).map((item) => ({
+        id: `specialized-${item.id}`,
+        type: 'specialized' as const,
+        title: 'Specialized engineering request',
+        detail: `${item.company || item.full_name} · ${item.reference_number}`,
+        createdAt: item.created_at,
+      }))),
     ]
       .filter((item) => Boolean(item.createdAt))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -114,6 +125,7 @@ export async function GET(request: NextRequest) {
         publishedApps: publishedAppsResult.count || 0,
         appsInDevelopment: appsInDevelopmentResult.count || 0,
         pendingAcquisitions: acquisitionCountResult.count || 0,
+        openSpecializedRequests: specializedCountResult.count || 0,
       },
       recentActivity,
     });

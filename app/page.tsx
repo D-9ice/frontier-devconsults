@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Code2, Smartphone, Globe, Zap, Building2 } from 'lucide-react';
+import { ArrowRight, Code2, Smartphone, Globe, Zap, Building2, CircuitBoard, Cpu, MonitorCog } from 'lucide-react';
 import { listProjects } from '@/lib/projects';
 import { getHeroMedia, OfficeMediaItem } from '@/lib/hero-media';
 import ProjectArtwork from '@/components/ProjectArtwork';
@@ -156,15 +156,33 @@ export default async function Home() {
             />
             <ServiceCard
               icon={<Zap className="w-8 h-8" />}
-              title="Custom Solutions"
-              description="Tailored software for specialized engineering and enterprise needs"
+              title="Custom Specialized Solutions"
+              description="Integrated electronics, electrical, embedded, control, monitoring, IoT, and software engineering for systems ordinary applications cannot solve alone."
               color="orange"
+              href="/services/custom-specialized-solutions"
+              cta="Explore Specialized Solutions"
             />
           </div>
         </div>
       </section>
 
-      {/* Featured Projects */}
+      {/* Custom Specialized Solutions Showcase */}
+      <section className="overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 py-20 text-white">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:px-8">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-300">Hardware + software co-engineering</p>
+            <h2 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">We Don&apos;t Just Build Software. We Build the Systems Software Controls.</h2>
+            <p className="mt-5 text-xl font-semibold leading-8 text-blue-100">Electronics. Electrical Engineering. Embedded Intelligence. Software. One Integrated Solution.</p>
+            <p className="mt-5 max-w-3xl leading-8 text-slate-300">From a physical process and its sensors to embedded control, connectivity, dashboards, diagnostics, and operator decisions, Frontier DevConsults can define and build the coordinated system.</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link href="/services/custom-specialized-solutions" className="inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 font-bold text-blue-900">Explore Specialized Solutions <ArrowRight className="ml-2 h-5 w-5" /></Link><Link href="/services/custom-specialized-solutions/start-project" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-bold text-white hover:bg-white/10">Start a Specialized Project</Link></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4" aria-label="Specialized engineering disciplines">
+            {[{ icon: CircuitBoard, label: 'Electronics' }, { icon: Zap, label: 'Electrical' }, { icon: Cpu, label: 'Embedded Control' }, { icon: MonitorCog, label: 'Software & Data' }].map(({ icon: Icon, label }) => <div key={label} className="rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-sm"><Icon className="h-8 w-8 text-blue-300" /><p className="mt-4 font-bold">{label}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      {/* Digital Products Marketplace */}
       <section className="bg-slate-950 py-20 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto mb-12 max-w-4xl text-center"><p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-300">Engineering digital products built for business</p><h2 className="mt-3 text-4xl font-bold sm:text-5xl">Build from Scratch — or Acquire What’s Already Built.</h2><p className="mt-5 text-lg leading-8 text-slate-300">Explore owner-approved applications available for acquisition, licensing, customization, or partnership, with transparent product status and technical scope.</p></div>
@@ -386,9 +404,11 @@ interface ServiceCardProps {
   title: string;
   description: string;
   color: 'blue' | 'green' | 'purple' | 'orange';
+  href?: string;
+  cta?: string;
 }
 
-function ServiceCard({ icon, title, description, color }: ServiceCardProps) {
+function ServiceCard({ icon, title, description, color, href, cta }: ServiceCardProps) {
   const colorClasses = {
     blue: 'bg-blue-100 text-blue-600',
     green: 'bg-green-100 text-green-600',
@@ -403,6 +423,7 @@ function ServiceCard({ icon, title, description, color }: ServiceCardProps) {
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-600">{description}</p>
+      {href && <Link href={href} className="mt-5 inline-flex items-center font-bold text-blue-700 hover:text-blue-800">{cta || 'Learn more'}<ArrowRight className="ml-2 h-4 w-4" /></Link>}
     </div>
   );
 }

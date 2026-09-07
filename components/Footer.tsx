@@ -82,7 +82,7 @@ export default function Footer() {
               <li className="text-gray-400">Web Development</li>
               <li className="text-gray-400">AI Integration</li>
               <li className="text-gray-400">E-commerce Solutions</li>
-              <li className="text-gray-400">Custom Solutions</li>
+              <li><Link href="/services/custom-specialized-solutions" className="hover:text-blue-500 transition-colors">Custom Specialized Solutions</Link></li>
             </ul>
             <h3 className="text-white font-semibold mt-6 mb-4">Legal</h3>
             <ul className="space-y-2">
