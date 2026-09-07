@@ -2,9 +2,13 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 import { defaultPricingSettings, mergePricingSettings, PricingSettings } from '@/lib/pricing';
+import { BANK_OF_GHANA_FX_URL, BANK_OF_GHANA_SOURCE_LABEL, fetchBankOfGhanaUsdRate } from '@/lib/bog-exchange-rate';
 
 const SETTINGS_KEY = 'default';
 const LOCAL_SETTINGS_PATH = path.join(process.cwd(), 'data', 'pricing-settings.json');
+const RATE_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
+let refreshPromise: Promise<PricingSettings> | null = null;
+let lastFailedRefreshAt = 0;
 
 export type PricingRevision = {
   id: string;
@@ -28,6 +32,46 @@ async function writeLocalPricingSettings(settings: PricingSettings) {
   await fs.writeFile(LOCAL_SETTINGS_PATH, JSON.stringify(settings, null, 2));
 }
 
+function rateRefreshDue(settings: PricingSettings) {
+  const checkedAt = settings.exchangeRateCheckedAt ? Date.parse(settings.exchangeRateCheckedAt) : Number.NaN;
+  return !Number.isFinite(checkedAt) || Date.now() - checkedAt >= RATE_REFRESH_INTERVAL_MS;
+}
+
+async function persistAutomaticRate(settings: PricingSettings) {
+  if (!isSupabaseServerConfigured() || !supabaseServer) return settings;
+  const { error } = await supabaseServer.from('pricing_settings').upsert({ key: SETTINGS_KEY, settings, updated_at: settings.updatedAt }, { onConflict: 'key' });
+  if (error) throw error;
+  return settings;
+}
+
+async function refreshAutomaticExchangeRate(settings: PricingSettings) {
+  if (!rateRefreshDue(settings) || Date.now() - lastFailedRefreshAt < 15 * 60 * 1000) return settings;
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    try {
+      const official = await fetchBankOfGhanaUsdRate();
+      const refreshed = mergePricingSettings({
+        ...settings,
+        exchangeRate: official.rate,
+        exchangeRateEffectiveAt: official.effectiveAt,
+        exchangeRateSourceLabel: BANK_OF_GHANA_SOURCE_LABEL,
+        exchangeRateSourceUrl: BANK_OF_GHANA_FX_URL,
+        exchangeRateApproved: true,
+        exchangeRateMaxAgeDays: 7,
+        exchangeRateCheckedAt: new Date().toISOString(),
+      });
+      return await persistAutomaticRate(refreshed);
+    } catch (error) {
+      lastFailedRefreshAt = Date.now();
+      console.error('Automatic Bank of Ghana exchange-rate refresh failed:', error);
+      return settings;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+  return refreshPromise;
+}
+
 export async function getPricingSettings(): Promise<PricingSettings> {
   if (isSupabaseServerConfigured() && supabaseServer) {
     try {
@@ -38,14 +82,15 @@ export async function getPricingSettings(): Promise<PricingSettings> {
         .single();
 
       if (!error && data?.settings) {
-        return mergePricingSettings(data.settings as Partial<PricingSettings>);
+        return refreshAutomaticExchangeRate(mergePricingSettings(data.settings as Partial<PricingSettings>));
       }
     } catch (error) {
       console.error('Pricing settings Supabase read failed:', error);
     }
   }
 
-  return readLocalPricingSettings();
+  const local = await readLocalPricingSettings();
+  return refreshAutomaticExchangeRate(local);
 }
 
 export async function savePricingSettings(input: PricingSettings): Promise<PricingSettings> {

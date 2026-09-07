@@ -34,6 +34,7 @@ export interface PricingSettings {
   exchangeRateSourceUrl: string;
   exchangeRateApproved: boolean;
   exchangeRateMaxAgeDays: number;
+  exchangeRateCheckedAt?: string;
   tiers: PricingTier[];
   developmentServices: ServicePrice[];
   additionalServices: ServicePrice[];
@@ -41,12 +42,12 @@ export interface PricingSettings {
 }
 
 export const defaultPricingSettings: PricingSettings = {
-  exchangeRate: 11.25,
+  exchangeRate: 11.4,
   currencyCode: 'GHS',
   currencySymbol: 'GH₵',
   roundingIncrement: 100,
   note: 'USD amounts are the authoritative planning estimates. GHS amounts are approximate conversions for convenience; final cost depends on the confirmed project scope and requirements.',
-  exchangeRateEffectiveAt: '2026-08-31T00:00:00.000Z',
+  exchangeRateEffectiveAt: '2026-09-04T00:00:00.000Z',
   exchangeRateSourceLabel: 'Bank of Ghana Daily Interbank FX Rates (USD/GHS mid rate)',
   exchangeRateSourceUrl: 'https://www.bog.gov.gh/treasury-and-the-markets/daily-interbank-fx-rates/',
   exchangeRateApproved: true,
@@ -199,6 +200,7 @@ export function mergePricingSettings(input: Partial<PricingSettings> | null | un
     exchangeRateSourceUrl: input?.exchangeRateSourceUrl?.trim() || defaultPricingSettings.exchangeRateSourceUrl,
     exchangeRateApproved: input?.exchangeRateApproved === true,
     exchangeRateMaxAgeDays: Number.isInteger(input?.exchangeRateMaxAgeDays) && Number(input?.exchangeRateMaxAgeDays) > 0 ? Number(input?.exchangeRateMaxAgeDays) : defaultPricingSettings.exchangeRateMaxAgeDays,
+    exchangeRateCheckedAt: input?.exchangeRateCheckedAt && Number.isFinite(Date.parse(input.exchangeRateCheckedAt)) ? input.exchangeRateCheckedAt : undefined,
     currencyCode: 'GHS',
     currencySymbol: 'GH₵',
   };

@@ -1,9 +1,9 @@
 {
-  "exchangeRate": 11.25,
+  "exchangeRate": 11.4,
   "currencyCode": "GHS",
   "currencySymbol": "GH₵",
   "roundingIncrement": 100,
-  "exchangeRateEffectiveAt": "2026-08-31T00:00:00.000Z",
+  "exchangeRateEffectiveAt": "2026-09-04T00:00:00.000Z",
   "exchangeRateSourceLabel": "Bank of Ghana Daily Interbank FX Rates (USD/GHS mid rate)",
   "exchangeRateSourceUrl": "https://www.bog.gov.gh/treasury-and-the-markets/daily-interbank-fx-rates/",
   "exchangeRateApproved": true,
