@@ -6,6 +6,9 @@ import {
   isCommercialProduct,
   isWebsiteSolution,
   lifecycleLabel,
+  developmentStatusLabel,
+  commercialModeLabels,
+  isAcquisitionEnabled,
   primaryCta,
   releaseArtifactReady,
   solutionKindLabel,
@@ -29,6 +32,11 @@ export type PublicAppCard = {
   artworkUrl: string | null;
   cta: AppPrimaryCta;
   commercialByEnquiry: boolean;
+  developmentStatusLabel: string;
+  completionPercentage: number | null;
+  commercialLabels: string[];
+  acquisitionEnabled: boolean;
+  tagline: string | null;
 };
 
 export type PublicAppDetail = PublicAppCard & {
@@ -49,6 +57,15 @@ export type PublicAppDetail = PublicAppCard & {
   artifactReleaseDate: string | null;
   artifactChecksum: string | null;
   showArtifactVerificationNotice: boolean;
+  screenshotUrls: string[];
+  roadmapItems: string[];
+  technologyStack: Record<string, string[]>;
+  supportSummary: string | null;
+  deploymentOptions: string[];
+  customizationAvailable: boolean;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  ogImageUrl: string | null;
 };
 
 export function toPublicAppCard(app: AppRecord): PublicAppCard {
@@ -57,7 +74,7 @@ export function toPublicAppCard(app: AppRecord): PublicAppCard {
     name: canonicalAppName(app.name),
     slug: app.slug,
     category: app.category,
-    summary: compactSummary(app.description),
+    summary: app.shortDescription || compactSummary(app.description),
     features: app.features.slice(0, 5),
     technologies: app.technologies.slice(0, 12),
     solutionKind: app.solutionKind,
@@ -69,6 +86,11 @@ export function toPublicAppCard(app: AppRecord): PublicAppCard {
     artworkUrl: app.thumbnailUrl || app.iconUrl,
     cta: primaryCta(app),
     commercialByEnquiry: isCommercialProduct(app),
+    developmentStatusLabel: developmentStatusLabel(app.developmentStatus, app.lifecycle),
+    completionPercentage: app.completionPercentage,
+    commercialLabels: app.commercialModes.map((mode) => commercialModeLabels[mode]),
+    acquisitionEnabled: isAcquisitionEnabled(app),
+    tagline: app.tagline,
   };
 }
 
@@ -95,6 +117,15 @@ export function toPublicAppDetail(app: AppRecord): PublicAppDetail {
     artifactReleaseDate: releaseReady ? app.artifactReleaseDate : null,
     artifactChecksum: releaseReady ? app.artifactChecksum : null,
     showArtifactVerificationNotice: !isWebsiteSolution(app) && app.artifactAvailability === 'temporarily_unavailable' && Boolean(app.downloadLink),
+    screenshotUrls: app.screenshotUrls,
+    roadmapItems: app.roadmapItems,
+    technologyStack: app.technologyStack,
+    supportSummary: app.supportSummary,
+    deploymentOptions: app.deploymentOptions,
+    customizationAvailable: app.customizationAvailable,
+    seoTitle: app.seoTitle,
+    seoDescription: app.seoDescription,
+    ogImageUrl: app.ogImageUrl,
     cta: primaryCta(app, 'detail'),
   };
 }

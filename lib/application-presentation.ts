@@ -1,4 +1,4 @@
-import type { AppRecord, Lifecycle, PrimaryAction } from '@/lib/apps';
+import type { AppRecord, DevelopmentStatus, Lifecycle, PrimaryAction } from '@/lib/apps';
 
 export type AppPrimaryCta = { label: string; href: string; external: boolean; kind: Exclude<PrimaryAction, 'automatic' | 'none'> } | null;
 export type CtaSurface = 'card' | 'detail';
@@ -9,6 +9,19 @@ export function canonicalAppName(name: string) { return name.replace(/\bProCreat
 export function lifecycleLabel(value: Lifecycle) { return value === 'live' ? 'Live' : value === 'in_development' ? 'In Development' : value === 'archived' ? 'Archived' : 'Planning'; }
 export function availabilityLabel(value: AppRecord['availability']) { return ({ available: 'Available', coming_soon: 'Coming Soon', by_enquiry: 'Available by Enquiry', unavailable: 'Unavailable' } as const)[value]; }
 export function solutionKindLabel(value: AppRecord['solutionKind']) { return ({ mobile_application: 'Mobile Application', web_application: 'Web Application', website: 'Website', ai_platform: 'AI Platform', engineering_solution: 'Engineering Solution', engineering_service: 'Engineering Service', client_project: 'Client Project', other: 'Software Solution' } as const)[value]; }
+export function developmentStatusLabel(value: DevelopmentStatus | null, lifecycle?: Lifecycle) {
+  if (!value) return lifecycle ? lifecycleLabel(lifecycle) : 'Development status available on request';
+  return ({ concept_research: 'Concept / R&D', early_development: 'Early Development', in_development: 'In Development', acquisition_preview: 'Acquisition Preview', beta_pre_launch: 'Beta / Pre-Launch', production_ready: 'Production Ready', live: 'Live', maintenance_expansion: 'Maintenance / Expansion' } as const)[value];
+}
+export const commercialModeLabels: Record<AppRecord['commercialModes'][number], string> = {
+  hosted_license: 'Licensing Available', white_label: 'White-Label Available', exclusive_acquisition: 'Available for Acquisition',
+  full_acquisition: 'Available for Acquisition', exclusive_license: 'Exclusive Licensing Available', non_exclusive_license: 'Non-Exclusive Licensing Available',
+  strategic_partnership: 'Strategic Partnership Available', custom_completion: 'Custom Completion Available', custom_deployment: 'Custom Deployment Available', private_demo: 'Private Demo Available',
+};
+export function isAcquisitionEnabled(app: Pick<AppRecord, 'commercialModes' | 'showInProducts' | 'availability'>) {
+  const requestableModes = ['hosted_license', 'white_label', 'exclusive_acquisition', 'full_acquisition', 'exclusive_license', 'non_exclusive_license', 'strategic_partnership', 'custom_deployment'];
+  return app.showInProducts && app.availability !== 'unavailable' && app.commercialModes.some((mode) => requestableModes.includes(mode));
+}
 
 export function primaryCta(app: AppRecord, surface: CtaSurface = 'card'): AppPrimaryCta {
   const detail = app.slug ? `/app-store/${encodeURIComponent(app.slug)}` : null;

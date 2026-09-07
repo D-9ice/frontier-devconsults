@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const lastUpdated = 'November 24, 2025';
+  const lastUpdated = 'September 7, 2026';
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -37,6 +37,7 @@ export default function PrivacyPage() {
               <li>Name and contact information (email address, phone number)</li>
               <li>Company name and business details</li>
               <li>Project requirements and specifications</li>
+              <li>Application acquisition, licensing, deployment, completion, support, budget, and timeline preferences</li>
               <li>Payment information (processed securely through third-party payment processors)</li>
               <li>Communication preferences</li>
             </ul>
@@ -56,6 +57,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
               <li>To provide and maintain our services</li>
               <li>To process your project requests and quotations</li>
+              <li>To evaluate and respond to application acquisition and licensing inquiries</li>
               <li>To communicate with you about projects, updates, and marketing</li>
               <li>To improve our website and services</li>
               <li>To comply with legal obligations</li>
@@ -97,7 +99,12 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Cookies</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Data Retention</h2>
+            <p className="text-gray-600 mb-4">We retain inquiry and acquisition-request information only for as long as reasonably necessary to evaluate the request, conduct related commercial discussions, maintain appropriate business records, resolve disputes, and meet legal obligations. You may request deletion subject to records we must lawfully retain.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Cookies and Attribution</h2>
             <p className="text-gray-600 mb-4">
               We use cookies and similar technologies to improve your browsing experience, analyze site traffic, and personalize content. 
               You can control cookies through your browser settings, but disabling cookies may affect site functionality.
@@ -105,7 +112,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Third-Party Links</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Third-Party Links</h2>
             <p className="text-gray-600 mb-4">
               Our website may contain links to third-party websites. We are not responsible for the privacy practices of these external sites. 
               We encourage you to review their privacy policies.
@@ -113,7 +120,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Children's Privacy</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Children's Privacy</h2>
             <p className="text-gray-600 mb-4">
               Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information 
               from children.
@@ -121,7 +128,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Changes to This Policy</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Changes to This Policy</h2>
             <p className="text-gray-600 mb-4">
               We may update this privacy policy from time to time. We will notify you of any significant changes by posting the 
               new policy on this page and updating the "Last updated" date.
@@ -129,7 +136,7 @@ export default function PrivacyPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Contact Us</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Contact Us</h2>
             <p className="text-gray-600 mb-4">If you have questions about this privacy policy or our data practices, please contact us:</p>
             <div className="bg-blue-50 p-6 rounded-lg">
               <p className="text-gray-800 mb-2"><strong>Frontier DevConsults</strong></p>

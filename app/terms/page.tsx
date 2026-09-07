@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  const lastUpdated = 'November 24, 2025';
+  const lastUpdated = 'September 7, 2026';
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -40,6 +40,7 @@ export default function TermsPage() {
               <li>AI integration and machine learning services</li>
               <li>Custom software solutions</li>
               <li>Maintenance and support services</li>
+              <li>Owner-approved application acquisition, licensing, white-label, deployment, and partnership opportunities</li>
             </ul>
           </section>
 
@@ -71,7 +72,7 @@ export default function TermsPage() {
               <li><strong>Milestone Payment:</strong> 30% upon completion of development phase</li>
               <li><strong>Final Payment:</strong> 20% upon project delivery and approval</li>
               <li><strong>Late Payments:</strong> Overdue payments may incur a 2% monthly interest charge</li>
-              <li><strong>Accepted Methods:</strong> MTN Mobile Money, Vodafone Cash, AirtelTigo Money, Cash Payment, Visa, Mastercard</li>
+              <li><strong>Accepted Methods:</strong> MTN Mobile Money, Vodafone Cash, AirtelTigo Money, bank payment, Cash Payment, Visa, Mastercard</li>
             </ul>
           </section>
 
@@ -95,7 +96,13 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Client Responsibilities</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Application Acquisition Inquiries</h2>
+            <p className="text-gray-600 mb-4">Submitting an acquisition or licensing request starts a non-binding commercial review. A website listing, development percentage, form submission, confirmation reference, demonstration, or discussion does not itself create a purchase agreement, transfer ownership or intellectual property, grant a licence, reserve exclusivity, or commit either party.</p>
+            <p className="text-gray-600 mb-4">Any approved transaction is subject to technical and commercial due diligence and a separate written agreement defining the precise scope, consideration, completion work, support, warranties, exclusions, and transferability of source code, branding, domains, provider accounts, third-party assets, and licences.</p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Client Responsibilities</h2>
             <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
               <li>Provide timely feedback and approvals</li>
               <li>Supply required content, assets, and credentials</li>
@@ -106,7 +113,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Warranties and Limitations</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Warranties and Limitations</h2>
             <h3 className="text-xl font-semibold text-gray-800 mb-3">7.1 Warranty Period</h3>
             <p className="text-gray-600 mb-4">
               We provide a 30-day warranty for bug fixes on delivered projects. This covers defects in our original work, 
@@ -121,7 +128,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Confidentiality</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Confidentiality</h2>
             <p className="text-gray-600 mb-4">
               Both parties agree to keep confidential information private. We will not disclose client project details 
               without permission, except when showcasing work in our portfolio (with client approval).
@@ -129,7 +136,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Termination</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Termination</h2>
             <h3 className="text-xl font-semibold text-gray-800 mb-3">9.1 By Client</h3>
             <p className="text-gray-600 mb-4">
               Clients may terminate the project with 14 days' written notice. Client remains responsible for payment of 
@@ -143,7 +150,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Support and Maintenance</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Support and Maintenance</h2>
             <p className="text-gray-600 mb-4">
               Post-launch support and maintenance services are available separately. Details and pricing will be provided 
               in a separate agreement.
@@ -151,7 +158,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Dispute Resolution</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Dispute Resolution</h2>
             <p className="text-gray-600 mb-4">
               Any disputes will first be attempted to be resolved through good-faith negotiation. If unsuccessful, disputes 
               will be subject to the laws of Ghana and the jurisdiction of courts in Greater Accra.
@@ -159,7 +166,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Changes to Terms</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">13. Changes to Terms</h2>
             <p className="text-gray-600 mb-4">
               We reserve the right to modify these terms at any time. Continued use of our services after changes 
               constitutes acceptance of the new terms.
@@ -167,7 +174,7 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">13. Contact Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">14. Contact Information</h2>
             <div className="bg-blue-50 p-6 rounded-lg">
               <p className="text-gray-800 mb-2"><strong>Frontier DevConsults</strong></p>
               <p className="text-gray-600 mb-1">Email: info@frontier-devconsults.com</p>

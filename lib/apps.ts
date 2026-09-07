@@ -8,11 +8,13 @@ export type AppVisibility = 'draft' | 'published';
 export const solutionKinds = ['mobile_application', 'web_application', 'website', 'ai_platform', 'engineering_solution', 'engineering_service', 'client_project', 'other'] as const;
 export const availabilities = ['available', 'coming_soon', 'by_enquiry', 'unavailable'] as const;
 export const primaryActions = ['automatic', 'download', 'visit_live', 'view_details', 'request_demo', 'request_quote', 'join_waitlist', 'none'] as const;
-export const commercialModes = ['hosted_license', 'white_label', 'exclusive_acquisition'] as const;
+export const commercialModes = ['hosted_license', 'white_label', 'exclusive_acquisition', 'full_acquisition', 'exclusive_license', 'non_exclusive_license', 'strategic_partnership', 'custom_completion', 'custom_deployment', 'private_demo'] as const;
+export const developmentStatuses = ['concept_research', 'early_development', 'in_development', 'acquisition_preview', 'beta_pre_launch', 'production_ready', 'live', 'maintenance_expansion'] as const;
 export type SolutionKind = typeof solutionKinds[number];
 export type Availability = typeof availabilities[number];
 export type PrimaryAction = typeof primaryActions[number];
 export type CommercialMode = typeof commercialModes[number];
+export type DevelopmentStatus = typeof developmentStatuses[number];
 
 export type AppRecord = {
   id: string;
@@ -42,6 +44,15 @@ export type AppRecord = {
   showInUpworkPortfolio: boolean;
   showInProducts: boolean;
   commercialModes: CommercialMode[];
+  tagline: string | null;
+  shortDescription: string | null;
+  developmentStatus: DevelopmentStatus | null;
+  completionPercentage: number | null;
+  roadmapItems: string[];
+  technologyStack: Record<string, string[]>;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  ogImageUrl: string | null;
   startingPriceUsdMinor: number | null;
   priceVisibility: 'show' | 'from' | 'enquire';
   demoUrl: string | null;
@@ -95,6 +106,15 @@ function mapApp(row: Record<string, unknown>): AppRecord {
     primaryAction: primaryActions.includes(row.primary_action as PrimaryAction) ? row.primary_action as PrimaryAction : 'automatic',
     showInProjects: Boolean(row.show_in_projects), showInUpworkPortfolio: Boolean(row.show_in_upwork_portfolio), showInProducts: Boolean(row.show_in_products),
     commercialModes: Array.isArray(row.commercial_modes) ? row.commercial_modes.filter((mode): mode is CommercialMode => commercialModes.includes(mode as CommercialMode)) : [],
+    tagline: typeof row.tagline === 'string' ? row.tagline : null,
+    shortDescription: typeof row.short_description === 'string' ? row.short_description : null,
+    developmentStatus: developmentStatuses.includes(row.development_status as DevelopmentStatus) ? row.development_status as DevelopmentStatus : null,
+    completionPercentage: Number.isInteger(Number(row.completion_percentage)) && Number(row.completion_percentage) >= 0 && Number(row.completion_percentage) <= 100 ? Number(row.completion_percentage) : null,
+    roadmapItems: Array.isArray(row.roadmap_items) ? row.roadmap_items.map(String) : [],
+    technologyStack: row.technology_stack && typeof row.technology_stack === 'object' && !Array.isArray(row.technology_stack) ? Object.fromEntries(Object.entries(row.technology_stack as Record<string, unknown>).filter(([, value]) => Array.isArray(value)).map(([key, value]) => [key, (value as unknown[]).map(String)])) : {},
+    seoTitle: typeof row.seo_title === 'string' ? row.seo_title : null,
+    seoDescription: typeof row.seo_description === 'string' ? row.seo_description : null,
+    ogImageUrl: typeof row.og_image_url === 'string' ? row.og_image_url : null,
     startingPriceUsdMinor: Number.isSafeInteger(Number(row.starting_price_usd_minor)) && Number(row.starting_price_usd_minor) >= 0 ? Number(row.starting_price_usd_minor) : null,
     priceVisibility: ['show', 'from', 'enquire'].includes(String(row.price_visibility)) ? row.price_visibility as AppRecord['priceVisibility'] : 'enquire',
     demoUrl: typeof row.demo_url === 'string' ? row.demo_url : null,
@@ -130,6 +150,10 @@ function row(input: AppInput) {
     solution_kind: input.solutionKind || 'other', availability: input.availability || 'by_enquiry', primary_action: input.primaryAction || 'automatic',
     show_in_projects: input.showInProjects || false, show_in_upwork_portfolio: input.showInUpworkPortfolio || false, show_in_products: input.showInProducts || false,
     commercial_modes: input.commercialModes || [], starting_price_usd_minor: input.startingPriceUsdMinor ?? null, price_visibility: input.priceVisibility || 'enquire',
+    tagline: input.tagline?.trim() || null, short_description: input.shortDescription?.trim() || null,
+    development_status: input.developmentStatus || null, completion_percentage: input.completionPercentage ?? null,
+    roadmap_items: input.roadmapItems || [], technology_stack: input.technologyStack || {},
+    seo_title: input.seoTitle?.trim() || null, seo_description: input.seoDescription?.trim() || null, og_image_url: input.ogImageUrl?.trim() || null,
     demo_url: input.demoUrl?.trim() || null, technologies: input.technologies || [], client_problem: input.clientProblem?.trim() || null,
     solution_summary: input.solutionSummary?.trim() || null, responsibilities: input.responsibilities || [], challenges: input.challenges || [], outcomes: input.outcomes || [],
     confidentiality_note: input.confidentialityNote?.trim() || null, deployment_options: input.deploymentOptions || [], support_summary: input.supportSummary?.trim() || null,
@@ -155,6 +179,10 @@ export function validateApp(input: Partial<AppInput>) {
   if (input.availability !== undefined && !availabilities.includes(input.availability as Availability)) return 'Choose a valid availability.';
   if (input.primaryAction !== undefined && !primaryActions.includes(input.primaryAction as PrimaryAction)) return 'Choose a valid primary action.';
   if (input.priceVisibility !== undefined && !['show', 'from', 'enquire'].includes(input.priceVisibility as string)) return 'Choose a valid price visibility.';
+  if (input.developmentStatus !== null && input.developmentStatus !== undefined && !developmentStatuses.includes(input.developmentStatus as DevelopmentStatus)) return 'Choose a valid development status.';
+  if (input.completionPercentage !== null && input.completionPercentage !== undefined && (!Number.isInteger(input.completionPercentage) || input.completionPercentage < 0 || input.completionPercentage > 100)) return 'Engineering progress must be a whole number from 0 to 100.';
+  if (input.commercialModes && input.commercialModes.some((mode) => !commercialModes.includes(mode as CommercialMode))) return 'Choose valid commercial options.';
+  if (input.technologyStack && Object.entries(input.technologyStack).some(([key, values]) => !key.trim() || !Array.isArray(values) || values.some((value) => typeof value !== 'string'))) return 'Technology stack groups must contain text values.';
   if (input.startingPriceUsdMinor !== null && input.startingPriceUsdMinor !== undefined && (!Number.isSafeInteger(input.startingPriceUsdMinor) || input.startingPriceUsdMinor < 0)) return 'Starting price must be a non-negative USD minor-unit amount.';
   const urls = [
     ['App icon URL', input.iconUrl],
@@ -163,6 +191,7 @@ export function validateApp(input: Partial<AppInput>) {
     ['Direct download URL', input.downloadLink],
     ['Demo URL', input.demoUrl],
     ['License terms URL', input.licenseTermsUrl],
+    ['Open Graph image URL', input.ogImageUrl],
     ...((input.screenshotUrls || []).map((url) => ['Screenshot URL', url] as const)),
   ];
   for (const [label, value] of urls) {

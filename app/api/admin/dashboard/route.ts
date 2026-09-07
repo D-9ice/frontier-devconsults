@@ -4,7 +4,7 @@ import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-serve
 
 type Activity = {
   id: string;
-  type: 'contact' | 'build' | 'project' | 'app';
+  type: 'contact' | 'build' | 'project' | 'app' | 'acquisition';
   title: string;
   detail: string;
   createdAt: string;
@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
       buildsResult,
       projectsResult,
       appsResult,
+      acquisitionCountResult,
+      acquisitionsResult,
     ] = await Promise.all([
       supabaseServer.from('visitors').select('*', { count: 'exact', head: true }),
       supabaseServer.from('visitors').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
@@ -49,12 +51,14 @@ export async function GET(request: NextRequest) {
       supabaseServer.from('build_requests').select('id, name, description, created_at').order('created_at', { ascending: false }).limit(4),
       supabaseServer.from('projects').select('id, title, visibility, updated_at').order('updated_at', { ascending: false }).limit(4),
       supabaseServer.from('apps').select('id, name, visibility, updated_at').order('updated_at', { ascending: false }).limit(4),
+      supabaseServer.from('application_acquisition_requests').select('*', { count: 'exact', head: true }).not('status', 'in', '(acquisition_completed,declined,withdrawn,closed)'),
+      supabaseServer.from('application_acquisition_requests').select('id, reference_number, product_name, buyer_company, created_at').order('created_at', { ascending: false }).limit(4),
     ]);
 
     const results = [
       totalVisitorsResult, visitsTodayResult, contactCountResult, buildCountResult, pendingContactResult,
       pendingBuildResult, activeProjectsResult, publishedAppsResult, appsInDevelopmentResult, contactsResult,
-      buildsResult, projectsResult, appsResult,
+      buildsResult, projectsResult, appsResult, acquisitionCountResult, acquisitionsResult,
     ];
     const error = results.find((result) => result.error)?.error;
     if (error) throw error;
@@ -88,6 +92,13 @@ export async function GET(request: NextRequest) {
         detail: item.name,
         createdAt: item.updated_at,
       }))),
+      ...((acquisitionsResult.data || []).map((item) => ({
+        id: `acquisition-${item.id}`,
+        type: 'acquisition' as const,
+        title: `Acquisition request — ${item.product_name}`,
+        detail: `${item.buyer_company} · ${item.reference_number}`,
+        createdAt: item.created_at,
+      }))),
     ]
       .filter((item) => Boolean(item.createdAt))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -102,6 +113,7 @@ export async function GET(request: NextRequest) {
         activeProjects: activeProjectsResult.count || 0,
         publishedApps: publishedAppsResult.count || 0,
         appsInDevelopment: appsInDevelopmentResult.count || 0,
+        pendingAcquisitions: acquisitionCountResult.count || 0,
       },
       recentActivity,
     });

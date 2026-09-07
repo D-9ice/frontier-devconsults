@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, Github, Linkedin, Globe, CreditCard } from 'lucide-react';
+import { Mail, Github, Linkedin, Globe, CreditCard, Landmark } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -66,7 +66,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li><Link href="/" className="hover:text-blue-500 transition-colors">Home</Link></li>
               <li><Link href="/projects" className="hover:text-blue-500 transition-colors">Projects</Link></li>
-              <li><Link href="/app-store" className="hover:text-blue-500 transition-colors">Apps &amp; Solutions</Link></li>
+              <li><Link href="/app-store" className="hover:text-blue-500 transition-colors">Digital Products</Link></li>
               <li><Link href="/pricing" className="hover:text-blue-500 transition-colors">Pricing</Link></li>
               <li><Link href="/about" className="hover:text-blue-500 transition-colors">About</Link></li>
               <li><Link href="/contact" className="hover:text-blue-500 transition-colors">Contact</Link></li>
@@ -108,6 +108,10 @@ export default function Footer() {
             </div>
             <div className="bg-white px-4 py-2 rounded-lg shadow-md">
               <span className="text-gray-900 font-bold text-sm">Cash Payment</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-md">
+              <Landmark className="w-5 h-5 text-emerald-700" />
+              <span className="text-gray-900 font-bold text-sm">Bank Payment</span>
             </div>
             
             {/* Card Payments */}

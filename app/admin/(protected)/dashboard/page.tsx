@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images } from 'lucide-react';
+import { BarChart3, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 type DashboardStats = {
@@ -11,13 +11,14 @@ type DashboardStats = {
   activeProjects: number;
   publishedApps: number;
   appsInDevelopment: number;
+  pendingAcquisitions: number;
   totalVisitors: number;
   visitsToday: number;
 };
 
 type Activity = {
   id: string;
-  type: 'contact' | 'build' | 'project' | 'app';
+  type: 'contact' | 'build' | 'project' | 'app' | 'acquisition';
   title: string;
   detail: string;
   createdAt: string;
@@ -29,6 +30,7 @@ const emptyStats: DashboardStats = {
   activeProjects: 0,
   publishedApps: 0,
   appsInDevelopment: 0,
+  pendingAcquisitions: 0,
   totalVisitors: 0,
   visitsToday: 0,
 };
@@ -95,7 +97,7 @@ export default function AdminDashboard() {
           </div>
         )}
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-3 lg:grid-cols-7 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             icon={<Eye className="w-8 h-8" />}
             title="Total Visitors"
@@ -138,12 +140,23 @@ export default function AdminDashboard() {
             value={loadingData ? '...' : stats.appsInDevelopment}
             color="orange"
           />
+          <StatCard
+            icon={<ShieldCheck className="w-8 h-8" />}
+            title="Open Acquisitions"
+            value={loadingData ? '...' : stats.pendingAcquisitions}
+            color="teal"
+          />
         </div>
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-7 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <ActionButton
+              href="/admin/acquisitions"
+              icon={<ShieldCheck className="w-5 h-5" />}
+              label="Acquisition Requests"
+            />
             <ActionButton
               href="/admin/app-store"
               icon={<Smartphone className="w-5 h-5" />}
@@ -203,7 +216,7 @@ export default function AdminDashboard() {
               {recentActivity.map((activity) => (
                 <div key={activity.id} className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
                   <div className="rounded-md bg-blue-50 p-2 text-blue-600">
-                    {activity.type === 'contact' || activity.type === 'build' ? <MessageSquare className="h-4 w-4" /> : <FolderKanban className="h-4 w-4" />}
+                    {activity.type === 'contact' || activity.type === 'build' ? <MessageSquare className="h-4 w-4" /> : activity.type === 'acquisition' ? <ShieldCheck className="h-4 w-4" /> : <FolderKanban className="h-4 w-4" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-900">{activity.title}</p>
@@ -228,7 +241,7 @@ interface StatCardProps {
   icon: React.ReactNode;
   title: string;
   value: number | string;
-  color: 'blue' | 'yellow' | 'green' | 'purple' | 'orange' | 'indigo' | 'cyan';
+  color: 'blue' | 'yellow' | 'green' | 'purple' | 'orange' | 'indigo' | 'cyan' | 'teal';
 }
 
 function formatActivityDate(value: string) {
@@ -244,6 +257,7 @@ function StatCard({ icon, title, value, color }: StatCardProps) {
     orange: 'bg-orange-100 text-orange-600',
     indigo: 'bg-indigo-100 text-indigo-600',
     cyan: 'bg-cyan-100 text-cyan-600',
+    teal: 'bg-teal-100 text-teal-700',
   };
 
   return (

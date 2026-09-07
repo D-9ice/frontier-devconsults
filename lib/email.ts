@@ -7,6 +7,14 @@ type EmailMessage = {
 const notificationRecipient = process.env.EMAIL_TO || 'frontierdevconsults@gmail.com';
 
 export async function sendAdminNotification({ subject, text, replyTo }: EmailMessage) {
+  return sendEmail({ to: notificationRecipient, subject, text, replyTo });
+}
+
+export async function sendBuyerConfirmation({ to, subject, text }: { to: string; subject: string; text: string }) {
+  return sendEmail({ to, subject, text, replyTo: notificationRecipient });
+}
+
+async function sendEmail({ to, subject, text, replyTo }: EmailMessage & { to: string }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
 
@@ -23,7 +31,7 @@ export async function sendAdminNotification({ subject, text, replyTo }: EmailMes
     },
     body: JSON.stringify({
       from,
-      to: [notificationRecipient],
+      to: [to],
       reply_to: replyTo,
       subject,
       text,

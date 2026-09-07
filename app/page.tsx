@@ -3,17 +3,26 @@ import { ArrowRight, Code2, Smartphone, Globe, Zap, Building2 } from 'lucide-rea
 import { listProjects } from '@/lib/projects';
 import { getHeroMedia, OfficeMediaItem } from '@/lib/hero-media';
 import ProjectArtwork from '@/components/ProjectArtwork';
+import { listApps } from '@/lib/apps';
+import { toPublicAppCard } from '@/lib/public-apps';
+import { AppCard } from '@/components/AppCatalogue';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   let featuredProjects: Awaited<ReturnType<typeof listProjects>> = [];
+  let featuredProducts: ReturnType<typeof toPublicAppCard>[] = [];
   const heroMedia = await getHeroMedia();
 
   try {
     featuredProjects = (await listProjects(false)).filter((project) => project.featured).slice(0, 6);
   } catch (error) {
     console.error('Featured projects fetch failed:', error);
+  }
+  try {
+    featuredProducts = (await listApps(false)).filter((app) => app.featured && app.showInProducts).slice(0, 3).map(toPublicAppCard);
+  } catch (error) {
+    console.error('Featured digital products fetch failed:', error);
   }
 
   const jsonLd = {
@@ -152,6 +161,15 @@ export default async function Home() {
               color="orange"
             />
           </div>
+        </div>
+      </section>
+
+      {/* Featured Projects */}
+      <section className="bg-slate-950 py-20 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-12 max-w-4xl text-center"><p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-300">Engineering digital products built for business</p><h2 className="mt-3 text-4xl font-bold sm:text-5xl">Build from Scratch — or Acquire What’s Already Built.</h2><p className="mt-5 text-lg leading-8 text-slate-300">Explore owner-approved applications available for acquisition, licensing, customization, or partnership, with transparent product status and technical scope.</p></div>
+          {featuredProducts.length > 0 && <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">{featuredProducts.map((product) => <AppCard key={product.id} app={product} />)}</div>}
+          <div className="mt-10 text-center"><Link href="/app-store" className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-700">Explore Digital Products<ArrowRight className="ml-2 h-5 w-5" /></Link></div>
         </div>
       </section>
 

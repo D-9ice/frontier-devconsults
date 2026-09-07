@@ -11,7 +11,7 @@ export default function Navigation() {
     { href: '/', label: 'Home' },
     { href: '/services', label: 'Services' },
     { href: '/projects', label: 'Projects' },
-    { href: '/app-store', label: 'Apps & Solutions' },
+    { href: '/app-store', label: 'Digital Products' },
     { href: '/pricing', label: 'Pricing' },
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },
