@@ -3,158 +3,141 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Privacy Policy for Frontier DevConsults - How we collect, use, and protect your personal information.',
+  description: 'How Frontier DevConsults collects, uses, shares, and protects personal information.',
 };
 
 export default function PrivacyPage() {
-  const lastUpdated = 'September 7, 2026';
+  const lastUpdated = 'September 8, 2026';
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-br from-slate-900 to-blue-900 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
+      <div className="bg-gradient-to-br from-slate-900 to-blue-900 py-16 text-white">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <h1 className="mb-4 text-4xl font-bold">Privacy Policy</h1>
           <p className="text-gray-300">Last updated: {lastUpdated}</p>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white rounded-lg shadow-sm p-8 prose prose-blue max-w-none">
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Introduction</h2>
-            <p className="text-gray-600 mb-4">
-              Frontier DevConsults ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. 
-              This privacy policy explains how we collect, use, disclose, and safeguard your information when you visit our website 
-              www.frontier-devconsults.com or use our services.
-            </p>
-          </section>
+      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="prose prose-blue max-w-none rounded-lg bg-white p-8 shadow-sm">
+          <PolicySection title="1. Scope and Data Controller">
+            <p>This policy explains how Frontier DevConsults ("we," "our," or "us") handles personal information when you visit frontier-devconsults.com, use its public features, submit an inquiry, or engage us for services.</p>
+            <p><strong>Data controller:</strong> Frontier DevConsults, Greater Accra, Ghana. Privacy requests may be sent to <a href="mailto:info@frontier-devconsults.com">info@frontier-devconsults.com</a> or through our <Link href="/contact">Contact page</Link>.</p>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Information We Collect</h2>
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">2.1 Personal Information</h3>
-            <p className="text-gray-600 mb-4">We may collect the following personal information:</p>
-            <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
-              <li>Name and contact information (email address, phone number)</li>
-              <li>Company name and business details</li>
-              <li>Project requirements and specifications</li>
-              <li>Specialized engineering requirements, equipment details, control, monitoring, interface, connectivity, environment, and development-scope information</li>
-              <li>Application acquisition, licensing, deployment, completion, support, budget, and timeline preferences</li>
-              <li>Payment information (processed securely through third-party payment processors)</li>
-              <li>Communication preferences</li>
+          <PolicySection title="2. Information We Collect">
+            <h3>2.1 Information you provide</h3>
+            <ul>
+              <li>Contact details such as your name, email address, phone or WhatsApp number, company, role, country, and website.</li>
+              <li>Contact messages, project descriptions, requirements, reference links, requested features, budget preferences, timelines, and preferred start dates.</li>
+              <li>Specialized-engineering information about equipment, existing systems, controls, monitoring, interfaces, connectivity, operating environments, safety considerations, and requested development scope.</li>
+              <li>Application acquisition or licensing information, including intended use, deployment market, buyer type, transfer preferences, completion requirements, support needs, and commercial timeline.</li>
+              <li>Questions and conversation text submitted to the Frontier Assistant.</li>
+              <li>Payment and billing details needed for an agreed engagement. Full payment-card credentials are handled by the applicable payment provider rather than intentionally stored through our public website forms.</li>
             </ul>
-
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">2.2 Automatically Collected Information</h3>
-            <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
-              <li>IP address and browser type</li>
-              <li>Device information</li>
-              <li>Usage data and analytics</li>
-              <li>Cookies and similar tracking technologies</li>
+            <h3>2.2 Information collected automatically</h3>
+            <ul>
+              <li>Page path, referring page, browser or device user-agent, and campaign-attribution values such as UTM source, medium, and campaign.</li>
+              <li>Interactions with product, acquisition, quotation, and specialized-solution features.</li>
+              <li>Internet Protocol address or a derived identifier when needed for security, abuse prevention, and request rate limiting.</li>
+              <li>Short-lived browser session storage used to remember pricing-currency selection and maintain an assistant session.</li>
+              <li>Technical logs generated by our hosting and service providers.</li>
             </ul>
-          </section>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">3. How We Use Your Information</h2>
-            <p className="text-gray-600 mb-4">We use your information for the following purposes:</p>
-            <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
-              <li>To provide and maintain our services</li>
-              <li>To process your project requests and quotations</li>
-              <li>To assess the feasibility, safety, scope, consultation needs, and delivery approach for specialized engineering requests</li>
-              <li>To evaluate and respond to application acquisition and licensing inquiries</li>
-              <li>To communicate with you about projects, updates, and marketing</li>
-              <li>To improve our website and services</li>
-              <li>To comply with legal obligations</li>
-              <li>To protect against fraud and unauthorized access</li>
+          <PolicySection title="3. Why We Process Information">
+            <p>Depending on your interaction and applicable law, we process information with your consent, to take steps at your request before entering a contract, to perform an agreement, to comply with legal obligations, or for legitimate interests that do not override your rights.</p>
+            <ul>
+              <li>Responding to inquiries and preparing quotations or proposals.</li>
+              <li>Assessing feasibility, safety, scope, and delivery requirements.</li>
+              <li>Evaluating acquisition, licensing, deployment, white-label, and partnership requests.</li>
+              <li>Delivering projects, support, and agreed commercial services.</li>
+              <li>Operating the Frontier Assistant and answering website-related questions.</li>
+              <li>Sending submission confirmations and internal email or WhatsApp alerts.</li>
+              <li>Measuring website performance and understanding which public services attract interest.</li>
+              <li>Preventing abuse, protecting accounts and systems, resolving disputes, and maintaining required business records.</li>
             </ul>
-          </section>
+            <p>We will use personal information for direct marketing only where the required consent has been obtained. You may withdraw that consent at any time.</p>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Data Sharing and Disclosure</h2>
-            <p className="text-gray-600 mb-4">We do not sell your personal information. We may share your information with:</p>
-            <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
-              <li><strong>Service Providers:</strong> Third-party vendors who assist in operating our business</li>
-              <li><strong>Payment Processors:</strong> Secure payment gateways for transaction processing</li>
-              <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
-              <li><strong>Business Transfers:</strong> In connection with mergers, acquisitions, or asset sales</li>
+          <PolicySection title="4. Required and Optional Information">
+            <p>Fields marked as required are necessary to submit the relevant form or evaluate the request. If you do not provide them, we may be unable to accept or respond to the submission. Optional fields may be left blank. Submission of an inquiry does not require you to enter a contract with us.</p>
+          </PolicySection>
+
+          <PolicySection title="5. Sharing and Service Providers">
+            <p>We do not sell personal information. We disclose only what is reasonably necessary to providers that support the requested feature or our operations, including:</p>
+            <ul>
+              <li><strong>Supabase:</strong> database and application-data storage.</li>
+              <li><strong>Vercel:</strong> website hosting, delivery, and technical logs.</li>
+              <li><strong>OpenAI:</strong> processing Frontier Assistant conversation text. Assistant API requests are configured not to be stored by the application, although OpenAI's applicable service terms still govern its processing.</li>
+              <li><strong>Resend:</strong> transactional and administrative email delivery while that service is configured.</li>
+              <li><strong>Meta/WhatsApp:</strong> direct WhatsApp links and administrative contact alerts when configured.</li>
+              <li><strong>Payment providers:</strong> payment processing when a transaction is arranged.</li>
+              <li><strong>Professional advisers and authorities:</strong> where reasonably necessary to protect rights, comply with law, or resolve a dispute.</li>
             </ul>
-          </section>
+            <p>We may also disclose relevant information as part of a genuine business reorganisation or transfer, subject to appropriate confidentiality and legal safeguards.</p>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Data Security</h2>
-            <p className="text-gray-600 mb-4">
-              We implement appropriate technical and organizational security measures to protect your personal data against 
-              unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet 
-              is 100% secure, and we cannot guarantee absolute security.
-            </p>
-          </section>
+          <PolicySection title="6. International Processing">
+            <p>Some technology providers may process information outside Ghana. Where information is transferred internationally, we seek to use reputable providers and appropriate contractual, technical, and organisational safeguards consistent with applicable requirements.</p>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Your Rights</h2>
-            <p className="text-gray-600 mb-4">You have the right to:</p>
-            <ul className="list-disc pl-6 text-gray-600 mb-4 space-y-2">
-              <li>Access your personal data</li>
-              <li>Correct inaccurate data</li>
-              <li>Request deletion of your data</li>
-              <li>Object to processing of your data</li>
-              <li>Withdraw consent at any time</li>
-              <li>Lodge a complaint with a supervisory authority</li>
+          <PolicySection title="7. Retention">
+            <p>We keep inquiry, project, specialized-engineering, acquisition, licensing, and commercial records only for as long as reasonably necessary to respond, evaluate or perform an engagement, provide support, maintain appropriate business records, enforce agreements, resolve disputes, and meet legal obligations. Retention therefore varies with the type and status of the interaction.</p>
+            <p>Commercial-event and technical-log information is retained only while useful for security, operational, and performance purposes. Frontier Assistant conversations are sent with provider-side response storage disabled and are not intentionally added to our application database. You may ask us about the retention period applicable to your information.</p>
+          </PolicySection>
+
+          <PolicySection title="8. Security">
+            <p>We use reasonable technical and organisational measures designed to protect information against loss, unauthorised access, alteration, disclosure, and destruction. These include restricted administrative access, server-side credentials, validation, rate limiting, and encrypted transport where supported. No internet transmission or storage method is completely secure, so absolute security cannot be guaranteed.</p>
+          </PolicySection>
+
+          <PolicySection title="9. Your Data-Protection Rights">
+            <p>Subject to the Data Protection Act, 2012 (Act 843) and any applicable exceptions, you may ask to:</p>
+            <ul>
+              <li>Be informed about and obtain access to your personal information.</li>
+              <li>Correct inaccurate or incomplete information.</li>
+              <li>Object to or prevent processing that causes unwarranted damage or distress.</li>
+              <li>Withdraw consent, including consent for direct marketing.</li>
+              <li>Request deletion, blocking, or restriction where legally available.</li>
+              <li>Object to a significant decision based solely on automated processing.</li>
+              <li>Complain to us or to Ghana's Data Protection Commission.</li>
             </ul>
-          </section>
+            <p>To exercise a right, email <a href="mailto:info@frontier-devconsults.com">info@frontier-devconsults.com</a>. We may need to verify your identity before acting. You can also contact the <a href="https://dataprotection.org.gh/" target="_blank" rel="noopener noreferrer">Data Protection Commission of Ghana</a>.</p>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">7. Data Retention</h2>
-            <p className="text-gray-600 mb-4">We retain inquiry, specialized-engineering, and acquisition-request information only for as long as reasonably necessary to evaluate the request, conduct related technical or commercial discussions, maintain appropriate business records, resolve disputes, and meet legal obligations. Technical files are not accepted through the public specialized-project form; secure file exchange may be arranged after initial review. You may request deletion subject to records we must lawfully retain.</p>
-          </section>
+          <PolicySection title="10. Browser Storage, Analytics, and External Links">
+            <p>The website uses limited session storage and collects first-party usage and attribution events as described above. Your browser can clear session storage and restrict similar technologies, although doing so may reset preferences or affect some functionality.</p>
+            <p>Our website also links to external services and live client websites. Their privacy practices are governed by their own policies, and we are not responsible for their content or processing.</p>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Cookies and Attribution</h2>
-            <p className="text-gray-600 mb-4">
-              We use cookies and similar technologies to improve your browsing experience, analyze site traffic, and personalize content. 
-              You can control cookies through your browser settings, but disabling cookies may affect site functionality.
-            </p>
-          </section>
+          <PolicySection title="11. Children's Privacy">
+            <p>Our business services are not directed to children under 18, and we do not knowingly solicit their personal information. If you believe a child has provided information, contact us so we can assess and remove it where appropriate.</p>
+          </PolicySection>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Third-Party Links</h2>
-            <p className="text-gray-600 mb-4">
-              Our website may contain links to third-party websites. We are not responsible for the privacy practices of these external sites. 
-              We encourage you to review their privacy policies.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Children's Privacy</h2>
-            <p className="text-gray-600 mb-4">
-              Our services are not intended for individuals under the age of 18. We do not knowingly collect personal information 
-              from children.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Changes to This Policy</h2>
-            <p className="text-gray-600 mb-4">
-              We may update this privacy policy from time to time. We will notify you of any significant changes by posting the 
-              new policy on this page and updating the "Last updated" date.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Contact Us</h2>
-            <p className="text-gray-600 mb-4">If you have questions about this privacy policy or our data practices, please contact us:</p>
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <p className="text-gray-800 mb-2"><strong>Frontier DevConsults</strong></p>
-              <p className="text-gray-600 mb-1">Email: info@frontier-devconsults.com</p>
-              <p className="text-gray-600 mb-1">Phone: +233 249 078 976</p>
+          <PolicySection title="12. Policy Changes and Contact">
+            <p>We may update this policy to reflect changes in our services, providers, or legal obligations. Material revisions will be posted on this page with a new "Last updated" date.</p>
+            <div className="rounded-lg bg-blue-50 p-6">
+              <p className="mb-2 text-gray-800"><strong>Frontier DevConsults</strong></p>
+              <p className="mb-1 text-gray-600">Email: info@frontier-devconsults.com</p>
+              <p className="mb-1 text-gray-600">WhatsApp &amp; Phone: +233 249 078 976</p>
               <p className="text-gray-600">Location: Greater Accra, Ghana</p>
             </div>
-          </section>
+          </PolicySection>
 
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <Link href="/" className="text-blue-600 hover:text-blue-700 font-semibold">
-              ← Back to Home
-            </Link>
+          <div className="mt-12 border-t border-gray-200 pt-8">
+            <Link href="/" className="font-semibold text-blue-600 hover:text-blue-700">← Back to Home</Link>
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+function PolicySection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mb-8 text-gray-600 [&_a]:font-semibold [&_a]:text-blue-700 [&_a]:underline [&_h3]:mb-3 [&_h3]:mt-5 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-gray-800 [&_li]:mb-2 [&_p]:mb-4 [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6">
+      <h2 className="mb-4 text-2xl font-bold text-gray-900">{title}</h2>
+      {children}
+    </section>
   );
 }

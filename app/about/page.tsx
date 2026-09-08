@@ -1,4 +1,5 @@
-import { Code2, Smartphone, Globe, Award, Users, Zap } from 'lucide-react';
+import { Code2, Smartphone, Globe, Award, Users, Zap, Cpu, Database, CircuitBoard, Workflow } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AboutPage() {
   return (
@@ -8,7 +9,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-5xl font-bold mb-4">About Frontier DevConsults</h1>
           <p className="text-xl text-gray-300 max-w-3xl">
-            Building the future, one application at a time
+            Founder-led software and engineering solutions built for real-world use
           </p>
         </div>
       </section>
@@ -18,10 +19,10 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-6 text-center">Our Mission</h2>
           <p className="text-xl text-gray-700 text-center leading-relaxed">
-            At Frontier DevConsults, we transform innovative ideas into production-ready applications 
-            that solve real-world problems. Our expertise spans mobile development, web platforms, 
-            AI integration, and specialized engineering solutions. We don't just build software—we 
-            craft experiences that scale, perform, and deliver exceptional value.
+            Frontier DevConsults combines more than 30 years of electronics engineering experience
+            with modern full-stack software development. We turn practical requirements into secure,
+            production-ready mobile applications, web platforms, AI-enabled products, and specialized
+            engineering solutions—with accountable delivery from discovery through deployment.
           </p>
         </div>
       </section>
@@ -30,7 +31,7 @@ export default function AboutPage() {
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">Our Expertise</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-8">
             <ExpertiseCard
               icon={<Smartphone className="w-10 h-10" />}
               title="Mobile Development"
@@ -40,8 +41,8 @@ export default function AboutPage() {
             <ExpertiseCard
               icon={<Globe className="w-10 h-10" />}
               title="Web Platforms"
-              description="Modern, responsive websites and web applications built with React, Next.js, and optimized for performance and SEO."
-              skills={["Next.js", "React", "TypeScript", "Tailwind CSS", "Vercel"]}
+              description="Modern websites, SaaS platforms, portals, e-commerce solutions, and web applications optimized for performance and SEO."
+              skills={["Next.js", "React", "TypeScript", "E-commerce", "Tailwind CSS", "Vercel"]}
             />
             <ExpertiseCard
               icon={<Code2 className="w-10 h-10" />}
@@ -49,11 +50,49 @@ export default function AboutPage() {
               description="Machine learning model deployment, natural language processing, and intelligent automation for mobile and web platforms."
               skills={["TensorFlow Lite", "NLP", "AI Video", "Text-to-Speech", "Offline ML"]}
             />
+            <ExpertiseCard
+              icon={<Cpu className="w-10 h-10" />}
+              title="Specialized Solutions"
+              description="Practical systems that connect software with electronics, controls, monitoring, diagnostics, connectivity, and integration requirements."
+              skills={["Embedded Systems", "Automation", "Monitoring", "Diagnostics", "System Integration"]}
+            />
+            <ExpertiseCard
+              icon={<Database className="w-10 h-10" />}
+              title="Data & Backend Systems"
+              description="Secure databases, server functionality, APIs, integrations, operational dashboards, and cloud-backed application services."
+              skills={["Supabase", "PostgreSQL", "Node.js", "FastAPI", "REST APIs"]}
+            />
+            <ExpertiseCard
+              icon={<CircuitBoard className="w-10 h-10" />}
+              title="Electrical & Electronics Engineering"
+              description="Circuit analysis, power electronics, PCB and controller diagnostics, technical investigation, and engineering support."
+              skills={["Circuit Analysis", "Power Electronics", "PCB Diagnostics", "Controllers", "Technical Support"]}
+            />
+            <ExpertiseCard
+              icon={<Workflow className="w-10 h-10" />}
+              title="Modernization & Consulting"
+              description="Focused architecture, delivery planning, troubleshooting, integration, and improvement of existing digital systems."
+              skills={["Architecture", "Technical Planning", "Modernization", "Troubleshooting", "Consulting"]}
+            />
           </div>
         </div>
       </section>
 
-      <section className="bg-slate-950 py-16 text-white"><div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8"><p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-300">Technical leadership</p><h2 className="mt-3 text-4xl font-bold">Hands-on accountability from engineering through delivery</h2><p className="mt-6 text-lg leading-8 text-slate-300">Frontier DevConsults connects software delivery with practical electrical and electronics engineering discipline. Work is approached through clear requirements, careful implementation, validation, security awareness, and final human review.</p></div></section>
+      <section className="bg-slate-950 py-16 text-white"><div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8"><p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-300">Founder-led technical delivery</p><h2 className="mt-3 text-4xl font-bold">Hands-on accountability from engineering through launch</h2><p className="mt-6 text-lg leading-8 text-slate-300">Every engagement connects software delivery with practical electrical and electronics engineering discipline. Work is approached through clear requirements, careful implementation, validation, security awareness, transparent communication, and final human review.</p></div></section>
+
+      <section className="py-16 bg-blue-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-700">Evidence-led capability</p>
+            <h2 className="mt-3 text-4xl font-bold text-gray-950">See the work behind the promise</h2>
+            <p className="mt-5 text-lg leading-8 text-gray-700">Our published case studies explain the problem, technical scope, implementation, and verifiable outcome of real products, including Lotto Forecaster AI and BusiBazaar.</p>
+            <div className="mt-7 flex flex-wrap gap-4">
+              <Link href="/projects" className="rounded-lg bg-blue-700 px-5 py-3 font-bold text-white hover:bg-blue-800">View Projects &amp; Case Studies</Link>
+              <Link href="/contact#request-build" className="rounded-lg border border-blue-700 bg-white px-5 py-3 font-bold text-blue-700 hover:bg-blue-100">Discuss Your Project</Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Values */}
       <section className="py-16">
@@ -68,7 +107,7 @@ export default function AboutPage() {
             <ValueCard
               icon={<Users className="w-10 h-10" />}
               title="Client-Focused"
-              description="Your vision drives our work. We collaborate closely to ensure every project exceeds expectations."
+              description="Your goals and constraints guide the work. We collaborate closely, communicate clearly, and validate delivery against agreed requirements."
             />
             <ValueCard
               icon={<Zap className="w-10 h-10" />}
