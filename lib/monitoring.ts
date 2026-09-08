@@ -71,7 +71,7 @@ export async function runMonitoring() {
     const event=data?.[0]; if(!event) break;
     try {
       const link=event.record_id&&event.record_type in recordTables?`${site}/admin/monitoring/records/${event.record_type}/${encodeURIComponent(event.record_id)}`:`${site}/admin/dashboard`;
-      const result=await sendAdminNotification({subject:`${event.is_test?'[MONITORING TEST] ':''}${event.subject}`,text:`${event.subject}\nSaved/event time: ${event.created_at}\n\n${JSON.stringify(event.details,null,2)}\n\nAuthenticated admin record: ${link}`,replyTo:process.env.EMAIL_TO!,idempotencyKey:`monitoring/${event.id}`});
+      const result=await sendAdminNotification({subject:`${event.is_test?'[MONITORING TEST] ':''}${event.subject}`,text:`${event.subject}\nSaved/event time: ${event.created_at}\n\n${JSON.stringify(event.details,null,2)}\n\nAuthenticated admin record: ${link}`,replyTo:event.details?.email||event.details?.buyer_email||process.env.EMAIL_TO!,idempotencyKey:`monitoring/${event.id}`});
       if(result.skipped || !result.id) throw new Error('Notification channel unavailable');
       const {error:updateError}=await db.from('monitoring_events').update({status:'accepted',provider_id:result.id,lease_until:null,last_error:null}).eq('id',event.id).eq('lease_token',event.lease_token);
       if(updateError) throw new Error('Delivery status write failed');
@@ -83,11 +83,13 @@ export async function runMonitoring() {
   // Provider acceptance is not delivery. Reconcile actual mailbox-server delivery separately.
   const {data:sent}=await db.from('monitoring_events').select('id,provider_id').eq('status','accepted').order('created_at').limit(3);
   for(const event of sent||[]) {
-    const response=await fetch(`https://api.resend.com/emails/${event.provider_id}`,{headers:{Authorization:`Bearer ${process.env.RESEND_API_KEY}`},signal:AbortSignal.timeout(8000)});
-    if(response.ok) {
-      const result=await response.json();
-      if(['delivered','bounced','failed','complained'].includes(result.last_event)) await db.from('monitoring_events').update({status:result.last_event,delivered_at:result.last_event==='delivered'?new Date().toISOString():null}).eq('id',event.id);
-    }
+    try {
+      const response=await fetch(`https://api.resend.com/emails/${event.provider_id}`,{headers:{Authorization:`Bearer ${process.env.RESEND_API_KEY}`},signal:AbortSignal.timeout(8000)});
+      if(response.ok) {
+        const result=await response.json();
+        if(['delivered','bounced','failed','complained'].includes(result.last_event)) await db.from('monitoring_events').update({status:result.last_event,last_error:null,delivered_at:result.last_event==='delivered'?new Date().toISOString():null}).eq('id',event.id);
+      } else await db.from('monitoring_events').update({last_error:`Delivery status lookup returned HTTP ${response.status}; verify email-status read access on the Resend key.`}).eq('id',event.id);
+    } catch {await db.from('monitoring_events').update({last_error:'Delivery status lookup temporarily unavailable; acceptance is not confirmed delivery.'}).eq('id',event.id);}
   }
   await db.from('monitoring_limits').delete().lt('expires_at',new Date(Date.now()-86400000).toISOString());
   await db.from('monitoring_sessions').delete().lt('last_seen',new Date(Date.now()-30*86400000).toISOString());
