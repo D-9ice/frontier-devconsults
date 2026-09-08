@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import AnalyticsPreferences from '@/components/AnalyticsPreferences';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -106,6 +107,8 @@ export default function PrivacyPage() {
           </PolicySection>
 
           <PolicySection title="10. Browser Storage, Analytics, and External Links">
+            <p>Optional visitor analytics require opt-in below. Anonymous session identifiers stay in browser session storage; page views, referring domains and approximate hosting-provider city/country are retained for up to 30 days. These records do not identify who a visitor is. Identifiable bots and authenticated administrators are excluded. Essential security monitoring and enquiry handling continue regardless of this preference.</p>
+            <AnalyticsPreferences />
             <p>The website uses limited session storage and collects first-party usage and attribution events as described above. Your browser can clear session storage and restrict similar technologies, although doing so may reset preferences or affect some functionality.</p>
             <p>Our website also links to external services and live client websites. Their privacy practices are governed by their own policies, and we are not responsible for their content or processing.</p>
           </PolicySection>

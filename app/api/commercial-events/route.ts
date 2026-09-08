@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {isAdminRequest} from '@/lib/admin-auth';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
 const allowedEvents = ['product_view', 'product_demo_click', 'acquisition_cta_click', 'acquisition_form_started', 'acquisition_form_completed', 'acquisition_request_submitted', 'licensing_inquiry', 'partnership_inquiry', 'custom_completion_inquiry', 'request_build_click', 'specialized_solution_page_view', 'specialized_solution_cta_click', 'specialized_project_form_started', 'specialized_project_form_submitted', 'specialized_capability_view', 'specialized_example_view'];
@@ -13,9 +14,11 @@ function eventRateLimited(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if(isAdminRequest(request)||request.headers.get('dnt')==='1'||request.headers.get('sec-gpc')==='1'||/bot|crawler|spider|headless|monitor/i.test(request.headers.get('user-agent')||'')) return NextResponse.json({recorded:false});
   if (!isSupabaseServerConfigured() || !supabaseServer) return NextResponse.json({ recorded: false }, { status: 202 });
   try {
     const body = await request.json();
+    if(body.consent!==true) return NextResponse.json({recorded:false});
     const eventName = clean(body.eventName, 80);
     if (!allowedEvents.includes(eventName)) return NextResponse.json({ error: 'Invalid event.' }, { status: 400 });
     if (eventRateLimited(request)) return NextResponse.json({ recorded: false }, { status: 202 });

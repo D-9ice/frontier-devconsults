@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { sendAdminNotification } from '@/lib/email';
+import { NextRequest, NextResponse, after } from 'next/server';
+import { incident, runMonitoring } from '@/lib/monitoring';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
             project_type: body.projectType,
             budget: body.budget || null,
             timeline: body.timeline || null,
-            description: `${body.projectName}\n\n${body.description}`,
+            description: `${body.projectName}\n\n${body.description}\n\nPreferred start: ${body.startDate || 'Not specified'}\nAdditional information: ${body.additionalInfo || 'None'}`,
             features: body.features || null,
             reference_links: body.referenceLinks || null,
           }
@@ -66,44 +66,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Form storage is temporarily unavailable.' }, { status: 503 });
     }
 
-    // Format the email content
-    const emailSubject = `New Project Request: ${body.projectName}`;
-    const emailBody = `
-New Project Request from Frontier DevConsults Website
-
-=== PERSONAL INFORMATION ===
-Name: ${body.name}
-Email: ${body.email}
-Phone: ${body.phone}
-Company: ${body.company || 'Not provided'}
-
-=== PROJECT DETAILS ===
-Project Type: ${body.projectType}
-Project Name: ${body.projectName}
-Description: ${body.description}
-Key Features: ${body.features || 'Not provided'}
-
-=== TIMELINE & BUDGET ===
-Timeline: ${body.timeline || 'Not specified'}
-Budget Range: ${body.budget || 'Not specified'}
-Preferred Start Date: ${body.startDate || 'Flexible'}
-
-=== ADDITIONAL INFORMATION ===
-${body.additionalInfo || 'None provided'}
-
----
-Submitted on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' })}
-`;
-
-    try {
-      await sendAdminNotification({
-        subject: emailSubject,
-        text: emailBody,
-        replyTo: body.email,
-      });
-    } catch (emailError) {
-      console.error('Build request saved, but notification email failed:', emailError);
-    }
+    after(async () => { await incident("build-submission", true); await runMonitoring().catch(() => console.error("Monitoring worker unavailable")); });
 
     return NextResponse.json(
       { 
@@ -118,6 +81,7 @@ Submitted on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' })
     );
 
   } catch (error) {
+    after(() => incident('build-submission', false));
     console.error('Error processing request:', error);
     return NextResponse.json(
       { error: 'An error occurred while processing your request. Please try again or contact us directly.' },

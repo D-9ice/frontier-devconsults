@@ -1,0 +1,19 @@
+'use client';
+import {useEffect,useState} from 'react';
+type Summary={activeSessionCount:number;activeSessions:Array<{id:string;page:string;source:string;country:string;city:string}>;recentViews:Array<{page:string;source:string;created_at:string}>;views24h:number;openIncidents:number;unresolvedEnquiries:number;notificationConfigured:boolean;settings:{visitor_alerts:boolean;summary_enabled:boolean;summary_hour:number};events:Array<{id:string;subject:string;status:string;kind:string;resolved_at:string|null;created_at:string}>;locationNotice:string};
+export default function MonitoringPanel(){
+  const [data,setData]=useState<Summary>(); const [error,setError]=useState('');
+  const refresh=async()=>{try{const r=await fetch('/api/admin/monitoring',{cache:'no-store'});if(!r.ok)throw Error('Monitoring not configured or unavailable');setData(await r.json());setError('');}catch(e){setError(String(e));}};
+  useEffect(()=>{void refresh();const timer=setInterval(()=>{if(document.visibilityState==='visible')void refresh();},15000);return()=>clearInterval(timer);},[]);
+  const save=async(settings:Summary['settings'])=>{const r=await fetch('/api/admin/monitoring',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)});if(!r.ok)setError('Settings could not be saved');else await refresh();};
+  return <section className="mb-8 rounded-xl bg-white p-6 shadow"><h2 className="text-xl font-bold">Monitoring &amp; owner alerts</h2>{error&&<p role="alert">{error}</p>}{data&&<>
+    <p className="my-3">{data.activeSessionCount} active anonymous sessions · {data.views24h} page views in 24h · {data.openIncidents} open incidents · {data.unresolvedEnquiries} unresolved enquiries</p>
+    <p className="text-sm text-gray-600">{data.locationNotice} Only opted-in activity is counted. Refreshes every 15 seconds. Active means seen within 90 seconds.</p>
+    <div className="my-4 flex flex-wrap gap-4"><label><input type="checkbox" checked={data.settings.visitor_alerts} onChange={e=>void save({...data.settings,visitor_alerts:e.target.checked})}/> Visitor-arrival alerts (maximum 6/hour)</label><label><input type="checkbox" checked={data.settings.summary_enabled} onChange={e=>void save({...data.settings,summary_enabled:e.target.checked})}/> Daily summary</label><label>Summary hour (UTC/Ghana) <select value={data.settings.summary_hour} onChange={e=>void save({...data.settings,summary_hour:Number(e.target.value)})}>{Array.from({length:24},(_,i)=><option key={i}>{i}</option>)}</select></label></div>
+    <p>{data.notificationConfigured?'Email channel configured; delivery status shown below.':'Owner email configuration missing; enquiries remain saved.'}</p>
+    <button type="button" className="mt-3 underline" onClick={()=>{void fetch('/api/admin/monitoring',{method:'POST'}).then(async r=>{if(!r.ok)setError('Test alert could not be queued');else await refresh();}).catch(()=>setError('Test alert could not be queued'));}}>Send labelled delivery test (maximum 2/hour)</button>
+    <h3 className="mt-4 font-semibold">Active pages &amp; sources</h3>{data.activeSessions.map(s=><p key={s.id}>{s.page} · {s.source} · {[s.city,s.country].filter(Boolean).join(', ')||'Location unavailable'}</p>)}
+    <details className="mt-4"><summary>Recent page views</summary>{data.recentViews.map((v,i)=><p key={i}>{v.created_at} · {v.page} · {v.source}</p>)}</details>
+    <details className="mt-4"><summary>Alert delivery &amp; incidents</summary>{data.events.map(e=><p key={e.id}>{e.created_at} · {e.subject} · {e.status}{e.kind==="incident"&&!e.resolved_at&&<button className="ml-3 underline" onClick={()=>{if(window.confirm("Have you verified this incident has recovered?"))void fetch("/api/admin/monitoring",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({resolveId:e.id})}).then(()=>refresh());}}>Confirm recovery</button>}</p>)}</details>
+  </>}</section>;
+}

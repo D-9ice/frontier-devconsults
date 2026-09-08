@@ -1,0 +1,54 @@
+name: External monitoring
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      test_delivery:
+        description: 'Send a clearly labelled owner delivery test'
+        type: boolean
+        default: false
+  status:
+  deployment_status:
+permissions:
+  contents: read
+  actions: read
+  statuses: read
+concurrency:
+  group: frontier-external-monitoring
+  cancel-in-progress: false
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore last monitoring state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .monitoring-state
+          artifact_id=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=frontier-monitoring-state&per_page=1" --jq '.artifacts[0].id // empty')
+          if [ -n "$artifact_id" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > /tmp/monitoring-state.zip
+            unzip -o /tmp/monitoring-state.zip -d .monitoring-state
+          fi
+      - name: Check uptime and process alerts
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          MONITORING_JOB_TOKEN: ${{ secrets.MONITORING_JOB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          MONITORING_TEST: ${{ github.event.inputs.test_delivery }}
+        run: node scripts/monitor-external.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontier-monitoring-state
+          path: .monitoring-state/state.json
+          retention-days: 7
+          if-no-files-found: error

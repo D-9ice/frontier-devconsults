@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
+import { incident, runMonitoring } from '@/lib/monitoring';
 import { acquisitionReference, validateAcquisitionInput } from '@/lib/acquisitions';
 import { labels } from '@/lib/acquisition-options';
 import { getPublishedAppBySlug } from '@/lib/apps';
 import { isAcquisitionEnabled } from '@/lib/application-presentation';
-import { sendAdminNotification, sendBuyerConfirmation } from '@/lib/email';
+import { sendBuyerConfirmation } from '@/lib/email';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 
@@ -39,12 +40,13 @@ export async function POST(request: NextRequest) {
     const typeLabel = labels.acquisitionType[value.acquisitionType as keyof typeof labels.acquisitionType];
     const summary = `Application: ${app.name}\nReference: ${reference}\nBuyer: ${value.fullName}\nCompany: ${value.company}\nCountry: ${value.country}\nRequest type: ${typeLabel}\nBudget: ${value.budgetRange ? labels.budget[value.budgetRange as keyof typeof labels.budget] : 'Not disclosed'}\nTimeline: ${labels.timeline[value.acquisitionTimeline as keyof typeof labels.timeline]}`;
     const adminUrl = 'https://www.frontier-devconsults.com/admin/acquisitions';
-    await Promise.allSettled([
-      sendAdminNotification({ subject: `Application acquisition request — ${app.name} — ${reference}`, text: `${summary}\n\nAdmin: ${adminUrl}`, replyTo: value.email }),
+    after(async () => { await incident('acquisition-submission', true); await runMonitoring().catch(() => console.error('Monitoring worker unavailable')); });
+    after(async () => { await Promise.allSettled([
       sendBuyerConfirmation({ to: value.email, subject: 'Frontier DevConsults — Application Acquisition Request Received', text: `Hello ${value.fullName},\n\nYour application acquisition request has been received.\n\n${summary}\n\nFrontier DevConsults will review the request and contact you using the information provided. Submission begins our review process and is not a purchase agreement or transfer of ownership.\n\nFrontier DevConsults` }),
-    ]);
+    ]); });
     return NextResponse.json({ success: true, reference }, { status: 201 });
   } catch (error) {
+    after(() => incident('acquisition-submission', false));
     console.error('Acquisition submission error:', error);
     return NextResponse.json({ error: 'We could not submit the acquisition request. Please try again.' }, { status: 500 });
   }

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { sendAdminNotification, sendBuyerConfirmation } from '@/lib/email';
+import { NextRequest, NextResponse, after } from 'next/server';
+import { sendBuyerConfirmation } from '@/lib/email';
+import { incident, runMonitoring } from '@/lib/monitoring';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { specializedLabels } from '@/lib/specialized-options';
 import { specializedRequestReference, validateSpecializedRequest } from '@/lib/specialized-requests';
@@ -44,12 +45,13 @@ export async function POST(request: NextRequest) {
 
     const projectSummary = value.projectTypes.map((type) => specializedLabels.projectType[type as keyof typeof specializedLabels.projectType]).join(', ');
     const summary = `Reference: ${reference}\nClient: ${value.fullName}\nCompany: ${value.company || 'Not provided'}\nCountry: ${value.country}\nProject type: ${projectSummary}\nTimeline: ${value.timeline ? specializedLabels.timeline[value.timeline as keyof typeof specializedLabels.timeline] : 'Not specified'}\n\nProject description:\n${value.projectDescription}`;
-    await Promise.allSettled([
-      sendAdminNotification({ subject: `Specialized engineering request — ${reference}`, text: `${summary}\n\nAdmin: https://www.frontier-devconsults.com/admin/specialized-requests`, replyTo: value.email }),
+    after(async () => { await incident('specialized-submission', true); await runMonitoring().catch(() => console.error('Monitoring worker unavailable')); });
+    after(async () => { await Promise.allSettled([
       sendBuyerConfirmation({ to: value.email, subject: 'Frontier DevConsults — Specialized Engineering Request Received', text: `Hello ${value.fullName},\n\nYour specialized engineering request has been received.\n\n${summary}\n\nFrontier DevConsults will review the technical requirements and contact you using the information provided. Feasibility, safety, certification, delivery and commercial scope require project-specific assessment and written agreement.\n\nFrontier DevConsults` }),
-    ]);
+    ]); });
     return NextResponse.json({ success: true, reference }, { status: 201 });
   } catch (error) {
+    after(() => incident('specialized-submission', false));
     console.error('Specialized engineering submission error:', error);
     return NextResponse.json({ error: 'We could not submit the specialized engineering request. Please try again.' }, { status: 500 });
   }

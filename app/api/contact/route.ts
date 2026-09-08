@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { sendAdminNotification } from '@/lib/email';
+import { NextRequest, NextResponse, after } from 'next/server';
+import { incident, runMonitoring } from '@/lib/monitoring';
+import {sendWhatsAppContactAlert,whatsAppAlertConfigured} from '@/lib/whatsapp';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
-import { sendWhatsAppContactAlert } from '@/lib/whatsapp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,39 +52,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Form storage is temporarily unavailable.' }, { status: 503 });
     }
 
-    // Format the email content
-    const emailSubject = `Contact Form: ${body.subject}`;
-    const emailBody = `
-New Contact Form Submission
-
-From: ${body.name}
-Email: ${body.email}
-Subject: ${body.subject}
-
-Message:
-${body.message}
-
----
-Submitted on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' })}
-`;
-
-    const submittedAt = new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' });
-    const [emailNotification, whatsAppNotification] = await Promise.allSettled([
-      sendAdminNotification({
-        subject: emailSubject,
-        text: emailBody,
-        replyTo: body.email,
-      }),
-      sendWhatsAppContactAlert({
-        name: String(body.name),
-        email: String(body.email),
-        subject: String(body.subject),
-        message: String(body.message),
-        submittedAt,
-      }),
-    ]);
-    if (emailNotification.status === 'rejected') console.error('Contact submission saved, but notification email failed:', emailNotification.reason);
-    if (whatsAppNotification.status === 'rejected') console.error('Contact submission saved, but WhatsApp alert failed:', whatsAppNotification.reason);
+    after(async () => { await incident("contact-submission", true); await runMonitoring().catch(() => console.error("Monitoring worker unavailable")); });
+    if(whatsAppAlertConfigured()) after(async()=>{await sendWhatsAppContactAlert({name:body.name,email:body.email,subject:body.subject,message:body.message,submittedAt:new Date().toISOString()}).catch(()=>console.error('WhatsApp notification unavailable'));});
 
     return NextResponse.json(
       { 
@@ -95,6 +64,7 @@ Submitted on: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Accra' })
     );
 
   } catch (error) {
+    after(() => incident('contact-submission', false));
     console.error('Error processing contact form:', error);
     return NextResponse.json(
       { error: 'An error occurred while sending your message. Please try again.' },

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BarChart3, CircuitBoard, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
+import MonitoringPanel from '@/components/admin/MonitoringPanel';
 
 type DashboardStats = {
   totalSubmissions: number;
@@ -214,6 +215,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        <MonitoringPanel />
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
