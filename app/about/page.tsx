@@ -1,5 +1,13 @@
 import { Code2, Smartphone, Globe, Award, Users, Zap, Cpu, Database, CircuitBoard, Workflow } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Our Software & Engineering Company in Ghana',
+  description: 'Learn about Frontier DevConsults, a founder-led software, electronics, embedded systems, and AI engineering company based in Greater Accra, Ghana.',
+  alternates: { canonical: '/about' },
+  openGraph: { title: 'About Frontier DevConsults', description: 'Founder-led software and engineering delivery from Greater Accra, Ghana, serving organizations across Africa and worldwide.', url: '/about', type: 'website' },
+};
 
 export default function AboutPage() {
   return (

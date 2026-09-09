@@ -27,12 +27,14 @@ export default async function Home() {
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': ['Organization', 'ProfessionalService'],
+    '@id': 'https://www.frontier-devconsults.com/#organization',
     name: 'Frontier DevConsults',
-    alternateName: 'FrontierDev',
+    alternateName: ['Frontier Dev Consults', 'FrontierDev'],
     url: 'https://www.frontier-devconsults.com',
     logo: 'https://www.frontier-devconsults.com/logos/frontier-emblem.webp',
-    description: 'Transforming ideas into production-ready applications. Specialized in mobile apps, web platforms, and AI-powered solutions.',
+    email: 'info@frontier-devconsults.com',
+    description: 'Custom software, mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Accra, Ghana.',
     slogan: 'Building Digital Excellence',
     address: {
       '@type': 'PostalAddress',
@@ -44,9 +46,15 @@ export default async function Home() {
       '@type': 'ContactPoint',
       telephone: '+233-249-078-976',
       contactType: 'customer service',
-      areaServed: 'GH',
+      areaServed: ['Ghana', 'Africa', 'Worldwide'],
       availableLanguage: ['English']
     },
+    areaServed: [
+      { '@type': 'Country', name: 'Ghana' },
+      { '@type': 'Place', name: 'Africa' },
+      { '@type': 'Place', name: 'Worldwide' }
+    ],
+    knowsAbout: ['Custom software development', 'Flutter mobile applications', 'Web application development', 'AI integration', 'Embedded systems', 'IoT engineering', 'Electronics engineering'],
     sameAs: [
       'https://github.com/frontierdevconsults',
       'https://linkedin.com/company/frontierdevconsults'
@@ -64,14 +72,11 @@ export default async function Home() {
         <HeroBackground media={heroMedia} />
         <div className="absolute inset-0 bg-slate-950" style={{ opacity: heroMedia.overlayStrength / 100 }} />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/5 to-slate-950/25 sm:bg-gradient-to-r sm:from-slate-950/25 sm:via-slate-950/10 sm:to-transparent" />
-        <p className="absolute left-1/2 top-[44%] z-10 w-max max-w-[calc(100%-3rem)] -translate-x-1/2 whitespace-nowrap text-center text-2xl font-semibold leading-tight text-blue-200 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)] sm:hidden">
-          Building Digital Excellence
-        </p>
         <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-5 sm:px-6 sm:py-28 lg:px-8 lg:pt-32 lg:pb-12 min-h-[calc(100svh-88px)] sm:min-h-0 lg:min-h-[calc(100svh-64px)] flex items-end sm:block lg:flex lg:items-end">
           <div className="max-w-3xl space-y-5 sm:space-y-7 [text-shadow:0_2px_18px_rgb(0_0_0_/_0.65)]">
-            <p className="hidden text-3xl font-semibold leading-tight text-blue-200 sm:block">
-              Building Digital Excellence
-            </p>
+            <h1 className="absolute left-1/2 top-[44%] z-10 w-max max-w-[calc(100%-3rem)] -translate-x-1/2 whitespace-nowrap text-center text-2xl font-semibold leading-tight text-blue-200 sm:static sm:w-auto sm:max-w-3xl sm:translate-x-0 sm:whitespace-normal sm:text-left sm:text-5xl sm:font-bold lg:text-6xl">
+              Custom Software &amp; Embedded Systems Development
+            </h1>
             <p className="text-xl sm:text-2xl text-gray-100 max-w-3xl leading-snug">
               Transforming ideas into production-ready applications from our Accra office.
             </p>

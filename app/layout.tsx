@@ -4,28 +4,27 @@ import "./globals.css";
 import PWAInstaller from "@/components/PWAInstaller";
 import SiteChrome from "@/components/SiteChrome";
 
+const siteDescription = 'Custom software, Flutter mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Frontier DevConsults in Accra, Ghana—serving Africa and worldwide.';
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.frontier-devconsults.com'),
   title: {
-    default: 'Frontier DevConsults - Building Digital Excellence',
+    default: 'Custom Software & Embedded Systems Development | Accra, Ghana',
     template: '%s | Frontier DevConsults'
   },
-  description: 'Transforming ideas into production-ready applications. Specialized in mobile apps, web platforms, and AI-powered solutions. Based in Greater Accra, Ghana.',
+  description: siteDescription,
   keywords: [
-    'web development Ghana',
-    'mobile app development',
-    'AI integration',
-    'e-commerce solutions',
-    'custom software development',
-    'Flutter development',
-    'Next.js development',
-    'TensorFlow integration',
     'Frontier DevConsults',
-    'Ghana software company',
-    'Accra developers',
-    'machine learning apps',
-    'progressive web apps',
-    'enterprise solutions'
+    'Frontier Dev Consults',
+    'custom software development Ghana',
+    'software company Accra',
+    'Flutter app development Ghana',
+    'web application development Ghana',
+    'AI integration Ghana',
+    'AI development Africa',
+    'embedded systems Ghana',
+    'IoT engineering Africa',
+    'hardware software co-engineering Africa'
   ],
   authors: [{ name: 'Frontier DevConsults' }],
   creator: 'Frontier DevConsults',
@@ -37,24 +36,24 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'en_US',
+    locale: 'en_GH',
     url: 'https://www.frontier-devconsults.com',
     siteName: 'Frontier DevConsults',
-    title: 'Frontier DevConsults - Building Digital Excellence',
-    description: 'Transforming ideas into production-ready applications. Specialized in mobile apps, web platforms, and AI-powered solutions.',
+    title: 'Custom Software & Embedded Systems Development | Frontier DevConsults',
+    description: siteDescription,
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Frontier DevConsults - Building Digital Excellence',
+        alt: 'Frontier DevConsults software and embedded systems development in Accra, Ghana',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Frontier DevConsults - Building Digital Excellence',
-    description: 'Transforming ideas into production-ready applications. Specialized in mobile apps, web platforms, and AI-powered solutions.',
+    title: 'Custom Software & Embedded Systems Development | Frontier DevConsults',
+    description: siteDescription,
     images: ['/og-image.png'],
     creator: '@frontierdevconsults',
   },
@@ -70,7 +69,11 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://www.frontier-devconsults.com',
+    canonical: '/',
+  },
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : {}),
+    ...(process.env.BING_SITE_VERIFICATION ? { other: { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } } : {}),
   },
   category: 'technology',
   manifest: '/manifest.json',
@@ -95,7 +98,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en-GH" className="scroll-smooth">
       <body className="antialiased">
         <PWAInstaller />
         <SiteChrome assistantEnabled={Boolean(process.env.OPENAI_API_KEY)}>{children}</SiteChrome>

@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Bot, CircuitBoard, Code2, Database, Smartphone, Workflow } from 'lucide-react';
-export const metadata: Metadata = { title: 'Software & Engineering Services', description: 'Web, mobile, AI automation, data, and electrical/electronics engineering services from Frontier DevConsults.', alternates: { canonical: '/services' } };
+export const metadata: Metadata = { title: 'Software & Engineering Services in Ghana', description: 'Custom software, Flutter mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Frontier DevConsults in Accra, Ghana.', alternates: { canonical: '/services' } };
 const services = [
   { icon: <CircuitBoard />, title: 'Custom Specialized Solutions', text: 'Integrated electronics, electrical, embedded, control, monitoring, IoT, energy, diagnostics, and software systems engineered around specialized operational requirements.', href: '/services/custom-specialized-solutions', cta: 'Explore specialized solutions' },
-  { icon: <Code2 />, title: 'Web applications & platforms', text: 'Responsive websites, business platforms, portals, APIs, and administrative systems built around the approved requirements.' },
-  { icon: <Smartphone />, title: 'Mobile applications', text: 'Native and cross-platform mobile products with appropriate offline, integration, and release workflows.' },
-  { icon: <Bot />, title: 'AI integration & automation', text: 'Model-backed features and workflow automation with validation, safeguards, and clear human accountability.' },
+  { icon: <Code2 />, title: 'Custom software development', text: 'Purpose-built business systems, integrations, workflows, and operational tools developed from Ghana for local and international organizations.', href: '/services/custom-software-development-ghana', cta: 'Explore custom software development' },
+  { icon: <Code2 />, title: 'Web applications & platforms', text: 'Responsive websites, business platforms, portals, APIs, and administrative systems built around the approved requirements.', href: '/services/web-application-development-ghana', cta: 'Explore web application development' },
+  { icon: <Smartphone />, title: 'Flutter & mobile applications', text: 'Native Android and cross-platform Flutter products with appropriate offline, integration, and release workflows.', href: '/services/flutter-mobile-app-development-ghana', cta: 'Explore mobile app development' },
+  { icon: <Bot />, title: 'AI integration & automation', text: 'Model-backed features and workflow automation with validation, safeguards, and clear human accountability.', href: '/services/ai-integration-africa', cta: 'Explore AI integration' },
+  { icon: <CircuitBoard />, title: 'Embedded systems & IoT', text: 'Connected devices, sensors, controllers, telemetry, diagnostics, and hardware-software integration.', href: '/services/embedded-iot-engineering', cta: 'Explore embedded and IoT engineering' },
   { icon: <Database />, title: 'Data & backend systems', text: 'Database design, secure server functionality, integrations, and operational dashboards.' },
   { icon: <CircuitBoard />, title: 'Electrical & electronics engineering', text: 'Circuit analysis, power electronics, PCB/controller diagnostics, and technical engineering support.' },
   { icon: <Workflow />, title: 'Modernization & technical consulting', text: 'Focused architecture, delivery planning, troubleshooting, and improvement of existing digital systems.' },

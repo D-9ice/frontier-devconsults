@@ -4,6 +4,7 @@ import { listApps } from '@/lib/apps';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.frontier-devconsults.com';
   const staticLastModified = new Date('2026-08-31T00:00:00.000Z');
+  const seoLastModified = new Date('2026-09-09T00:00:00.000Z');
   let appRoutes: MetadataRoute.Sitemap = [];
   try {
     const apps = await listApps(false);
@@ -16,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     {
       url: baseUrl,
-      lastModified: staticLastModified,
+      lastModified: seoLastModified,
       changeFrequency: 'weekly',
       priority: 1,
     },
@@ -28,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/services`,
-      lastModified: staticLastModified,
+      lastModified: seoLastModified,
       changeFrequency: 'monthly',
       priority: 0.9,
     },
@@ -38,6 +39,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
+    ...['custom-software-development-ghana', 'flutter-mobile-app-development-ghana', 'web-application-development-ghana', 'ai-integration-africa', 'embedded-iot-engineering'].map((slug) => ({
+      url: `${baseUrl}/services/${slug}`,
+      lastModified: seoLastModified,
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    })),
     {
       url: `${baseUrl}/pricing`,
       lastModified: staticLastModified,
@@ -52,13 +59,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: staticLastModified,
+      lastModified: seoLastModified,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/contact`,
-      lastModified: staticLastModified,
+      lastModified: seoLastModified,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/request-build`,
+      lastModified: seoLastModified,
       changeFrequency: 'monthly',
       priority: 0.8,
     },

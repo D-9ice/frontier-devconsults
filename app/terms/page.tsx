@@ -4,6 +4,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Terms governing use of the Frontier DevConsults website, inquiries, products, and services.',
+  alternates: { canonical: '/terms' },
 };
 
 export default function TermsPage() {

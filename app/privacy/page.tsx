@@ -5,6 +5,7 @@ import AnalyticsPreferences from '@/components/AnalyticsPreferences';
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'How Frontier DevConsults collects, uses, shares, and protects personal information.',
+  alternates: { canonical: '/privacy' },
 };
 
 export default function PrivacyPage() {
