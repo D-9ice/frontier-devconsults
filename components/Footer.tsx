@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import type { ReactNode } from 'react';
 import { Mail, Github, Linkedin, Globe, CreditCard, Landmark } from 'lucide-react';
+
+const mobileEmailLink = 'mailto:info@frontier-devconsults.com?subject=Business%20enquiry%20for%20Frontier%20DevConsults';
+const desktopEmailLink = 'https://mail.google.com/mail/?view=cm&fs=1&to=info%40frontier-devconsults.com&su=Business%20enquiry%20for%20Frontier%20DevConsults';
 
 export default function Footer() {
   return (
@@ -34,9 +38,9 @@ export default function Footer() {
             <div className="space-y-2 mb-6">
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-blue-500" />
-                <a href="mailto:info@frontier-devconsults.com" className="hover:text-blue-500 transition-colors">
+                <FooterEmailLink className="hover:text-blue-500 transition-colors">
                   info@frontier-devconsults.com
-                </a>
+                </FooterEmailLink>
               </div>
               <div className="flex items-center space-x-3">
                 <Globe className="w-5 h-5 text-blue-500" />
@@ -48,9 +52,9 @@ export default function Footer() {
 
             {/* Social Links */}
             <div className="flex space-x-4">
-              <a href="mailto:info@frontier-devconsults.com" className="hover:text-blue-500 transition-colors" aria-label="Email">
+              <FooterEmailLink className="hover:text-blue-500 transition-colors" ariaLabel="Email Frontier DevConsults">
                 <Mail className="w-5 h-5" />
-              </a>
+              </FooterEmailLink>
               <a href="https://github.com/frontierdevconsults" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 transition-colors" aria-label="GitHub">
                 <Github className="w-5 h-5" />
               </a>
@@ -133,4 +137,11 @@ export default function Footer() {
       </div>
     </footer>
   );
+}
+
+function FooterEmailLink({ children, className, ariaLabel }: { children: ReactNode; className: string; ariaLabel?: string }) {
+  return <>
+    <a href={mobileEmailLink} className={`${className} md:hidden`} aria-label={ariaLabel}>{children}</a>
+    <a href={desktopEmailLink} target="_blank" rel="noopener noreferrer" className={`${className} hidden md:inline`} aria-label={ariaLabel}>{children}</a>
+  </>;
 }
