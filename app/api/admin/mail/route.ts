@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
 import { allow } from '@/lib/monitoring';
-import { belongs, boundedBody, Mail, mailApi, mailId, replyPayload, replyRecipient, replyTicket, safeRawUrl, validReplyTicket } from '@/lib/admin-mail';
+import { belongs, boundedBody, Mail, MailFolder, mailApi, mailId, replyPayload, replyRecipient, replyTicket, safeRawUrl, validReplyTicket, visibleMail } from '@/lib/admin-mail';
+import { mailRemovalState, removeMail } from '@/lib/admin-mail-removal';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest) {
   if (denied) return denied;
   const query = request.nextUrl.searchParams;
   const sent = query.get('folder') === 'sent';
+  const folder: MailFolder = sent ? 'sent' : 'inbox';
   const id = query.get('id');
   const after = query.get('after');
   if ((id && !mailId.test(id)) || (after && !mailId.test(after))) return json({ error: 'Invalid message ID' }, 400);
@@ -20,11 +22,13 @@ export async function GET(request: NextRequest) {
     if (!id) {
       const result = await mailApi(`${base}?limit=25${after ? `&after=${after}` : ''}`);
       const rows: Mail[] = result.data;
-      return json({ messages: rows.filter(m => belongs(m, sent)).map(m => ({ id: m.id, from: m.from, to: m.to, subject: m.subject, created_at: m.created_at, last_event: m.last_event })),
+      const removal = await mailRemovalState(folder, rows.map(m => m.id));
+      return json({ messages: rows.filter(m => belongs(m, sent) && visibleMail(m, removal)).map(m => ({ id: m.id, from: m.from, to: m.to, subject: m.subject, created_at: m.created_at, last_event: m.last_event })),
         next: result.has_more && rows.length ? rows[rows.length - 1].id : null });
     }
     const mail: Mail = await mailApi(`${base}/${id}`);
-    if (!belongs(mail, sent)) return json({ error: 'Message not found' }, 404);
+    const removal = await mailRemovalState(folder, [id]);
+    if (!belongs(mail, sent) || !visibleMail(mail, removal)) return json({ error: 'Message not found' }, 404);
     if (query.get('download') === '1' && !sent) {
       const url = safeRawUrl(mail.raw?.download_url || '');
       const response = await fetch(url, { cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(15000) });
@@ -38,6 +42,24 @@ export async function GET(request: NextRequest) {
       attachments: (mail.attachments || []).map(a => ({ filename: a.filename, size: a.size })),
       replyTo: sent ? '' : replyRecipient(mail), ticket: !sent && secret ? replyTicket(id, secret) : null });
   } catch { return json({ error: 'Mail unavailable. Please retry; older messages may have expired at Resend.' }, 503); }
+}
+
+export async function DELETE(request: NextRequest) {
+  const denied = requireAdminMutation(request);
+  if (denied) return denied;
+  let body;
+  try { body = JSON.parse((await boundedBody(new Response(request.body), 10000)).toString('utf8')); }
+  catch { return json({ error: 'Invalid removal request' }, 400); }
+  const folder: MailFolder | null = body?.folder === 'inbox' || body?.folder === 'sent' ? body.folder : null;
+  if (!folder || typeof body?.id !== 'string' || !mailId.test(body.id)) return json({ error: 'Invalid removal request' }, 400);
+  if (!await allow('admin-mail-remove', 100, 3600)) return json({ error: 'Removal limit reached or rate limiter unavailable. Try later.' }, 429);
+  try {
+    const sent = folder === 'sent';
+    const mail: Mail = await mailApi(`${sent ? '/emails' : '/emails/receiving'}/${body.id}`);
+    if (!belongs(mail, sent)) return json({ error: 'Message not found' }, 404);
+    await removeMail(folder, body.id);
+    return json({ status: 'removed' });
+  } catch { return json({ error: 'Unable to remove this message. Please retry.' }, 503); }
 }
 
 export async function POST(request: NextRequest) {

@@ -3,6 +3,8 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 
 export const businessMailbox = 'info@frontier-devconsults.com';
 export const mailId = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+export type MailFolder = 'inbox' | 'sent';
+export type MailRemovalState = { clearedBefore: string | null; preserveSubject: string | null; removedIds: Set<string> };
 export type Mail = {
   id: string; from: string; to: string[]; subject: string; created_at: string;
   text?: string; html?: string; last_event?: string; reply_to?: string[];
@@ -19,6 +21,15 @@ export function address(value: string) {
 export function belongs(mail: Mail, sent = false) {
   return sent ? address(mail.from) === businessMailbox
     : (mail.received_for?.length ? mail.received_for : mail.to || []).some(v => address(v) === businessMailbox);
+}
+export function visibleMail(mail: Mail, state: MailRemovalState) {
+  if (state.removedIds.has(mail.id)) return false;
+  const created = Date.parse(mail.created_at);
+  const cutoff = state.clearedBefore ? Date.parse(state.clearedBefore) : NaN;
+  if (!Number.isNaN(created) && !Number.isNaN(cutoff) && created <= cutoff) {
+    return Boolean(state.preserveSubject && mail.subject.toLowerCase().includes(state.preserveSubject.toLowerCase()));
+  }
+  return true;
 }
 export function replyRecipient(mail: Mail) {
   // Refuse ambiguous multi-recipient Reply-To rather than silently dropping recipients.

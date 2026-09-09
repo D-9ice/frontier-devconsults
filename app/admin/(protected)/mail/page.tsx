@@ -65,13 +65,29 @@ export default function AdminMail() {
     } catch (e) { setError(e instanceof Error ? e.message : 'Sending could not be confirmed. Check Sent before retrying.'); }
     finally { lock.current = false; setBusy(false); }
   }
+  async function remove() {
+    if (!detail || lock.current) return;
+    if (draft && !accepted && !window.confirm('Delete this message from Business Mail and discard the unsaved reply?')) return;
+    if ((!draft || accepted) && !window.confirm(`Delete “${detail.subject || '(no subject)'}” from Business Mail?`)) return;
+    lock.current = true; setBusy(true); setError(''); setNotice('');
+    try {
+      const response = await fetch('/api/admin/mail', { method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder, id: detail.id }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Unable to remove this message');
+      setMessages(previous => previous.filter(message => message.id !== detail.id));
+      setDetail(null); setDraft(''); setAttempted(false); setAccepted(false);
+      setNotice('Message deleted from Business Mail. Copies in Resend or Gmail are unchanged.');
+    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to remove this message'); }
+    finally { lock.current = false; setBusy(false); }
+  }
 
   return <main className="min-h-screen bg-gray-50 text-gray-900 p-4 sm:p-8">
     <div className="max-w-7xl mx-auto space-y-4">
       <Link href="/admin/dashboard" className="text-blue-700 underline">Back to dashboard</Link>
       <h1 className="text-2xl font-bold">Business Mail</h1>
       <p>info@frontier-devconsults.com · Gmail forwarding remains active.</p>
-      <p className="text-sm text-gray-600">Messages are retrieved from Resend and subject to its retention limits. This is not a permanent archive. Sent includes automated mail and forwarded copies. Drafts are not saved.</p>
+      <p className="text-sm text-gray-600">Messages are retrieved from Resend and subject to its retention limits. This is not a permanent archive. Sent includes automated mail and forwarded copies. Drafts are not saved. Delete removes a message from Business Mail only; copies in Resend or Gmail are unchanged.</p>
       <div className="flex gap-3">
         {['inbox', 'sent'].map(value => <button key={value} disabled={busy} aria-pressed={folder === value}
           className={`px-4 py-2 rounded border disabled:opacity-50 ${folder === value ? 'bg-blue-700 text-white' : 'bg-white'}`}
@@ -93,7 +109,10 @@ export default function AdminMail() {
         </section>
         <section aria-label="Message details" className="lg:col-span-2 bg-white border rounded p-5 space-y-4 min-w-0">
           {!detail ? <p>Select a message.</p> : <>
-            <h2 className="text-xl font-bold break-words">{detail.subject || '(no subject)'}</h2>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h2 className="text-xl font-bold break-words">{detail.subject || '(no subject)'}</h2>
+              <button onClick={() => void remove()} disabled={busy} className="border border-red-300 text-red-700 px-3 py-2 rounded bg-white hover:bg-red-50 disabled:opacity-50">Delete</button>
+            </div>
             <div className="text-sm break-words"><p>From: {detail.from}</p><p>To: {detail.to.join(', ')}</p><p>{detail.created_at}</p>{detail.last_event && <p>Status: {detail.last_event}</p>}</div>
             <pre className="whitespace-pre-wrap break-words font-sans text-sm max-h-[32rem] overflow-auto">{detail.text || (detail.htmlOnly ? 'This message has HTML content only. Download the original to read it in your email application.' : '(No plain-text content)')}</pre>
             {detail.attachments.length > 0 && <div><h3 className="font-semibold">Attachments in original message</h3><ul className="list-disc pl-5">{detail.attachments.map((a, i) => <li key={i}>{a.filename} ({a.size} bytes)</li>)}</ul></div>}

@@ -32,6 +32,13 @@ test('mail scope and reply recipient are constrained', () => {
   assert.throws(() => lib.replyPayload({ ...mail, message_id: 'bad\r\nheader' }, 'Hi'));
   assert.throws(() => lib.replyPayload(mail, ' '));
 });
+test('initial cleanup hides old mail except the preserved SEO Report and explicit removal wins', () => {
+  const state = { clearedBefore: '2026-09-09T12:00:00Z', preserveSubject: 'SEO Report', removedIds: new Set() };
+  assert.equal(lib.visibleMail({ ...mail, created_at: '2026-09-09T11:00:00Z', subject: 'Need SEO Report' }, state), true);
+  assert.equal(lib.visibleMail({ ...mail, created_at: '2026-09-09T11:00:00Z', subject: 'Forwarding test' }, state), false);
+  assert.equal(lib.visibleMail({ ...mail, created_at: '2026-09-09T13:00:00Z', subject: 'New client' }, state), true);
+  assert.equal(lib.visibleMail({ ...mail, created_at: '2026-09-09T11:00:00Z', subject: 'Need SEO Report' }, { ...state, removedIds: new Set([id]) }), false);
+});
 test('reply tickets cannot be changed, reused for another message, or renewed past the retry window', () => {
   const ticket = lib.replyTicket(id, secret, 1000);
   assert.equal(lib.validReplyTicket(ticket, id, secret, 2000), true);
@@ -48,6 +55,7 @@ test('downloads reject unexpected origins and enforce size limits', async () => 
 });
 function routes(authorized = true, permitted = true) {
   const sends = [];
+  const removed = [];
   const route = load('app/api/admin/mail/route.ts', {
     'next/server': { NextResponse: Response },
     '@/lib/admin-auth': {
@@ -55,15 +63,22 @@ function routes(authorized = true, permitted = true) {
       requireAdminMutation: r => !authorized ? new Response(null, { status: 401 }) : r.headers.get('origin') !== 'https://example.com' ? new Response(null, { status: 403 }) : null,
     },
     '@/lib/monitoring': { allow: async () => permitted },
+    '@/lib/admin-mail-removal': {
+      mailRemovalState: async () => ({ clearedBefore: null, preserveSubject: null, removedIds: new Set() }),
+      removeMail: async (folder, messageId) => { removed.push({ folder, messageId }); },
+    },
     '@/lib/admin-mail': { ...lib, mailApi: async (path, options) => {
       if (options?.method === 'POST') { sends.push(options); return { id: 'sent-id' }; }
       return mail;
     } },
   }, { process: { env: { ADMIN_SESSION_SECRET: secret } } });
-  return { ...route, sends };
+  return { ...route, sends, removed };
 }
 function request(ticket, origin = 'https://example.com') {
   return new Request('https://example.com/api/admin/mail', { method: 'POST', headers: { origin }, body: JSON.stringify({ id, ticket, to: 'buyer@example.com', text: 'Thanks' }) });
+}
+function deleteRequest(folder = 'inbox', messageId = id, origin = 'https://example.com') {
+  return new Request('https://example.com/api/admin/mail', { method: 'DELETE', headers: { origin }, body: JSON.stringify({ folder, id: messageId }) });
 }
 test('route blocks unauthorized and cross-origin replies and fails closed on limiter', async () => {
   const ticket = lib.replyTicket(id, secret);
@@ -81,4 +96,15 @@ test('reply retries preserve idempotency and return accepted, not delivered', as
   await route.POST(request(ticket));
   assert.equal(route.sends.length, 2);
   assert.equal(route.sends[0].headers['Idempotency-Key'], route.sends[1].headers['Idempotency-Key']);
+});
+test('mail removal is authenticated, same-origin, scoped, and persisted', async () => {
+  assert.equal((await routes(false).DELETE(deleteRequest())).status, 401);
+  assert.equal((await routes().DELETE(deleteRequest('inbox', id, 'https://evil.example'))).status, 403);
+  assert.equal((await routes(true, false).DELETE(deleteRequest())).status, 429);
+  assert.equal((await routes().DELETE(deleteRequest('invalid'))).status, 400);
+  assert.equal((await routes().DELETE(deleteRequest('sent'))).status, 404);
+  const route = routes();
+  const response = await route.DELETE(deleteRequest());
+  assert.equal(response.status, 200);
+  assert.deepEqual(route.removed, [{ folder: 'inbox', messageId: id }]);
 });
