@@ -15,6 +15,9 @@ test('homepage has Ghana-first commercial metadata and truthful organization sch
   assert.match(home, /ProfessionalService/);
   for (const phrase of ['Ghana', 'Africa', 'Worldwide', 'Custom software development', 'Embedded systems', 'IoT engineering']) assert.equal(home.includes(phrase), true, phrase);
   assert.match(home, /<h1[^>]*>[\s\S]*Custom Software &amp; Embedded Systems Development/);
+  assert.doesNotMatch(home, /Transforming ideas into production-ready applications from our Accra office/);
+  assert.match(home, /Mobile apps, web platforms, AI integrations, and engineering solutions—from planning and implementation through validation and deployment/);
+  assert.doesNotMatch(home, /<h1[^>]*whitespace-nowrap/);
 });
 
 test('indexable static pages have self-referencing canonicals and private utility pages are noindex', async () => {
