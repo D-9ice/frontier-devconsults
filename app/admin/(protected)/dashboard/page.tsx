@@ -162,6 +162,11 @@ export default function AdminDashboard() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             <ActionButton
+              href="/admin/mail"
+              icon={<MessageSquare className="w-5 h-5" />}
+              label="Business Mail"
+            />
+            <ActionButton
               href="/admin/acquisitions"
               icon={<ShieldCheck className="w-5 h-5" />}
               label="Acquisition Requests"
