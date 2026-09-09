@@ -2,6 +2,7 @@ import 'server-only';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { supabaseServer as db } from '@/lib/supabase-server';
 import { sendAdminNotification } from '@/lib/email';
+import { formatEnquiryNotification } from '@/lib/submission-format';
 
 export const site = 'https://www.frontier-devconsults.com';
 export const recordTables = { contact: 'contact_submissions', build: 'build_requests', acquisition: 'application_acquisition_requests', specialized: 'specialized_engineering_requests' } as const;
@@ -71,7 +72,7 @@ export async function runMonitoring() {
     const event=data?.[0]; if(!event) break;
     try {
       const link=event.record_id&&event.record_type in recordTables?`${site}/admin/monitoring/records/${event.record_type}/${encodeURIComponent(event.record_id)}`:`${site}/admin/dashboard`;
-      const result=await sendAdminNotification({subject:`${event.is_test?'[MONITORING TEST] ':''}${event.subject}`,text:`${event.subject}\nSaved/event time: ${event.created_at}\n\n${JSON.stringify(event.details,null,2)}\n\nAuthenticated admin record: ${link}`,replyTo:event.details?.email||event.details?.buyer_email||process.env.EMAIL_TO!,idempotencyKey:`monitoring/${event.id}`});
+      const result=await sendAdminNotification({subject:`${event.is_test?'[MONITORING TEST] ':''}${event.subject}`,text:formatEnquiryNotification(event.record_type,{subject:event.subject,...(event.details||{})},event.created_at,link),replyTo:event.details?.email||event.details?.buyer_email||process.env.EMAIL_TO!,idempotencyKey:`monitoring/${event.id}`});
       if(result.skipped || !result.id) throw new Error('Notification channel unavailable');
       const {error:updateError}=await db.from('monitoring_events').update({status:'accepted',provider_id:result.id,lease_until:null,last_error:null}).eq('id',event.id).eq('lease_token',event.lease_token);
       if(updateError) throw new Error('Delivery status write failed');

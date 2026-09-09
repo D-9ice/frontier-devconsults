@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { BarChart3, CircuitBoard, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import MonitoringPanel from '@/components/admin/MonitoringPanel';
+import AdminInboxAlerts from '@/components/admin/AdminInboxAlerts';
 
 type DashboardStats = {
   totalSubmissions: number;
@@ -220,6 +221,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        <AdminInboxAlerts />
         <MonitoringPanel />
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow-sm p-6">

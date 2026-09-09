@@ -121,6 +121,8 @@ export async function GET(request: NextRequest) {
         visitsToday: visitsTodayResult.count || 0,
         totalSubmissions: (contactCountResult.count || 0) + (buildCountResult.count || 0),
         pendingRequests: (pendingContactResult.count || 0) + (pendingBuildResult.count || 0),
+        pendingContactSubmissions: pendingContactResult.count || 0,
+        pendingBuildRequests: pendingBuildResult.count || 0,
         activeProjects: activeProjectsResult.count || 0,
         publishedApps: publishedAppsResult.count || 0,
         appsInDevelopment: appsInDevelopmentResult.count || 0,

@@ -83,7 +83,8 @@ export default function ContactPage() {
                   icon={<Mail className="w-6 h-6" />}
                   title="Email"
                   info="info@frontier-devconsults.com"
-                  link="mailto:info@frontier-devconsults.com"
+                  link="mailto:info@frontier-devconsults.com?subject=Business%20enquiry%20for%20Frontier%20DevConsults"
+                  actionLabel="Open your email app"
                 />
                 <ContactInfo
                   icon={<Phone className="w-6 h-6" />}
@@ -252,17 +253,19 @@ interface ContactInfoProps {
   title: string;
   info: string;
   link: string;
+  actionLabel?: string;
 }
 
-function ContactInfo({ icon, title, info, link }: ContactInfoProps) {
+function ContactInfo({ icon, title, info, link, actionLabel }: ContactInfoProps) {
   return (
-    <a href={link} className="flex items-start space-x-4 group">
+    <a href={link} className="flex items-start space-x-4 group" aria-label={actionLabel ? `${info} — ${actionLabel}` : undefined} title={actionLabel}>
       <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
         {icon}
       </div>
       <div>
         <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-        <p className="text-gray-600 group-hover:text-blue-600 transition-colors">{info}</p>
+        <p className={`text-gray-600 group-hover:text-blue-600 transition-colors ${actionLabel ? 'underline decoration-blue-400 underline-offset-4' : ''}`}>{info}</p>
+        {actionLabel && <p className="mt-1 text-sm font-semibold text-blue-700">{actionLabel}</p>}
       </div>
     </a>
   );

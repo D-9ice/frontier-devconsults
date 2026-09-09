@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Archive, ArchiveRestore, ArrowLeft, CheckCircle2, FileText, LoaderCircle, Mail, Phone, RefreshCw, Search, StickyNote, Trash2 } from 'lucide-react';
+import { splitBuildDescription, splitContactMessage } from '@/lib/submission-format';
 
 type SubmissionType = 'contact' | 'build';
 type Filter = 'all' | SubmissionType;
@@ -181,6 +182,8 @@ export default function SubmissionsPage() {
                 const responseKey = `responded-${submissionKey}`;
                 const archiveKey = `archive-${submissionKey}`;
                 const deleteKey = `delete-${submissionKey}`;
+                const contactMessage = splitContactMessage(submission.message);
+                const buildDescription = splitBuildDescription(submission.description);
                 return (
                   <article key={submissionKey} className="p-5 sm:p-6">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -189,7 +192,8 @@ export default function SubmissionsPage() {
                           <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${submission.type === 'contact' ? 'bg-blue-50 text-blue-700' : 'bg-violet-50 text-violet-700'}`}>{submission.type === 'contact' ? 'Contact form' : 'Build request'}</span>
                           <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${submission.responded ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{submission.responded ? 'Responded' : 'Needs response'}</span>
                         </div>
-                        <h2 className="text-xl font-semibold text-gray-900">{submission.type === 'build' && submission.description?.split('\n')[0] ? submission.description.split('\n')[0] : submission.name}</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">{submission.type === 'build' ? buildDescription.projectName : contactMessage.subject}</h2>
+                        {submission.type === 'contact' && <p className="mt-1 font-medium text-gray-700">From {submission.name}</p>}
                         {submission.type === 'build' && <p className="mt-1 font-medium text-gray-700">From {submission.name}</p>}
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -213,7 +217,10 @@ export default function SubmissionsPage() {
 
                     {submission.type === 'build' && <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3"><div><dt className="font-medium text-gray-500">Project type</dt><dd className="mt-1 text-gray-800">{submission.project_type || 'Not specified'}</dd></div><div><dt className="font-medium text-gray-500">Budget</dt><dd className="mt-1 text-gray-800">{submission.budget || 'Not specified'}</dd></div><div><dt className="font-medium text-gray-500">Timeline</dt><dd className="mt-1 text-gray-800">{submission.timeline || 'Not specified'}</dd></div></dl>}
 
-                    <div className="mt-4 whitespace-pre-wrap rounded-md bg-gray-50 p-4 text-gray-700">{submission.type === 'contact' ? submission.message : submission.description?.split('\n\n').slice(1).join('\n\n')}</div>
+                    <div className="mt-4 rounded-md border border-gray-200 bg-gray-50 p-4 text-gray-800">
+                      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">{submission.type === 'contact' ? 'Message' : 'Project details'}</p>
+                      <p className="whitespace-pre-wrap leading-7">{submission.type === 'contact' ? contactMessage.message : buildDescription.description}</p>
+                    </div>
                     {submission.features && <p className="mt-3 whitespace-pre-wrap text-sm text-gray-600"><span className="font-semibold text-gray-700">Features:</span> {submission.features}</p>}
                     {submission.reference_links && <p className="mt-2 break-words text-sm text-gray-600"><span className="font-semibold text-gray-700">References:</span> {submission.reference_links}</p>}
 
