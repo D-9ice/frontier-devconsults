@@ -20,7 +20,7 @@ function mock(overrides = {}, failure = false) {
   const sent = [];
   return { sent, fetch: async (url, options) => {
     if (String(url).includes('/emails/receiving/')) return Response.json({ received_for: ['info@frontier-devconsults.com'], created_at: new Date().toISOString(), from: 'sender@example.com', subject: 'Test', text: 'Hello', raw: { download_url: 'https://storage.resend.com/raw' }, ...overrides });
-    if (String(url).includes('storage.resend.com')) return new Response('Subject: Test\r\n\r\nHello');
+    if (['storage.resend.com', 'cdn.resend.app'].includes(new URL(url).hostname)) return new Response('Subject: Test\r\n\r\nHello');
     sent.push(options); return Response.json({ id: 'accepted' }, { status: failure ? 503 : 200 });
   } };
 }
@@ -49,4 +49,15 @@ test('unrelated recipients, old events, and provider failure are handled safely'
   assert.equal(old.sent.length, 0);
   assert.equal((await forwardIncoming(request(), config, mock({}, true).fetch)).status, 503);
   assert.equal((await forwardIncoming(request(), { ...config, to: 'info@frontier-devconsults.com' }, other.fetch)).status, 503);
+});
+test('official receiving CDN works while lookalikes and insecure URLs are rejected', async () => {
+  const m = mock({ raw: { download_url: 'https://cdn.resend.app/receiving/raw/test' } });
+  assert.equal((await forwardIncoming(request(), config, m.fetch)).status, 200);
+  assert.equal(m.sent.length, 1);
+  assert.match(Buffer.from(JSON.parse(m.sent[0].body).attachments[0].content, 'base64').toString(), /Subject: Test/);
+  for (const url of ['https://cdn.resend.app.evil.example/raw', 'https://other.resend.app/raw', 'http://cdn.resend.app/raw', 'https://user@cdn.resend.app/raw']) {
+    const rejected = mock({ raw: { download_url: url } });
+    assert.equal((await forwardIncoming(request(), config, rejected.fetch)).status, 503);
+    assert.equal(rejected.sent.length, 0);
+  }
 });

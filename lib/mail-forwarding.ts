@@ -63,7 +63,7 @@ export async function forwardIncoming(request: Request, config: Config, send = f
     if (!Number.isFinite(age) || age < -300000 || age > 23 * 3600000) return reply(409, 'Manual review required: old email');
     const rawUrl = new URL(email.raw?.download_url);
     if (rawUrl.protocol !== 'https:' || rawUrl.username || rawUrl.password || rawUrl.port ||
-        !(rawUrl.hostname.endsWith('.resend.com') || rawUrl.hostname.endsWith('.amazonaws.com'))) throw Error('Invalid raw URL');
+        !(rawUrl.hostname === 'cdn.resend.app' || rawUrl.hostname.endsWith('.resend.com') || rawUrl.hostname.endsWith('.amazonaws.com'))) throw Error('Invalid raw URL');
     const raw = await send(rawUrl, { redirect: 'error', signal: AbortSignal.timeout(15000) });
     if (!raw.ok) throw Error('Raw retrieval failed');
     const original = await limitedBody(raw, maxRawBytes);
