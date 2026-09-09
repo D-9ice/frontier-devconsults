@@ -84,6 +84,7 @@ export default function ContactPage() {
                   title="Email"
                   info="info@frontier-devconsults.com"
                   link="mailto:info@frontier-devconsults.com?subject=Business%20enquiry%20for%20Frontier%20DevConsults"
+                  desktopLink="https://mail.google.com/mail/?view=cm&fs=1&to=info%40frontier-devconsults.com&su=Business%20enquiry%20for%20Frontier%20DevConsults"
                 />
                 <ContactInfo
                   icon={<Phone className="w-6 h-6" />}
@@ -252,11 +253,22 @@ interface ContactInfoProps {
   title: string;
   info: string;
   link: string;
+  desktopLink?: string;
 }
 
-function ContactInfo({ icon, title, info, link }: ContactInfoProps) {
+function ContactInfo({ icon, title, info, link, desktopLink }: ContactInfoProps) {
   return (
-    <a href={link} className="flex items-start space-x-4 group" aria-label={`${title}: ${info}`}>
+    <a
+      href={link}
+      onClick={(event) => {
+        if (desktopLink && window.matchMedia('(min-width: 768px)').matches) {
+          event.preventDefault();
+          window.location.assign(desktopLink);
+        }
+      }}
+      className="flex items-start space-x-4 group"
+      aria-label={`${title}: ${info}`}
+    >
       <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
         {icon}
       </div>
