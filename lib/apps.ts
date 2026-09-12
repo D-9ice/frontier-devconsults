@@ -208,6 +208,9 @@ export function validateApp(input: Partial<AppInput>) {
   if (input.artifactByteSize !== null && input.artifactByteSize !== undefined && (!Number.isSafeInteger(input.artifactByteSize) || input.artifactByteSize <= 0)) return 'Artifact byte size must be a positive whole number.';
   if (input.artifactBuild !== null && input.artifactBuild !== undefined && (!Number.isSafeInteger(input.artifactBuild) || input.artifactBuild <= 0)) return 'Artifact build must be a positive whole number.';
   if (input.downloadLink && /\.apk(?:$|[?#])/i.test(input.downloadLink)) { const versions: string[] = input.downloadLink.match(/\d+\.\d+(?:\.\d+)?/g) || []; if (versions.length > 0 && !versions.includes(input.version.replace(/^v/i, ''))) return 'The APK URL version must match the displayed release version.'; }
+  if (input.name.length > 200 || input.category.length > 120 || input.version.length > 80 || input.description.length > 12_000) return 'Application text exceeds the allowed length.';
+  const lists = [input.features, input.requirements, input.screenshotUrls, input.commercialModes, input.technologies, input.responsibilities, input.challenges, input.deploymentOptions, input.upworkSkillTags];
+  if (lists.some((items) => items && items.length > 80)) return 'Application lists contain too many entries.';
   return null;
 }
 

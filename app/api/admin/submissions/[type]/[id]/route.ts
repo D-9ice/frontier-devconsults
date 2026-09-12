@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminMutation } from '@/lib/admin-auth';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { isUuid, readBoundedJson } from '@/lib/request-security';
 
 type RouteContext = { params: Promise<{ type: string; id: string }> };
 
@@ -11,8 +12,10 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
 
   const { type, id } = await params;
   if (type !== 'contact' && type !== 'build') return NextResponse.json({ error: 'Invalid submission type.' }, { status: 400 });
+  if (!isUuid(id)) return NextResponse.json({ error: 'Invalid submission ID.' }, { status: 400 });
   try {
-    const { responded, internalNotes, archived } = await request.json();
+    const parsed = await readBoundedJson(request, { maxBytes: 8 * 1024, allowedKeys: ['responded', 'internalNotes', 'archived'] }); if (!parsed.ok) return parsed.response;
+    const { responded, internalNotes, archived } = parsed.value;
     const updates: { responded?: boolean; internal_notes?: string; archived?: boolean; archived_at?: string | null } = {};
 
     if (responded !== undefined) {
@@ -49,6 +52,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
 
   const { type, id } = await params;
   if (type !== 'contact' && type !== 'build') return NextResponse.json({ error: 'Invalid submission type.' }, { status: 400 });
+  if (!isUuid(id)) return NextResponse.json({ error: 'Invalid submission ID.' }, { status: 400 });
 
   try {
     const query = type === 'contact'

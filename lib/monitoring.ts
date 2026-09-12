@@ -40,7 +40,7 @@ export async function monitoringSummary() {
     db.from('monitoring_sessions').select('id,page,source,country,city,last_seen,views',{count:'exact'}).gte('last_seen',new Date(Date.now()-90000).toISOString()).limit(100),
     db.from('monitoring_views').select('page,source,country,city,created_at').gte('created_at',since).order('created_at',{ascending:false}).limit(100),
     db.from('monitoring_views').select('*',{count:'exact',head:true}).gte('created_at',since),
-    db.from('monitoring_events').select('id,kind,subject,record_type,record_id,status,attempts,provider_id,last_error,created_at,delivered_at,resolved_at,is_test').order('created_at',{ascending:false}).limit(100),
+    db.from('monitoring_events').select('id,kind,subject,details,record_type,record_id,status,attempts,provider_id,last_error,created_at,delivered_at,resolved_at,is_test').order('created_at',{ascending:false}).limit(100),
     db.from('monitoring_settings').select('*').eq('id',true).single(),
     ...Object.values(recordTables).map(table=>db!.from(table).select('*',{count:'exact',head:true}).gte('created_at',since)),
     db.from('contact_submissions').select('*',{count:'exact',head:true}).eq('responded',false).eq('archived',false),
@@ -95,5 +95,6 @@ export async function runMonitoring() {
   await db.from('monitoring_limits').delete().lt('expires_at',new Date(Date.now()-86400000).toISOString());
   await db.from('monitoring_sessions').delete().lt('last_seen',new Date(Date.now()-30*86400000).toISOString());
   await db.from('monitoring_views').delete().lt('created_at',new Date(Date.now()-30*86400000).toISOString());
+  await db.from('monitoring_events').delete().eq('kind','security').eq('status','logged').lt('created_at',new Date(Date.now()-90*86400000).toISOString());
   return {processed,notificationConfigured:summary.notificationConfigured};
 }

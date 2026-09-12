@@ -23,7 +23,7 @@ test('specialized project intake is secure, validated, attributable and idempote
   assert.match(form, /utmSource/);
   assert.match(form, /privacyAcknowledged/);
   assert.doesNotMatch(form, /type="file"/);
-  assert.match(route, /sameOrigin/);
+  assert.match(route, /requireSameOrigin/);
   assert.match(route, /validatePublicSubmission/);
   assert.match(route, /eq\('idempotency_key'/);
   assert.match(validation, /FDC-SPEC-/);

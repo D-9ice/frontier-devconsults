@@ -98,6 +98,14 @@ export function validateProjectInput(input: Partial<ProjectInput>) {
   if (!projectColors.includes(input.color as ProjectColor)) return 'Choose a valid project color.';
   if (typeof input.sortOrder !== 'number' || !Number.isInteger(input.sortOrder) || input.sortOrder < 0) return 'Sort order must be a non-negative whole number.';
   if (!Array.isArray(input.galleryUrls) || input.galleryUrls.some((url) => typeof url !== 'string')) return 'Project gallery entries must be valid URLs.';
+  if (input.title.length > 200 || input.category.length > 120 || input.description.length > 12_000) return 'Project text exceeds the allowed length.';
+  if ((input.technologies?.length || 0) > 40 || (input.features?.length || 0) > 80 || input.galleryUrls.length > 30) return 'Project lists contain too many entries.';
+  const urls = [input.logoUrl, input.liveLink, input.downloadLink, ...input.galleryUrls];
+  for (const value of urls) {
+    if (!value?.trim()) continue;
+    try { if (!['http:', 'https:'].includes(new URL(value).protocol)) return 'Project URLs must use http or https.'; }
+    catch { return 'Project URLs must be valid.'; }
+  }
   return null;
 }
 

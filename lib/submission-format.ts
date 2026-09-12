@@ -16,6 +16,20 @@ export function splitBuildDescription(value: unknown) {
 }
 
 export function formatEnquiryNotification(recordType: string | null | undefined, details: Details, createdAt: string, adminLink: string) {
+  if (recordType === 'security') {
+    return [
+      'Frontier security alert', '',
+      `Timestamp: ${text(details.timestamp, createdAt)}`,
+      `Category: ${text(details.category)}`,
+      `Severity: ${text(details.severity)}`,
+      `Route: ${text(details.route)}`,
+      `Method: ${text(details.method)}`,
+      `Sanitized source: ${text(details.sourceHash)}`,
+      `Correlation ID: ${text(details.correlationId)}`,
+      `Result: ${text(details.result)}`, '',
+      `Review authenticated monitoring: ${adminLink}`,
+    ].join('\n');
+  }
   if (recordType === 'contact') {
     const parsed = splitContactMessage(details.message);
     return [

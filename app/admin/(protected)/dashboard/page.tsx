@@ -342,8 +342,8 @@ function PasswordChangeModal({ onClose }: PasswordChangeModalProps) {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+    if (newPassword.length < 12) {
+      setError('Password must be at least 12 characters');
       return;
     }
 
@@ -361,10 +361,10 @@ function PasswordChangeModal({ onClose }: PasswordChangeModalProps) {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess('Password changed successfully!');
+        setSuccess('Password changed successfully. Redirecting you to sign in again...');
         setTimeout(() => {
-          onClose();
-        }, 2000);
+          window.location.assign('/');
+        }, 1500);
       } else {
         setError(data.error || 'Failed to change password');
       }

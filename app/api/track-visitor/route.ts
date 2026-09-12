@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse, after } from 'next/server';
-import { createHash } from 'node:crypto';
 import { isAdminRequest, requireAdmin } from '@/lib/admin-auth';
 import { supabaseServer as db } from '@/lib/supabase-server';
 import { allow, enqueue, monitoringSummary, runMonitoring } from '@/lib/monitoring';
+import { readBoundedJson, sourceHash } from '@/lib/request-security';
 export async function POST(request: NextRequest) {
   const ignored = () => NextResponse.json({tracked:false});
   if (isAdminRequest(request) || /bot|crawler|spider|headless|lighthouse|preview|monitor|uptime/i.test(request.headers.get('user-agent') || '') || request.headers.get('dnt')==='1' || request.headers.get('sec-gpc')==='1') return ignored();
   if (request.headers.get('origin') !== request.nextUrl.origin) return ignored();
   try {
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, { maxBytes: 8 * 1024, allowedKeys: ['consent', 'session', 'page', 'referrer', 'heartbeat'] });
+    if (!parsed.ok) return ignored();
+    const body = parsed.value;
     if (!db || body.consent !== true || typeof body.session !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.session) || typeof body.page !== 'string' || !/^\/(?!\/)/.test(body.page) || body.page.startsWith('/admin') || body.page.length>250) return ignored();
     const page = body.page.split(/[?#]/)[0];
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
-    const key = createHash('sha256').update(`${new Date().toISOString().slice(0,10)}:${ip}`).digest('hex');
+    const key = sourceHash(request);
     if (!await allow(`visitor:${key}`,120,60)) return ignored();
-    let source='Direct'; try { source=new URL(body.referrer).hostname; } catch {}
+    let source='Direct'; try { if(typeof body.referrer==='string')source=new URL(body.referrer).hostname; } catch {}
     const country=process.env.VERCEL ? request.headers.get('x-vercel-ip-country')?.slice(0,3) || null : null;
     const city=process.env.VERCEL ? request.headers.get('x-vercel-ip-city')?.slice(0,100) || null : null;
     const {data:previous}=await db.from('monitoring_sessions').select('id,views').eq('id',body.session).maybeSingle();

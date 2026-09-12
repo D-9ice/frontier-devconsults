@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { requireAdminMutation } from '@/lib/admin-auth';
+import { clearAdminSession, requireAdminMutation } from '@/lib/admin-auth';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { readBoundedJson } from '@/lib/request-security';
 
 export async function POST(request: NextRequest) {
   try {
   const unauthorized = requireAdminMutation(request);
     if (unauthorized) return unauthorized;
 
-    const body = await request.json();
-    const { currentPassword, newPassword } = body;
+    const parsed = await readBoundedJson(request, { maxBytes: 4096, allowedKeys: ['currentPassword', 'newPassword'] });
+    if (!parsed.ok) return parsed.response;
+    const { currentPassword, newPassword } = parsed.value;
 
-    if (!currentPassword || !newPassword) {
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string' || currentPassword.length > 200 || newPassword.length > 200) {
       return NextResponse.json(
         { error: 'Current password and new password are required' },
         { status: 400 }
@@ -19,12 +21,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate new password strength
-    if (newPassword.length < 8) {
+    if (newPassword.length < 12) {
       return NextResponse.json(
-        { error: 'New password must be at least 8 characters long' },
+        { error: 'New password must be between 12 and 200 characters long' },
         { status: 400 }
       );
     }
+    if (newPassword === currentPassword) return NextResponse.json({ error: 'Choose a different password.' }, { status: 400 });
 
     if (!isSupabaseServerConfigured() || !supabaseServer) {
       return NextResponse.json(
@@ -51,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash the new password
-    const saltRounds = 10;
+    const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
     const { error: saveError } = await supabaseServer
@@ -70,10 +73,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Password changed successfully! Please log in with your new password.',
     });
+    clearAdminSession(response);
+    return response;
   } catch (error) {
     console.error('Password change error:', error);
     return NextResponse.json(

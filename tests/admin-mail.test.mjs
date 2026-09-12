@@ -63,6 +63,7 @@ function routes(authorized = true, permitted = true) {
       requireAdminMutation: r => !authorized ? new Response(null, { status: 401 }) : r.headers.get('origin') !== 'https://example.com' ? new Response(null, { status: 403 }) : null,
     },
     '@/lib/monitoring': { allow: async () => permitted },
+    '@/lib/security-monitoring': { recordSecurityEvent: async () => {} },
     '@/lib/admin-mail-removal': {
       mailRemovalState: async () => ({ clearedBefore: null, preserveSubject: null, removedIds: new Set() }),
       removeMail: async (folder, messageId) => { removed.push({ folder, messageId }); },

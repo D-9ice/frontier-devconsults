@@ -5,20 +5,18 @@ import { validatePublicSubmission } from '@/lib/form-protection';
 import { specializedLabels } from '@/lib/specialized-options';
 import { specializedRequestReference, validateSpecializedRequest } from '@/lib/specialized-requests';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { requireSameOrigin } from '@/lib/admin-auth';
+import { readBoundedJson } from '@/lib/request-security';
 
-function sameOrigin(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  if (!origin) return true;
-  const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
-  try { return Boolean(host) && new URL(origin).host === host; } catch { return false; }
-}
+const allowedKeys = ['idempotencyKey', 'fullName', 'email', 'country', 'company', 'phone', 'website', 'jobTitle', 'projectTypes', 'currentSystemState', 'projectDescription', 'equipmentType', 'operatingVoltage', 'powerLevel', 'motorType', 'batteryType', 'existingController', 'existingCommunicationInterface', 'sensorCount', 'deviceCount', 'environment', 'controlRequirements', 'monitoringRequirements', 'interfaceRequirements', 'connectivityRequirements', 'developmentScope', 'timeline', 'budgetRange', 'additionalInformation', 'privacyAcknowledged', 'websiteField', 'attribution'] as const;
 
 export async function POST(request: NextRequest) {
-  if (!sameOrigin(request)) return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
+  const invalidOrigin = requireSameOrigin(request); if (invalidOrigin) return invalidOrigin;
   if (!isSupabaseServerConfigured() || !supabaseServer) return NextResponse.json({ error: 'Specialized-project storage is temporarily unavailable.' }, { status: 503 });
   try {
-    const body = await request.json();
-    const protectionError = validatePublicSubmission(request, body.websiteField);
+    const parsed = await readBoundedJson(request, { maxBytes: 128 * 1024, allowedKeys }); if (!parsed.ok) return parsed.response;
+    const body = parsed.value;
+    const protectionError = await validatePublicSubmission(request, body.websiteField, 'specialized-project');
     if (protectionError) return NextResponse.json({ error: protectionError }, { status: 429 });
     const validation = validateSpecializedRequest(body);
     if (!validation.valid) return NextResponse.json({ error: 'Please correct the highlighted fields.', fields: validation.errors }, { status: 400 });

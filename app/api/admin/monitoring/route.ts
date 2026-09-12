@@ -4,6 +4,7 @@ import {monitoringSummary,incident,runMonitoring,enqueue,allow} from '@/lib/moni
 import {randomUUID} from 'node:crypto';
 import {after} from 'next/server';
 import {supabaseServer as db} from '@/lib/supabase-server';
+import {isUuid,readBoundedJson} from '@/lib/request-security';
 export async function GET(request:NextRequest) {
   const denied=requireAdmin(request); if(denied) return denied;
   try {return NextResponse.json(await monitoringSummary(),{headers:{'Cache-Control':'no-store'}});}
@@ -11,16 +12,19 @@ export async function GET(request:NextRequest) {
 }
 export async function PATCH(request:NextRequest) {
   const denied=requireAdminMutation(request); if(denied) return denied;
-  const body=await request.json();
+  const parsed=await readBoundedJson(request,{maxBytes:4096,allowedKeys:['resolveId','visitor_alerts','summary_enabled','summary_hour']});if(!parsed.ok)return parsed.response;
+  const body=parsed.value;
   if(typeof body.resolveId==='string'){
+    if(!isUuid(body.resolveId))return NextResponse.json({error:'Invalid incident ID'},{status:400});
     const {data,error}=await db!.from('monitoring_events').select('record_type,is_test').eq('id',body.resolveId).eq('kind','incident').is('resolved_at',null).maybeSingle();
     if(error||!data)return NextResponse.json({error:'Open incident not found'},{status:404});
     await incident(data.record_type,true,data.is_test);
     after(async()=>{await runMonitoring().catch(()=>{});});
     return NextResponse.json({success:true});
   }
-  if(typeof body.visitor_alerts!=='boolean'||typeof body.summary_enabled!=='boolean'||!Number.isInteger(body.summary_hour)||body.summary_hour<0||body.summary_hour>23) return NextResponse.json({error:'Invalid settings'},{status:400});
-  const result=await db?.from('monitoring_settings').update({visitor_alerts:body.visitor_alerts,summary_enabled:body.summary_enabled,summary_hour:body.summary_hour,updated_at:new Date().toISOString()}).eq('id',true);
+  const summaryHour=body.summary_hour;
+  if(typeof body.visitor_alerts!=='boolean'||typeof body.summary_enabled!=='boolean'||typeof summaryHour!=='number'||!Number.isInteger(summaryHour)||summaryHour<0||summaryHour>23) return NextResponse.json({error:'Invalid settings'},{status:400});
+  const result=await db?.from('monitoring_settings').update({visitor_alerts:body.visitor_alerts,summary_enabled:body.summary_enabled,summary_hour:summaryHour,updated_at:new Date().toISOString()}).eq('id',true);
   return NextResponse.json({success:Boolean(result&&!result.error)},{status:result&&!result.error?200:503});
 }
 export async function POST(request:NextRequest){

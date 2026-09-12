@@ -1,30 +1,17 @@
 import { NextRequest } from 'next/server';
+import { allow } from '@/lib/monitoring';
+import { sourceHash } from '@/lib/request-security';
+import { recordSecurityEvent } from '@/lib/security-monitoring';
 
-const WINDOW_MS = 10 * 60 * 1000;
-const MAX_SUBMISSIONS_PER_WINDOW = 5;
-const attempts = new Map<string, number[]>();
-
-function clientAddress(request: NextRequest) {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')
-    || 'unknown';
-}
-
-export function validatePublicSubmission(request: NextRequest, honeypot?: unknown) {
+export async function validatePublicSubmission(request: NextRequest, honeypot: unknown, category = 'public-form') {
   if (typeof honeypot === 'string' && honeypot.trim()) {
+    await recordSecurityEvent(request, { category: 'form-honeypot', severity: 'medium', result: category });
     return 'Unable to process this submission.';
   }
-
-  const address = clientAddress(request);
-  const now = Date.now();
-  const recentAttempts = (attempts.get(address) || []).filter((timestamp) => now - timestamp < WINDOW_MS);
-
-  if (recentAttempts.length >= MAX_SUBMISSIONS_PER_WINDOW) {
-    attempts.set(address, recentAttempts);
+  const permitted = await allow(`public-form:${category}:${sourceHash(request)}`, 5, 600);
+  if (!permitted) {
+    await recordSecurityEvent(request, { category: 'form-rate-limit', severity: 'high', result: category, alert: true });
     return 'Too many submissions. Please wait a few minutes and try again.';
   }
-
-  recentAttempts.push(now);
-  attempts.set(address, recentAttempts);
   return null;
 }

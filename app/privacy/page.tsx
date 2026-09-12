@@ -33,7 +33,7 @@ export default function PrivacyPage() {
               <li>Contact details such as your name, email address, phone or WhatsApp number, company, role, country, and website.</li>
               <li>Contact messages, project descriptions, requirements, reference links, requested features, budget preferences, timelines, and preferred start dates.</li>
               <li>Specialized-engineering information about equipment, existing systems, controls, monitoring, interfaces, connectivity, operating environments, safety considerations, and requested development scope.</li>
-              <li>Application acquisition or licensing information, including intended use, deployment market, buyer type, transfer preferences, completion requirements, support needs, and commercial timeline.</li>
+              <li>Application acquisition and licensing inquiries, including intended use, deployment market, buyer type, transfer preferences, completion requirements, support needs, and commercial timeline.</li>
               <li>Questions and conversation text submitted to the Frontier Assistant.</li>
               <li>Payment and billing details needed for an agreed engagement. Full payment-card credentials are handled by the applicable payment provider rather than intentionally stored through our public website forms.</li>
             </ul>
@@ -84,7 +84,7 @@ export default function PrivacyPage() {
             <p>Some technology providers may process information outside Ghana. Where information is transferred internationally, we seek to use reputable providers and appropriate contractual, technical, and organisational safeguards consistent with applicable requirements.</p>
           </PolicySection>
 
-          <PolicySection title="7. Retention">
+          <PolicySection title="7. Data Retention">
             <p>We keep inquiry, project, specialized-engineering, acquisition, licensing, and commercial records only for as long as reasonably necessary to respond, evaluate or perform an engagement, provide support, maintain appropriate business records, enforce agreements, resolve disputes, and meet legal obligations. Retention therefore varies with the type and status of the interaction.</p>
             <p>Commercial-event and technical-log information is retained only while useful for security, operational, and performance purposes. Frontier Assistant conversations are sent with provider-side response storage disabled and are not intentionally added to our application database. You may ask us about the retention period applicable to your information.</p>
           </PolicySection>

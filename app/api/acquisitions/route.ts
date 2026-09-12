@@ -7,12 +7,18 @@ import { isAcquisitionEnabled } from '@/lib/application-presentation';
 import { sendBuyerConfirmation } from '@/lib/email';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { requireSameOrigin } from '@/lib/admin-auth';
+import { readBoundedJson } from '@/lib/request-security';
+
+const allowedKeys = ['productSlug', 'idempotencyKey', 'fullName', 'company', 'email', 'phone', 'country', 'website', 'role', 'buyerType', 'acquisitionType', 'intendedUse', 'deploymentMarket', 'sourceCodeTransfer', 'ipBrandingTransfer', 'completionRequirement', 'additionalDevelopmentRequirements', 'supportRequirement', 'budgetRange', 'acquisitionTimeline', 'additionalRequirements', 'legalAcknowledged', 'privacyAcknowledged', 'websiteField', 'attribution'] as const;
 
 export async function POST(request: NextRequest) {
+  const invalidOrigin = requireSameOrigin(request); if (invalidOrigin) return invalidOrigin;
   if (!isSupabaseServerConfigured() || !supabaseServer) return NextResponse.json({ error: 'Acquisition request storage is temporarily unavailable.' }, { status: 503 });
   try {
-    const body = await request.json();
-    const protectionError = validatePublicSubmission(request, body.websiteField);
+    const parsed = await readBoundedJson(request, { maxBytes: 96 * 1024, allowedKeys }); if (!parsed.ok) return parsed.response;
+    const body = parsed.value;
+    const protectionError = await validatePublicSubmission(request, body.websiteField, 'acquisition');
     if (protectionError) return NextResponse.json({ error: protectionError }, { status: 429 });
     const slug = typeof body.productSlug === 'string' ? body.productSlug.trim() : '';
     const app = slug ? await getPublishedAppBySlug(slug) : null;

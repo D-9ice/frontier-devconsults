@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getPricingHistory, getPricingSettings, savePricingSettings } from '@/lib/pricing-store';
 import { mergePricingSettings, PricingSettings } from '@/lib/pricing';
 import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
+import { readBoundedJson } from '@/lib/request-security';
 
 function validateSettings(settings: PricingSettings) {
   if (!Number.isFinite(settings.exchangeRate) || settings.exchangeRate <= 0) {
@@ -61,7 +62,8 @@ export async function PUT(request: NextRequest) {
   if (unauthorized) return unauthorized;
 
   try {
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, { maxBytes: 256 * 1024 }); if (!parsed.ok) return parsed.response;
+    const body = parsed.value;
     const settings = mergePricingSettings(body);
     const validationError = validateSettings(settings);
 

@@ -2,19 +2,33 @@ import { NextRequest, NextResponse, after } from 'next/server';
 import { incident, runMonitoring } from '@/lib/monitoring';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { requireSameOrigin } from '@/lib/admin-auth';
+import { cleanText, readBoundedJson } from '@/lib/request-security';
+
+const allowedKeys = ['name', 'email', 'phone', 'company', 'projectType', 'projectName', 'description', 'features', 'timeline', 'budget', 'startDate', 'additionalInfo', 'referenceLinks', 'website'] as const;
 
 export async function POST(request: NextRequest) {
+  const invalidOrigin = requireSameOrigin(request);
+  if (invalidOrigin) return invalidOrigin;
   try {
-    const body = await request.json();
+    const parsed = await readBoundedJson(request, { maxBytes: 64 * 1024, allowedKeys });
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.value;
 
-    const protectionError = validatePublicSubmission(request, body.website);
+    const protectionError = await validatePublicSubmission(request, body.website, 'request-build');
     if (protectionError) {
       return NextResponse.json({ error: protectionError }, { status: 429 });
     }
     
     // Validate required fields
-    const requiredFields = ['name', 'email', 'phone', 'projectType', 'projectName', 'description'];
-    const missingFields = requiredFields.filter(field => !body[field]);
+    const value = {
+      name: cleanText(body.name, 200), email: cleanText(body.email, 320).toLowerCase(), phone: cleanText(body.phone, 80), company: cleanText(body.company, 240),
+      projectType: cleanText(body.projectType, 120), projectName: cleanText(body.projectName, 240), description: cleanText(body.description, 8_000),
+      features: cleanText(body.features, 5_000), timeline: cleanText(body.timeline, 120), budget: cleanText(body.budget, 120), startDate: cleanText(body.startDate, 40),
+      additionalInfo: cleanText(body.additionalInfo, 8_000), referenceLinks: cleanText(body.referenceLinks, 4_000),
+    };
+    const requiredFields = ['name', 'email', 'phone', 'projectType', 'projectName', 'description'] as const;
+    const missingFields = requiredFields.filter(field => !value[field]);
     
     if (missingFields.length > 0) {
       return NextResponse.json(
@@ -25,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.email)) {
+    if (!emailRegex.test(value.email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
@@ -34,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     // Validate phone format (basic validation)
     const phoneRegex = /^[\d\s\+\-\(\)]+$/;
-    if (!phoneRegex.test(body.phone)) {
+    if (!phoneRegex.test(value.phone)) {
       return NextResponse.json(
         { error: 'Invalid phone format' },
         { status: 400 }
@@ -47,16 +61,16 @@ export async function POST(request: NextRequest) {
         .from('build_requests')
         .insert([
           {
-            name: body.name,
-            email: body.email,
-            phone: body.phone,
-            company: body.company || null,
-            project_type: body.projectType,
-            budget: body.budget || null,
-            timeline: body.timeline || null,
-            description: `${body.projectName}\n\n${body.description}\n\nPreferred start: ${body.startDate || 'Not specified'}\nAdditional information: ${body.additionalInfo || 'None'}`,
-            features: body.features || null,
-            reference_links: body.referenceLinks || null,
+            name: value.name,
+            email: value.email,
+            phone: value.phone,
+            company: value.company || null,
+            project_type: value.projectType,
+            budget: value.budget || null,
+            timeline: value.timeline || null,
+            description: `${value.projectName}\n\n${value.description}\n\nPreferred start: ${value.startDate || 'Not specified'}\nAdditional information: ${value.additionalInfo || 'None'}`,
+            features: value.features || null,
+            reference_links: value.referenceLinks || null,
           }
         ])
         .select();
@@ -73,7 +87,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Your project request has been received! We will contact you within 24-48 hours.',
         data: {
-          projectName: body.projectName,
+          projectName: value.projectName,
           submittedAt: new Date().toISOString(),
         }
       },
@@ -92,12 +106,15 @@ export async function POST(request: NextRequest) {
 
 // Handle OPTIONS request for CORS
 export async function OPTIONS(request: NextRequest) {
+  const invalidOrigin = requireSameOrigin(request);
+  if (invalidOrigin) return invalidOrigin;
   return new NextResponse(null, {
-    status: 200,
+    status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': request.nextUrl.origin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
+      'Vary': 'Origin',
     },
   });
 }

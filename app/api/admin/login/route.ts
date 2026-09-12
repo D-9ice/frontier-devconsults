@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { requireSameOrigin, setAdminSession } from '@/lib/admin-auth';
 import {
   getAdminLoginClientIp,
@@ -7,6 +8,9 @@ import {
   parseLoginThrottleDecision,
 } from '@/lib/login-throttle';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { readBoundedJson } from '@/lib/request-security';
+import { recordSecurityEvent } from '@/lib/security-monitoring';
+import { adminMfaConfigured, verifyAdminTotp } from '@/lib/totp';
 
 const fallbackPassword = process.env.ADMIN_PASSWORD || '';
 const genericFailureMessage = 'Unable to sign in with those credentials.';
@@ -21,6 +25,10 @@ function getThrottleSecret() {
   }
 
   return secret;
+}
+
+function secureTextEqual(left: string, right: string) {
+  return timingSafeEqual(createHash('sha256').update(left).digest(), createHash('sha256').update(right).digest());
 }
 
 function loginFailure(status: 401 | 429, retryAfterSeconds = 0) {
@@ -86,11 +94,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const body = await request.json().catch(() => null);
-    const password =
-      body && typeof body === 'object' && typeof body.password === 'string'
-        ? body.password
-        : '';
+    const parsed = await readBoundedJson(request, { maxBytes: 4096, allowedKeys: ['password', 'totp'] });
+    if (!parsed.ok) return parsed.response;
+    const password = typeof parsed.value.password === 'string' && parsed.value.password.length <= 200
+      ? parsed.value.password
+      : '';
+    const totp = parsed.value.totp;
     let isValid = false;
 
     if (supabaseServer && hasServerSupabase) {
@@ -99,11 +108,12 @@ export async function POST(request: NextRequest) {
           .from('admin_credentials')
           .select('password_hash')
           .eq('username', 'admin')
-          .single();
+          .maybeSingle();
 
-        if (!error && data?.password_hash && data.password_hash !== 'placeholder') {
+        if (error) throw error;
+        if (data?.password_hash && data.password_hash !== 'placeholder') {
           isValid = await bcrypt.compare(password, data.password_hash);
-        } else if (fallbackPassword && password === fallbackPassword) {
+        } else if (fallbackPassword && secureTextEqual(password, fallbackPassword)) {
           // Migrate the earlier placeholder credential on the first secure login.
           // The environment password is only used for this one-time bootstrap.
           const passwordHash = await bcrypt.hash(password, 12);
@@ -128,6 +138,8 @@ export async function POST(request: NextRequest) {
       isValid = password === fallbackPassword;
     }
 
+    if (isValid && adminMfaConfigured() && !verifyAdminTotp(totp)) isValid = false;
+
     if (isValid) {
       if (ipHash) {
         await clearFailures(ipHash);
@@ -137,6 +149,7 @@ export async function POST(request: NextRequest) {
         message: 'Login successful',
       });
       setAdminSession(response);
+      after(() => recordSecurityEvent(request, { category: 'admin-login', severity: 'low', actor: 'admin', result: 'success' }));
       return response;
     }
 
@@ -144,6 +157,12 @@ export async function POST(request: NextRequest) {
       return loginFailure(401);
     }
 
+    after(() => recordSecurityEvent(request, {
+      category: 'admin-login-failed',
+      severity: attemptRetryAfterSeconds > 0 ? 'high' : 'medium',
+      result: attemptRetryAfterSeconds > 0 ? 'rate-limited' : 'invalid-credentials-or-mfa',
+      alert: attemptRetryAfterSeconds > 0,
+    }));
     return attemptRetryAfterSeconds > 0
       ? loginFailure(429, attemptRetryAfterSeconds)
       : loginFailure(401);

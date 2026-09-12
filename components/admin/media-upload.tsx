@@ -18,7 +18,7 @@ type MediaUploadProps = {
 
 const maxImageBytes = 8 * 1024 * 1024;
 const maxVideoBytes = 50 * 1024 * 1024;
-type UploadPhase = 'idle' | 'preparing' | 'uploading' | 'complete' | 'error';
+type UploadPhase = 'idle' | 'preparing' | 'uploading' | 'verifying' | 'complete' | 'error';
 
 function mediaPathForUrl(value: string, bucket: MediaBucket) {
   try {
@@ -50,7 +50,7 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
   const [phase, setPhase] = useState<UploadPhase>('idle');
   const [error, setError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const isUploading = phase === 'preparing' || phase === 'uploading';
+  const isUploading = phase === 'preparing' || phase === 'uploading' || phase === 'verifying';
   const accept = kind === 'image' ? 'image/jpeg,image/png,image/webp,image/gif' : 'video/mp4,video/webm';
 
   const uploadFile = async (file: File) => {
@@ -97,7 +97,14 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
           : reject(new Error('The file upload was rejected by storage.'));
         request.send(file);
       });
-      onChange(target.publicUrl);
+      setPhase('verifying');
+      const verification = await fetch('/api/admin/media', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bucket, path: target.path, contentType: file.type, size: file.size }),
+      });
+      const verified = await verification.json();
+      if (!verification.ok) throw new Error(verified.error || 'The uploaded file failed security verification.');
+      onChange(verified.publicUrl);
       setProgress(100);
       setPhase('complete');
       retryFileRef.current = null;
@@ -153,7 +160,7 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
       <input ref={inputRef} onChange={onFileChange} type="file" accept={accept} className="sr-only" />
       <button type="button" onClick={() => inputRef.current?.click()} disabled={isUploading} className="inline-flex items-center gap-2 rounded-lg border border-blue-600 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-60">
         {isUploading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        {phase === 'preparing' ? 'Preparing...' : phase === 'uploading' ? 'Uploading...' : value ? 'Replace' : 'Upload'}
+        {phase === 'preparing' ? 'Preparing...' : phase === 'uploading' ? 'Uploading...' : phase === 'verifying' ? 'Verifying...' : value ? 'Replace' : 'Upload'}
       </button>
     </div>
     {progress !== null && <div className="mt-3" aria-live="polite">
@@ -161,7 +168,7 @@ export function MediaUpload({ label, bucket, kind, value, onChange, help, showEm
         <div className={`h-full transition-all ${phase === 'error' ? 'bg-red-600' : phase === 'complete' ? 'bg-green-600' : 'bg-blue-600'}`} style={{ width: `${progress}%` }} />
       </div>
       <p className={`mt-1 text-xs ${phase === 'error' ? 'text-red-700' : phase === 'complete' ? 'text-green-700' : 'text-gray-600'}`}>
-        {phase === 'preparing' ? 'Preparing secure upload...' : phase === 'error' ? `Upload failed at ${progress}%.` : phase === 'complete' ? 'Upload complete.' : `${progress}% uploaded`}
+        {phase === 'preparing' ? 'Preparing secure upload...' : phase === 'verifying' ? 'Verifying file contents...' : phase === 'error' ? `Upload failed at ${progress}%.` : phase === 'complete' ? 'Upload complete.' : `${progress}% uploaded`}
       </p>
     </div>}
     {error && <div className="mt-3 flex flex-wrap items-center gap-3" aria-live="assertive">

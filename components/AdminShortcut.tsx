@@ -8,6 +8,7 @@ export default function AdminShortcut() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [password, setPassword] = useState('');
+  const [totp, setTotp] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +16,7 @@ export default function AdminShortcut() {
   const closeGate = () => {
     setIsOpen(false);
     setPassword('');
+    setTotp('');
     setError('');
     setShowPassword(false);
   };
@@ -29,6 +31,7 @@ export default function AdminShortcut() {
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'a') {
         event.preventDefault();
         setPassword('');
+        setTotp('');
         setError('');
         setIsOpen(true);
       }
@@ -57,7 +60,7 @@ export default function AdminShortcut() {
       const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, totp }),
       });
       const data = await response.json().catch(() => null);
 
@@ -94,6 +97,21 @@ export default function AdminShortcut() {
             <X size={22} aria-hidden="true" />
           </button>
         </div>
+
+        <label className="mt-4 block text-sm font-semibold text-slate-700" htmlFor="admin-shortcut-totp">Authenticator code</label>
+        <input
+          id="admin-shortcut-totp"
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          value={totp}
+          onChange={(event) => setTotp(event.target.value.replace(/\D/g, '').slice(0, 6))}
+          className="mt-2 w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+          aria-describedby="admin-shortcut-totp-help"
+        />
+        <p id="admin-shortcut-totp-help" className="mt-1 text-xs text-slate-500">Required when administrator MFA is configured.</p>
 
         <label className="mt-6 block text-sm font-semibold text-slate-700" htmlFor="admin-shortcut-password">Admin Password</label>
         <div className="relative mt-2">

@@ -46,7 +46,7 @@ export default function TermsPage() {
 
           <TermsSection title="4. Inquiries, Quotations, and Project Engagements">
             <h3>4.1 Non-binding inquiries</h3>
-            <p>A form submission, reference number, consultation, estimate, demonstration, or discussion begins an evaluation process only. It does not by itself require either party to proceed.</p>
+            <p>A form submission, reference number, consultation, estimate, demonstration, or discussion begins an evaluation process only and does not itself create a purchase agreement or require either party to proceed.</p>
             <h3>4.2 Scope and acceptance</h3>
             <p>Work begins only after the parties agree in writing on the applicable scope, deliverables, responsibilities, assumptions, acceptance criteria, schedule, price, and payment terms. Scope changes may affect price and timing and should be confirmed in writing.</p>
             <h3>4.3 Estimates and dependencies</h3>

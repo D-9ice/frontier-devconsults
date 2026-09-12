@@ -3,6 +3,7 @@ import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
 import { allow } from '@/lib/monitoring';
 import { belongs, boundedBody, Mail, MailFolder, mailApi, mailId, replyPayload, replyRecipient, replyTicket, safeRawUrl, validReplyTicket, visibleMail } from '@/lib/admin-mail';
 import { mailRemovalState, removeMail } from '@/lib/admin-mail-removal';
+import { recordSecurityEvent } from '@/lib/security-monitoring';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -52,7 +53,7 @@ export async function DELETE(request: NextRequest) {
   catch { return json({ error: 'Invalid removal request' }, 400); }
   const folder: MailFolder | null = body?.folder === 'inbox' || body?.folder === 'sent' ? body.folder : null;
   if (!folder || typeof body?.id !== 'string' || !mailId.test(body.id)) return json({ error: 'Invalid removal request' }, 400);
-  if (!await allow('admin-mail-remove', 100, 3600)) return json({ error: 'Removal limit reached or rate limiter unavailable. Try later.' }, 429);
+  if (!await allow('admin-mail-remove', 100, 3600)) { await recordSecurityEvent(request,{category:'admin-rate-limit',severity:'high',actor:'admin',result:'mail-removal-blocked',alert:true}); return json({ error: 'Removal limit reached or rate limiter unavailable. Try later.' }, 429); }
   try {
     const sent = folder === 'sent';
     const mail: Mail = await mailApi(`${sent ? '/emails' : '/emails/receiving'}/${body.id}`);
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
       !validReplyTicket(body.ticket, body.id, secret) || typeof body.text !== 'string' || !body.text.trim() || body.text.length > 20000) {
     return json({ error: 'Invalid or expired reply. Check Sent before opening a new reply.' }, 400);
   }
-  if (!await allow('admin-mail-reply', 20, 3600)) return json({ error: 'Reply limit reached or rate limiter unavailable. Try later.' }, 429);
+  if (!await allow('admin-mail-reply', 20, 3600)) { await recordSecurityEvent(request,{category:'admin-rate-limit',severity:'high',actor:'admin',result:'mail-reply-blocked',alert:true}); return json({ error: 'Reply limit reached or rate limiter unavailable. Try later.' }, 429); }
   try {
     const mail: Mail = await mailApi(`/emails/receiving/${body.id}`);
     if (!belongs(mail)) return json({ error: 'Message not found' }, 404);

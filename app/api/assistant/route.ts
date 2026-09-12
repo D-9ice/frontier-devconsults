@@ -6,18 +6,23 @@ import { allowAssistantRequest, boundedInteger } from '@/lib/assistant-rate-limi
 import { sameOrigin, validAssistantSession, validateAssistantMessages } from '@/lib/assistant-safety';
 import { listApps } from '@/lib/apps';
 import { getPricingSettings } from '@/lib/pricing-store';
+import { clientIp, readBoundedJson, sourceHash } from '@/lib/request-security';
+import { recordSecurityEvent } from '@/lib/security-monitoring';
 
 export const runtime = 'nodejs';
 export async function POST(request: NextRequest) {
-  const address = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
+  const address = clientIp(request);
   const session = request.headers.get('x-frontier-session');
   if (!sameOrigin(request.headers.get('origin'), request.url)) return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 });
   if (!validAssistantSession(session)) return NextResponse.json({ error: 'Invalid assistant session.' }, { status: 400 });
-  if (!allowAssistantRequest(address, session!)) return NextResponse.json({ error: 'Too many assistant requests. Please wait a few minutes and try again.' }, { status: 429 });
+  if (!await allowAssistantRequest(address, session!)) {
+    await recordSecurityEvent(request, { category: 'assistant-rate-limit', severity: 'high', result: 'blocked', alert: true });
+    return NextResponse.json({ error: 'Too many assistant requests. Please wait a few minutes and try again.' }, { status: 429 });
+  }
   if (!process.env.OPENAI_API_KEY) return NextResponse.json({ error: 'The assistant is temporarily unavailable.' }, { status: 503 });
-  let body: unknown;
-  try { body = await request.json(); } catch { return NextResponse.json({ error: 'Invalid request.' }, { status: 400 }); }
-  const messages = validateAssistantMessages(body);
+  const parsed = await readBoundedJson(request, { maxBytes: 16 * 1024, allowedKeys: ['messages'] });
+  if (!parsed.ok) return parsed.response;
+  const messages = validateAssistantMessages(parsed.value);
   if (!messages) return NextResponse.json({ error: 'Messages must be a short text conversation.' }, { status: 400 });
   const controller = new AbortController(); const timeout = setTimeout(() => controller.abort(), 20_000);
   try {
@@ -29,7 +34,7 @@ export async function POST(request: NextRequest) {
       input: messages.map((message) => ({ role: message.role, content: message.content })),
       reasoning: { effort: reasoningEffort(process.env.OPENAI_REASONING_EFFORT) },
       max_output_tokens: boundedInteger(process.env.OPENAI_ASSISTANT_MAX_OUTPUT_TOKENS, 500, 100, 2000), store: false,
-      safety_identifier: createHash('sha256').update(address).digest('hex').slice(0, 32),
+      safety_identifier: createHash('sha256').update(sourceHash(request)).digest('hex').slice(0, 32),
     }, { signal: controller.signal });
     const answer = response.output_text?.trim();
     if (!answer) return NextResponse.json({ error: 'The assistant could not produce a response.' }, { status: 502 });
