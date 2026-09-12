@@ -1,7 +1,19 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
-const tracked = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
+const excludedDirectories = new Set(['.git', '.next', '.vercel', 'node_modules', 'coverage', 'dist', 'build']);
+function deployedFiles(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.isDirectory() && excludedDirectories.has(entry.name)) return [];
+    const absolute = join(directory, entry.name);
+    if (entry.isDirectory()) return deployedFiles(absolute);
+    return entry.isFile() ? [relative(process.cwd(), absolute)] : [];
+  });
+}
+const tracked = existsSync('.git') && process.env.VERCEL !== '1'
+  ? execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean)
+  : deployedFiles(process.cwd());
 const textFiles = tracked.filter((file) => !/\.(?:png|jpe?g|gif|webp|ico|woff2?|mp4|webm|pdf|zip)$/i.test(file));
 const failures = [];
 const report = (file, message) => failures.push(`${file}: ${message}`);
