@@ -17,13 +17,21 @@ Brand wording should include `Frontier DevConsults` and the natural variant `Fro
 
 ## Search-platform activation
 
-These steps require the owner's external accounts and cannot be completed from source code alone:
+The production site has environment-backed Google and Bing verification meta tags. Empty values emit no placeholder tag. DNS verification is preferred for the Google domain property because the domain uses Vercel DNS; the meta-tag environment variable remains a supported fallback.
 
-1. Add the `https://www.frontier-devconsults.com` URL-prefix property and the `frontier-devconsults.com` domain property in Google Search Console. Use the exact verification value as `GOOGLE_SITE_VERIFICATION` in Vercel, redeploy, then verify.
-2. Submit `https://www.frontier-devconsults.com/sitemap.xml` and inspect the homepage plus all five service pages for indexing.
+These steps require the owner's genuine external accounts and tokens and cannot be completed from source code alone:
+
+1. Add the `frontier-devconsults.com` domain property in Google Search Console and place Google's genuine TXT record in Vercel DNS. Alternatively, add the `https://frontier-devconsults.com` URL-prefix property, copy only the genuine HTML-tag token into the server-side `GOOGLE_SITE_VERIFICATION` Vercel environment variable, redeploy, then verify.
+2. Submit `https://frontier-devconsults.com/sitemap.xml` and inspect the homepage plus all five service pages for indexing.
 3. Create or import the site in Bing Webmaster Tools. Set its HTML verification value as `BING_SITE_VERIFICATION`, redeploy, verify, and submit the same sitemap.
 4. Claim and verify the Google Business Profile using the real business name, Greater Accra service/location details, current telephone numbers, website, hours, services, and genuine project photos. Keep these facts consistent everywhere.
 5. Request genuine client reviews after completed work. Never purchase, fabricate, or gate reviews.
+
+## IndexNow operations
+
+`INDEXNOW_KEY` is a server-only Vercel environment variable containing 8-128 letters, numbers, or hyphens. When configured, `/indexnow-key.txt` returns the exact key for search-engine validation. Publication endpoints submit only affected public production URLs; unchanged updates and repeat submissions within five minutes are suppressed. A submission failure is logged and never rolls back or blocks a content publication.
+
+The authenticated `POST /api/admin/indexnow` endpoint accepts `{ "urls": ["https://frontier-devconsults.com/path"] }` for an owner-approved major static metadata/content update or public URL deletion. It rejects non-production, query-string, private, and unknown route families. Do not use it for unchanged pages.
 
 ## Measurement
 

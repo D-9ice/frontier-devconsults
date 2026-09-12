@@ -1,11 +1,12 @@
 import { MetadataRoute } from 'next'
 import { listApps } from '@/lib/apps';
 import { listCaseStudies } from '@/lib/case-studies';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://www.frontier-devconsults.com';
+  const baseUrl = SITE_ORIGIN;
   const staticLastModified = new Date('2026-08-31T00:00:00.000Z');
-  const seoLastModified = new Date('2026-09-09T00:00:00.000Z');
+  const seoLastModified = new Date('2026-09-12T00:00:00.000Z');
   let appRoutes: MetadataRoute.Sitemap = [];
   let caseStudyRoutes: MetadataRoute.Sitemap = [];
   try {
@@ -76,6 +77,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: seoLastModified,
       changeFrequency: 'monthly',
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: staticLastModified,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: staticLastModified,
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
     ...appRoutes,
     ...caseStudyRoutes,

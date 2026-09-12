@@ -7,6 +7,7 @@ import AppArtwork from '@/components/AppArtwork';
 import CommercialEvent from '@/components/CommercialEvent';
 import ProductGallery from '@/components/ProductGallery';
 import { getPublishedAppBySlug } from '@/lib/apps';
+import { SITE_ORIGIN } from '@/lib/site-url';
 import { toPublicAppDetail } from '@/lib/public-apps';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -27,8 +28,8 @@ export default async function AppDetailPage({ params }: Props) {
   if (!app) notFound();
   const detail = toPublicAppDetail(app);
   const { cta, name } = detail;
-  const schema = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name, description: detail.description, applicationCategory: detail.solutionKindLabel, operatingSystem: detail.artifactPlatform || undefined, url: `https://www.frontier-devconsults.com/app-store/${detail.slug}`, image: detail.ogImageUrl || detail.artworkUrl || undefined };
-  const breadcrumbs = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Digital Products', item: 'https://www.frontier-devconsults.com/app-store' }, { '@type': 'ListItem', position: 2, name, item: `https://www.frontier-devconsults.com/app-store/${detail.slug}` }] };
+  const schema = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name, description: detail.description, applicationCategory: detail.solutionKindLabel, operatingSystem: detail.artifactPlatform || undefined, url: `${SITE_ORIGIN}/app-store/${detail.slug}`, image: detail.ogImageUrl || detail.artworkUrl || undefined };
+  const breadcrumbs = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Digital Products', item: `${SITE_ORIGIN}/app-store` }, { '@type': 'ListItem', position: 2, name, item: `${SITE_ORIGIN}/app-store/${detail.slug}` }] };
 
   return <main id="main-content" className="min-h-screen bg-gray-50">
     <JsonLd value={schema} /><JsonLd value={breadcrumbs} /><CommercialEvent name="product_view" productSlug={detail.slug || undefined} />

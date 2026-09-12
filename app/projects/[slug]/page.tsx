@@ -8,6 +8,7 @@ import ProjectArtwork from '@/components/ProjectArtwork';
 import { caseStudyAcquisitionEnabled, getPublicCaseStudyBySlug, type CaseStudy, type CaseStudyEvidence } from '@/lib/case-studies';
 import type { AppRecord } from '@/lib/apps';
 import type { Project } from '@/lib/projects';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 type Props = { params: Promise<{ slug: string }> };
 export const dynamic = 'force-dynamic';
@@ -21,7 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectDetail({ params }: Props) {
   const item = await getPublicCaseStudyBySlug((await params).slug).catch(() => null); if (!item) notFound();
-  const name = sourceName(item); const blocks = buildBlocks(item); const jsonLd = item.sourceType === 'app' ? { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url: `https://www.frontier-devconsults.com/projects/${item.slug}`, author: { '@type': 'Organization', name: 'Frontier DevConsults' } } : { '@context': 'https://schema.org', '@type': 'CreativeWork', name, description: item.executiveSummary, url: `https://www.frontier-devconsults.com/projects/${item.slug}`, creator: { '@type': 'Organization', name: 'Frontier DevConsults' } };
+  const name = sourceName(item); const blocks = buildBlocks(item); const url = `${SITE_ORIGIN}/projects/${item.slug}`;
+  const workSchema = item.sourceType === 'app' ? { '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url, author: { '@type': 'Organization', name: 'Frontier DevConsults' } } : { '@type': 'CreativeWork', name, description: item.executiveSummary, url, creator: { '@type': 'Organization', name: 'Frontier DevConsults' } };
+  const jsonLd = { '@context': 'https://schema.org', '@graph': [workSchema, { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE_ORIGIN }, { '@type': 'ListItem', position: 2, name: 'Projects', item: `${SITE_ORIGIN}/projects` }, { '@type': 'ListItem', position: 3, name, item: url }] }] };
   return <main className="min-h-screen bg-gray-50">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
     <section className="bg-slate-950 py-16 text-white"><div className="mx-auto max-w-5xl px-4 sm:px-6"><Link href="/projects" className="font-semibold text-blue-300 hover:text-white">← Projects &amp; Case Studies</Link><div className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center"><SourceArtwork item={item} /><div><p className="font-semibold text-blue-300">{item.ownershipType === 'frontier_product' ? 'Frontier-owned product' : 'Client-built project'} · {item.source.category}</p><h1 className="mt-2 text-4xl font-bold sm:text-5xl">{name}</h1><p className="mt-2 capitalize text-slate-300">{item.projectStatus || sourceLifecycle(item)}</p></div></div><p className="mt-7 max-w-4xl text-lg leading-8 text-slate-200">{item.executiveSummary}</p></div></section>

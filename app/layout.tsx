@@ -4,11 +4,14 @@ import "./globals.css";
 import PWAInstaller from "@/components/PWAInstaller";
 import SiteChrome from "@/components/SiteChrome";
 import VisitorTracker from "@/components/VisitorTracker";
+import { SITE_ORIGIN } from "@/lib/site-url";
 
 const siteDescription = 'Custom software, Flutter mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Frontier DevConsults in Accra, Ghana—serving Africa and worldwide.';
+const googleVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+const bingVerification = process.env.BING_SITE_VERIFICATION?.trim();
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.frontier-devconsults.com'),
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
     default: 'Custom Software & Embedded Systems Development | Accra, Ghana',
     template: '%s | Frontier DevConsults'
@@ -38,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_GH',
-    url: 'https://www.frontier-devconsults.com',
+    url: SITE_ORIGIN,
     siteName: 'Frontier DevConsults',
     title: 'Custom Software & Embedded Systems Development | Frontier DevConsults',
     description: siteDescription,
@@ -73,8 +76,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   verification: {
-    ...(process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : {}),
-    ...(process.env.BING_SITE_VERIFICATION ? { other: { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } } : {}),
+    ...(googleVerification ? { google: googleVerification } : {}),
+    ...(bingVerification ? { other: { 'msvalidate.01': bingVerification } } : {}),
   },
   category: 'technology',
   manifest: '/manifest.json',

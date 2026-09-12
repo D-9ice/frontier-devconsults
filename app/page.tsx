@@ -6,6 +6,7 @@ import ProjectArtwork from '@/components/ProjectArtwork';
 import { listApps } from '@/lib/apps';
 import { toPublicAppCard } from '@/lib/public-apps';
 import { AppCard } from '@/components/AppCatalogue';
+import { SITE_ORIGIN, siteUrl } from '@/lib/site-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,37 +28,49 @@ export default async function Home() {
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': ['Organization', 'ProfessionalService'],
-    '@id': 'https://www.frontier-devconsults.com/#organization',
-    name: 'Frontier DevConsults',
-    alternateName: ['Frontier Dev Consults', 'FrontierDev'],
-    url: 'https://www.frontier-devconsults.com',
-    logo: 'https://www.frontier-devconsults.com/logos/frontier-emblem.webp',
-    email: 'info@frontier-devconsults.com',
-    description: 'Custom software, mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Accra, Ghana.',
-    slogan: 'Building Digital Excellence',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Accra',
-      addressRegion: 'Greater Accra',
-      addressCountry: 'Ghana'
-    },
-    contactPoint: {
-      '@type': 'ContactPoint',
-      telephone: '+233-249-078-976',
-      contactType: 'customer service',
-      areaServed: ['Ghana', 'Africa', 'Worldwide'],
-      availableLanguage: ['English']
-    },
-    areaServed: [
-      { '@type': 'Country', name: 'Ghana' },
-      { '@type': 'Place', name: 'Africa' },
-      { '@type': 'Place', name: 'Worldwide' }
-    ],
-    knowsAbout: ['Custom software development', 'Flutter mobile applications', 'Web application development', 'AI integration', 'Embedded systems', 'IoT engineering', 'Electronics engineering'],
-    sameAs: [
-      'https://github.com/frontierdevconsults',
-      'https://linkedin.com/company/frontierdevconsults'
+    '@graph': [
+      {
+        '@type': ['Organization', 'ProfessionalService'],
+        '@id': `${SITE_ORIGIN}/#organization`,
+        name: 'Frontier DevConsults',
+        alternateName: ['Frontier Dev Consults', 'FrontierDev'],
+        url: SITE_ORIGIN,
+        logo: siteUrl('/logos/frontier-emblem.webp'),
+        email: 'info@frontier-devconsults.com',
+        description: 'Custom software, mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Accra, Ghana.',
+        slogan: 'Building Digital Excellence',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'Accra',
+          addressRegion: 'Greater Accra',
+          addressCountry: 'Ghana'
+        },
+        contactPoint: {
+          '@type': 'ContactPoint',
+          telephone: '+233-249-078-976',
+          contactType: 'customer service',
+          areaServed: ['Ghana', 'Africa', 'Worldwide'],
+          availableLanguage: ['English']
+        },
+        areaServed: [
+          { '@type': 'Country', name: 'Ghana' },
+          { '@type': 'Place', name: 'Africa' },
+          { '@type': 'Place', name: 'Worldwide' }
+        ],
+        knowsAbout: ['Custom software development', 'Flutter mobile applications', 'Web application development', 'AI integration', 'Embedded systems', 'IoT engineering', 'Electronics engineering'],
+        sameAs: [
+          'https://github.com/frontierdevconsults',
+          'https://linkedin.com/company/frontierdevconsults'
+        ]
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_ORIGIN}/#website`,
+        url: SITE_ORIGIN,
+        name: 'Frontier DevConsults',
+        publisher: { '@id': `${SITE_ORIGIN}/#organization` },
+        inLanguage: 'en-GH'
+      }
     ]
   };
 

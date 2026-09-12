@@ -4,6 +4,7 @@ import { createCaseStudy, listCaseStudies, validateCaseStudy, type CaseStudyInpu
 import { listApps } from '@/lib/apps';
 import { listProjects } from '@/lib/projects';
 import { readBoundedJson } from '@/lib/request-security';
+import { submitIndexNow } from '@/lib/indexnow';
 
 export async function GET(request: NextRequest) {
   const unauthorized = requireAdmin(request);
@@ -26,7 +27,9 @@ export async function POST(request: NextRequest) {
     const input = parsed.value as Partial<CaseStudyInput>;
     const validationError = validateCaseStudy(input);
     if (validationError) return NextResponse.json({ error: validationError }, { status: 400 });
-    return NextResponse.json(await createCaseStudy(input as CaseStudyInput), { status: 201 });
+    const saved = await createCaseStudy(input as CaseStudyInput);
+    if (saved.visibility === 'published') await submitIndexNow([`/projects/${saved.slug}`, '/projects']);
+    return NextResponse.json(saved, { status: 201 });
   } catch (error) {
     console.error('Admin case study create error:', error);
     return NextResponse.json({ error: 'Failed to create case study.' }, { status: 500 });

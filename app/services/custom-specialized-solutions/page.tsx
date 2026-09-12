@@ -7,8 +7,9 @@ import {
 } from 'lucide-react';
 import SpecializedAnalytics from '@/components/SpecializedAnalytics';
 import SpecializedCtaLink from '@/components/SpecializedCtaLink';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
-const canonical = 'https://www.frontier-devconsults.com/services/custom-specialized-solutions';
+const canonical = `${SITE_ORIGIN}/services/custom-specialized-solutions`;
 
 export const metadata: Metadata = {
   title: 'Custom Specialized Solutions | Hardware & Software Co-Engineering',
@@ -48,10 +49,10 @@ export default function CustomSpecializedSolutionsPage() {
   const schema = {
     '@context': 'https://schema.org',
     '@graph': [
-      { '@type': 'Service', name: 'Custom Specialized Solutions', serviceType: 'Hardware and software co-engineering', provider: { '@type': 'Organization', name: 'Frontier DevConsults', url: 'https://www.frontier-devconsults.com' }, areaServed: 'Worldwide', url: canonical, description: metadata.description },
+      { '@type': 'Service', name: 'Custom Specialized Solutions', serviceType: 'Hardware and software co-engineering', provider: { '@type': 'Organization', name: 'Frontier DevConsults', url: SITE_ORIGIN }, areaServed: 'Worldwide', url: canonical, description: metadata.description },
       { '@type': 'BreadcrumbList', itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.frontier-devconsults.com' },
-        { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://www.frontier-devconsults.com/services' },
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_ORIGIN },
+        { '@type': 'ListItem', position: 2, name: 'Services', item: `${SITE_ORIGIN}/services` },
         { '@type': 'ListItem', position: 3, name: 'Custom Specialized Solutions', item: canonical },
       ] },
     ],

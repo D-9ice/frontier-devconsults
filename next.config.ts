@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/project-media/**' },
     ],
   },
+  async redirects() {
+    return [{
+      source: '/:path*',
+      has: [{ type: 'host', value: 'www.frontier-devconsults.com' }],
+      destination: 'https://frontier-devconsults.com/:path*',
+      permanent: true,
+    }];
+  },
   async headers() {
     return [{
       source: '/:path*',

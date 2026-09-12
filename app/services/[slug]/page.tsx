@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
-const baseUrl = 'https://www.frontier-devconsults.com';
+const baseUrl = SITE_ORIGIN;
 const servicePages = {
   'custom-software-development-ghana': {
     title: 'Custom Software Development Ghana',
