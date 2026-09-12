@@ -62,3 +62,21 @@ test('independent sender failure is retryable with identical provider key',async
   assert.equal(await deliver(event,env,async(u,o)=>{calls.push(o);return {ok:true,json:async()=>({id:'test-id'})};}),'test-id');
   assert.equal(calls[0].headers['Idempotency-Key'],calls[1].headers['Idempotency-Key']);assert.equal(calls[0].body,calls[1].body);
 });
+test('acquisition alerts are readable and include the authenticated record link',()=>{
+  const message=formatterModule.exports.formatEnquiryNotification('acquisition',{
+    reference_number:'ACQ-TEST',product_name:'Test App',buyer_full_name:'[MONITORING TEST] Buyer',buyer_company:'Test Company',buyer_email:'owner@example.com',buyer_country:'Ghana',acquisition_type:'source-code',acquisition_timeline:'30-days',
+  },'2026-09-12T00:00:00Z','https://www.frontier-devconsults.com/admin/monitoring/records/acquisition/00000000-0000-4000-8000-000000000001');
+  assert.match(message,/New application acquisition enquiry/);
+  assert.match(message,/Reference: ACQ-TEST/);
+  assert.match(message,/admin\/monitoring\/records\/acquisition/);
+  assert.doesNotMatch(message,/\{\s*"/);
+});
+test('daily Vercel fallback is authenticated and consent-aware visitor tracking is mounted',()=>{
+  const route=readFileSync('app/api/monitoring/run/route.ts','utf8');
+  const layout=readFileSync('app/layout.tsx','utf8');
+  const vercel=JSON.parse(readFileSync('vercel.json','utf8'));
+  assert.match(route,/process\.env\.CRON_SECRET/);
+  assert.match(route,/runMonitoring\(\{forceDailySummary:true\}\)/);
+  assert.match(layout,/<VisitorTracker \/>/);
+  assert.deepEqual(vercel.crons,[{path:'/api/monitoring/run',schedule:'17 23 * * *'}]);
+});

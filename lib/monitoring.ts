@@ -55,13 +55,13 @@ export async function monitoringSummary() {
     notificationConfigured:Boolean(process.env.RESEND_API_KEY&&process.env.EMAIL_FROM&&process.env.EMAIL_TO),locationNotice:'Approximate hosting-provider location when available; sessions are anonymous and do not identify a person.'};
 }
 
-export async function runMonitoring() {
+export async function runMonitoring(options: { forceDailySummary?: boolean } = {}) {
   if(!db) throw new Error('Database unavailable');
   // Bounded reconciliation rescues trigger failures without changing or losing enquiries.
   const reconciliation=await db.rpc('monitoring_reconcile');
   if(reconciliation.error) throw new Error('Enquiry reconciliation unavailable');
   const summary=await monitoringSummary();
-  if(summary.settings.summary_enabled && new Date().getUTCHours()>=summary.settings.summary_hour) {
+  if(summary.settings.summary_enabled && (options.forceDailySummary || new Date().getUTCHours()>=summary.settings.summary_hour)) {
     await enqueue({event_key:`summary:${new Date().toISOString().slice(0,10)}`,kind:'summary',subject:'Daily monitoring summary',details:{views24h:summary.views24h,enquiries24h:summary.enquiries24h,unresolvedEnquiries:summary.unresolvedEnquiries,openIncidents:summary.openIncidents}});
   }
   let processed=0;

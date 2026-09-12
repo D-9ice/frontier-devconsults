@@ -4,6 +4,16 @@ import {supabaseServer as db} from '@/lib/supabase-server';
 import {readBoundedJson} from '@/lib/request-security';
 import {recordSecurityEvent} from '@/lib/security-monitoring';
 export const maxDuration = 60;
+export async function GET(request: NextRequest) {
+  if(!authorizedBearer(request.headers.get('authorization'),process.env.CRON_SECRET)) {
+    await recordSecurityEvent(request,{category:'monitoring-cron-auth-failed',severity:'high',result:'blocked',alert:true});
+    return NextResponse.json({error:'Unauthorized'},{status:401});
+  }
+  try {
+    return NextResponse.json(await runMonitoring({forceDailySummary:true}),{headers:{'Cache-Control':'no-store'}});
+  }
+  catch { return NextResponse.json({error:'Monitoring worker unavailable'},{status:503}); }
+}
 export async function POST(request: NextRequest) {
   if(!authorizedBearer(request.headers.get('authorization'),process.env.MONITORING_JOB_TOKEN)) {
     await recordSecurityEvent(request,{category:'monitoring-worker-auth-failed',severity:'high',result:'blocked',alert:true});

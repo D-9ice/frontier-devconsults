@@ -62,5 +62,35 @@ export function formatEnquiryNotification(recordType: string | null | undefined,
       `Open in Frontier admin: ${adminLink}`,
     ].join('\n');
   }
+  if (recordType === 'acquisition') {
+    return [
+      'New application acquisition enquiry', '',
+      `Reference: ${text(details.reference_number)}`,
+      `Application: ${text(details.product_name)}`,
+      `Buyer: ${text(details.buyer_full_name)}`,
+      `Company: ${text(details.buyer_company)}`,
+      `Email: ${text(details.buyer_email)}`,
+      `Country: ${text(details.buyer_country)}`,
+      `Acquisition type: ${text(details.acquisition_type)}`,
+      `Timeline: ${text(details.acquisition_timeline)}`, '',
+      `Submitted: ${createdAt}`,
+      `Open in Frontier admin: ${adminLink}`,
+    ].join('\n');
+  }
+  if (recordType === 'specialized') {
+    return [
+      'New specialized engineering enquiry', '',
+      `Reference: ${text(details.reference_number)}`,
+      `Name: ${text(details.full_name)}`,
+      `Email: ${text(details.email)}`,
+      `Company: ${text(details.company)}`,
+      `Country: ${text(details.country)}`,
+      `Project types: ${Array.isArray(details.project_types) ? details.project_types.join(', ') : text(details.project_types)}`,
+      `Timeline: ${text(details.timeline)}`, '',
+      'Project description:', text(details.project_description), '',
+      `Submitted: ${createdAt}`,
+      `Open in Frontier admin: ${adminLink}`,
+    ].join('\n');
+  }
   return `${text(details.subject, 'New owner alert')}\nSaved/event time: ${createdAt}\n\n${JSON.stringify(details, null, 2)}\n\nAuthenticated admin record: ${adminLink}`;
 }

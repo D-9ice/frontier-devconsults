@@ -19,6 +19,23 @@ GitHub schedules can be delayed or dropped under load; public-repository schedul
 
 Required repository Actions secrets: `MONITORING_JOB_TOKEN`, `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_TO`. The job token must match the Vercel production value. Existing sensitive Vercel email secrets cannot be exported through the CLI: copy them directly in the account settings, never into chat or source code. Use the existing owner destination. The Resend key needs sending and email-status read access for programmatic delivery verification.
 
+### Temporary no-Actions fallback
+
+When GitHub-hosted jobs cannot start, Vercel invokes `/api/monitoring/run` once
+daily between 23:00 and 23:59 UTC. Set a separate random `CRON_SECRET` of at
+least 32 characters in Vercel Production; Vercel sends it as a bearer token.
+The fallback drains queued owner alerts, reconciles provider delivery state,
+performs retention cleanup, and sends an enabled daily summary. It is not an
+external uptime monitor and cannot alert while Vercel itself is unavailable.
+Restore the GitHub workflow or connect an independent uptime provider for that
+coverage. Vercel builds run repository security invariants and tests, and
+`npm run verify:release` provides the full local release gate including the
+dependency audit and production build.
+
+Dependabot is configured for weekly npm and GitHub Actions dependency updates.
+Repository security settings still need Dependabot alerts and security updates
+enabled; a generated pull request must be reviewed and tested before merging.
+
 ## Read-only ChatGPT integration
 
 The supported integration is a **private custom GPT Action**, using `docs/monitoring-action.openapi.json`, with API-key/Bearer authentication. This is not an installed ChatGPT connection and is not background monitoring. Official references: [GPT Actions](https://developers.openai.com/api/docs/actions/introduction), [Action authentication](https://developers.openai.com/api/docs/actions/authentication).

@@ -1,9 +1,15 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run check:security && npm test && npm run build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "installCommand": "npm install",
   "outputDirectory": ".next",
+  "crons": [
+    {
+      "path": "/api/monitoring/run",
+      "schedule": "17 23 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/robots.txt",
