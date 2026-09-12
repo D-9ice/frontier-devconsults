@@ -140,9 +140,12 @@ export default function ProjectsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Manage Projects</h1>
             <p className="mt-2 text-gray-600">Create, publish, edit, reorder, or remove portfolio projects.</p>
           </div>
-          <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700">
-            <Plus className="h-5 w-5" /> Add Project
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/admin/case-studies" className="inline-flex items-center justify-center rounded-lg border border-blue-600 px-5 py-3 font-semibold text-blue-700 hover:bg-blue-50">Case Study Publisher</Link>
+            <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700">
+              <Plus className="h-5 w-5" /> Add Project
+            </button>
+          </div>
         </div>
 
         {notice && <div className={`mb-6 rounded-lg border p-4 ${notice.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>{notice.text}</div>}
