@@ -20,6 +20,8 @@ const contentSecurityPolicy = [
 ].join('; ');
 
 const nextConfig = {
+  poweredByHeader: false,
+
   // Image optimization
   images: {
     formats: ['image/webp', 'image/avif'],
