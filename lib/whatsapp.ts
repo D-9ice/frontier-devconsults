@@ -74,8 +74,17 @@ export async function sendWhatsAppOwnerAlert(alert: WhatsAppAlert) {
     cache: 'no-store',
     signal: AbortSignal.timeout(8_000),
   });
-  const result = await response.json().catch(() => null) as { messages?: Array<{ id?: string }> } | null;
+  const result = await response.json().catch(() => null) as {
+    messages?: Array<{ id?: string }>;
+    error?: { message?: string; code?: number; error_subcode?: number };
+  } | null;
   const id = result?.messages?.[0]?.id;
-  if (!response.ok || !id) throw new Error(`WhatsApp API rejected the alert (HTTP ${response.status}).`);
+  if (!response.ok || !id) {
+    const providerError = result?.error;
+    const detail = providerError
+      ? ` ${parameter(providerError.message || 'Unknown Meta error', 300)}${providerError.code ? ` (code ${providerError.code}${providerError.error_subcode ? `/${providerError.error_subcode}` : ''})` : ''}`
+      : '';
+    throw new Error(`WhatsApp API rejected the alert (HTTP ${response.status}).${detail}`);
+  }
   return { id };
 }

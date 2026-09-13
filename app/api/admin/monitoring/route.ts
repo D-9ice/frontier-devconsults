@@ -1,10 +1,11 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {requireAdmin,requireAdminMutation} from '@/lib/admin-auth';
-import {monitoringSummary,incident,runMonitoring,enqueue,allow} from '@/lib/monitoring';
+import {monitoringSummary,incident,runMonitoring,sendWhatsAppEventNow,enqueue,allow} from '@/lib/monitoring';
 import {randomUUID} from 'node:crypto';
 import {after} from 'next/server';
 import {supabaseServer as db} from '@/lib/supabase-server';
 import {isUuid,readBoundedJson} from '@/lib/request-security';
+export const maxDuration=60;
 export async function GET(request:NextRequest) {
   const denied=requireAdmin(request); if(denied) return denied;
   try {return NextResponse.json(await monitoringSummary(),{headers:{'Cache-Control':'no-store'}});}
@@ -29,8 +30,10 @@ export async function PATCH(request:NextRequest) {
 }
 export async function POST(request:NextRequest){
   const denied=requireAdminMutation(request);if(denied)return denied;
-  if(!await allow('owner-test-alert',2,3600))return NextResponse.json({error:'Test limit reached or monitoring unavailable'},{status:429});
-  await enqueue({event_key:`owner-test:${randomUUID()}`,kind:'test',subject:'Owner delivery verification',is_test:true,details:{message:'[MONITORING TEST] No customer enquiry. Confirm receipt and inspect delivery status in the dashboard.'}});
+  if(!await allow('owner-test-alert-v2',2,3600))return NextResponse.json({error:'Test limit reached or monitoring unavailable'},{status:429});
+  const eventKey=`owner-test:${randomUUID()}`;
+  await enqueue({event_key:eventKey,kind:'test',subject:'Owner delivery verification',is_test:true,details:{message:'[MONITORING TEST] No customer enquiry. Confirm receipt and inspect delivery status in the dashboard.'}});
+  const whatsapp=await sendWhatsAppEventNow(eventKey);
   after(async()=>{await runMonitoring().catch(()=>{});});
-  return NextResponse.json({queued:true},{status:202});
+  return NextResponse.json({queued:true,whatsapp},{status:202});
 }

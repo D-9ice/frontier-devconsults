@@ -64,11 +64,59 @@ export async function monitoringSummary() {
     emailConfigured,whatsappConfigured,whatsappDeliveries,notificationConfigured:emailConfigured||whatsappConfigured,locationNotice:'Approximate hosting-provider location when available; sessions are anonymous and do not identify a person.'};
 }
 
+export async function runWhatsAppQueue(maximum=3) {
+  if(!db) throw new Error('Database unavailable');
+  if(!getWhatsAppConfig()) return 0;
+  const reconciled=await db.rpc('monitoring_whatsapp_reconcile');
+  if(reconciled.error) throw new Error('WhatsApp delivery reconciliation unavailable');
+  let processed=0;
+  for(let i=0;i<maximum;i++) {
+    if(!await allow('owner-whatsapp',10,60)) break;
+    const {data,error}=await db.rpc('monitoring_whatsapp_claim');
+    if(error) throw new Error('WhatsApp delivery claim unavailable');
+    const delivery=data?.[0]; if(!delivery) break;
+    const link=delivery.record_id&&delivery.record_type in recordTables?`${site}/admin/monitoring/records/${delivery.record_type}/${encodeURIComponent(delivery.record_id)}`:`${site}/admin/dashboard`;
+    const text=formatEnquiryNotification(delivery.record_type,{subject:delivery.subject,...(delivery.details||{})},delivery.created_at,link);
+    try {
+      const result=await sendWhatsAppOwnerAlert({eventId:delivery.event_id,subject:delivery.subject,summary:text,createdAt:delivery.created_at,adminLink:link,isTest:delivery.is_test});
+      const {error:updateError}=await db.from('monitoring_whatsapp_deliveries').update({status:'accepted',provider_id:result.id,accepted_at:new Date().toISOString(),lease_until:null,last_error:null,updated_at:new Date().toISOString()}).eq('id',delivery.delivery_id).eq('lease_token',delivery.lease_token);
+      if(updateError) throw new Error('WhatsApp delivery status write failed');
+    } catch(error) {
+      const message=error instanceof Error?error.message:'WhatsApp delivery attempt failed.';
+      await db.from('monitoring_whatsapp_deliveries').update({status:delivery.attempts>=6?'failed':'retry',next_attempt_at:new Date(Date.now()+Math.min(3600000,30000*2**delivery.attempts)).toISOString(),lease_until:null,last_error:message.slice(0,500),updated_at:new Date().toISOString()}).eq('id',delivery.delivery_id).eq('lease_token',delivery.lease_token);
+    }
+    processed++;
+  }
+  return processed;
+}
+
+export async function sendWhatsAppEventNow(eventKey:string) {
+  if(!db) throw new Error('Database unavailable');
+  if(!getWhatsAppConfig()) return {configured:false,sent:false,error:'WhatsApp owner-alert configuration is incomplete.'};
+  const {data:event,error:eventError}=await db.from('monitoring_events').select('id,subject,details,record_type,record_id,created_at,is_test').eq('event_key',eventKey).single();
+  if(eventError||!event) throw new Error('Monitoring test event unavailable');
+  const link=event.record_id&&event.record_type in recordTables?`${site}/admin/monitoring/records/${event.record_type}/${encodeURIComponent(event.record_id)}`:`${site}/admin/dashboard`;
+  const text=formatEnquiryNotification(event.record_type,{subject:event.subject,...(event.details||{})},event.created_at,link);
+  const now=new Date().toISOString();
+  try {
+    const result=await sendWhatsAppOwnerAlert({eventId:event.id,subject:event.subject,summary:text,createdAt:event.created_at,adminLink:link,isTest:event.is_test});
+    const {error:writeError}=await db.from('monitoring_whatsapp_deliveries').upsert({event_id:event.id,status:'accepted',attempts:1,provider_id:result.id,accepted_at:now,next_attempt_at:now,lease_until:null,lease_token:null,last_error:null,updated_at:now},{onConflict:'event_id'});
+    if(writeError) throw new Error('WhatsApp delivery status write failed');
+    return {configured:true,sent:true,error:null};
+  } catch(error) {
+    const message=error instanceof Error?error.message:'WhatsApp delivery attempt failed.';
+    await db.from('monitoring_whatsapp_deliveries').upsert({event_id:event.id,status:'retry',attempts:1,next_attempt_at:new Date(Date.now()+30000).toISOString(),lease_until:null,lease_token:null,last_error:message.slice(0,500),updated_at:now},{onConflict:'event_id'});
+    return {configured:true,sent:false,error:message.slice(0,500)};
+  }
+}
+
 export async function runMonitoring(options: { forceDailySummary?: boolean } = {}) {
   if(!db) throw new Error('Database unavailable');
   // Bounded reconciliation rescues trigger failures without changing or losing enquiries.
   const reconciliation=await db.rpc('monitoring_reconcile');
   if(reconciliation.error) throw new Error('Enquiry reconciliation unavailable');
+  // Keep WhatsApp independent from summary/email failures so its durable queue cannot stall behind them.
+  const whatsappProcessed=await runWhatsAppQueue();
   const summary=await monitoringSummary();
   if(summary.settings.summary_enabled && (options.forceDailySummary || new Date().getUTCHours()>=summary.settings.summary_hour)) {
     await enqueue({event_key:`summary:${new Date().toISOString().slice(0,10)}`,kind:'summary',subject:'Daily monitoring summary',details:{views24h:summary.views24h,enquiries24h:summary.enquiries24h,unresolvedEnquiries:summary.unresolvedEnquiries,openIncidents:summary.openIncidents}});
@@ -100,27 +148,6 @@ export async function runMonitoring(options: { forceDailySummary?: boolean } = {
         if(['delivered','bounced','failed','complained'].includes(result.last_event)) await db.from('monitoring_events').update({status:result.last_event,last_error:null,delivered_at:result.last_event==='delivered'?new Date().toISOString():null}).eq('id',event.id);
       } else await db.from('monitoring_events').update({last_error:`Delivery status lookup returned HTTP ${response.status}; verify email-status read access on the Resend key.`}).eq('id',event.id);
     } catch {await db.from('monitoring_events').update({last_error:'Delivery status lookup temporarily unavailable; acceptance is not confirmed delivery.'}).eq('id',event.id);}
-  }
-  let whatsappProcessed=0;
-  if(summary.whatsappConfigured) {
-    const reconciled=await db.rpc('monitoring_whatsapp_reconcile');
-    if(reconciled.error) throw new Error('WhatsApp delivery reconciliation unavailable');
-    for(let i=0;i<3;i++) {
-      if(!await allow('owner-whatsapp',10,60)) break;
-      const {data,error}=await db.rpc('monitoring_whatsapp_claim');
-      if(error) throw new Error('WhatsApp delivery claim unavailable');
-      const delivery=data?.[0]; if(!delivery) break;
-      const link=delivery.record_id&&delivery.record_type in recordTables?`${site}/admin/monitoring/records/${delivery.record_type}/${encodeURIComponent(delivery.record_id)}`:`${site}/admin/dashboard`;
-      const text=formatEnquiryNotification(delivery.record_type,{subject:delivery.subject,...(delivery.details||{})},delivery.created_at,link);
-      try {
-        const result=await sendWhatsAppOwnerAlert({eventId:delivery.event_id,subject:delivery.subject,summary:text,createdAt:delivery.created_at,adminLink:link,isTest:delivery.is_test});
-        const {error:updateError}=await db.from('monitoring_whatsapp_deliveries').update({status:'accepted',provider_id:result.id,accepted_at:new Date().toISOString(),lease_until:null,last_error:null,updated_at:new Date().toISOString()}).eq('id',delivery.delivery_id).eq('lease_token',delivery.lease_token);
-        if(updateError) throw new Error('WhatsApp delivery status write failed');
-      } catch {
-        await db.from('monitoring_whatsapp_deliveries').update({status:delivery.attempts>=6?'failed':'retry',next_attempt_at:new Date(Date.now()+Math.min(3600000,30000*2**delivery.attempts)).toISOString(),lease_until:null,last_error:'WhatsApp delivery attempt failed; will retry up to six attempts. Check Meta access, template approval, and provider status.',updated_at:new Date().toISOString()}).eq('id',delivery.delivery_id).eq('lease_token',delivery.lease_token);
-      }
-      whatsappProcessed++;
-    }
   }
   await db.from('monitoring_limits').delete().lt('expires_at',new Date(Date.now()-86400000).toISOString());
   await db.from('monitoring_sessions').delete().lt('last_seen',new Date(Date.now()-30*86400000).toISOString());
