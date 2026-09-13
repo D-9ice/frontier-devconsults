@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {requireAdmin,requireAdminMutation} from '@/lib/admin-auth';
-import {monitoringSummary,incident,runMonitoring,sendWhatsAppEventNow,enqueue,allow} from '@/lib/monitoring';
+import {monitoringSummary,incident,runMonitoring,sendWhatsAppEventNow,clearObsoleteMonitoringEvents,enqueue,allow} from '@/lib/monitoring';
 import {randomUUID} from 'node:crypto';
 import {after} from 'next/server';
 import {supabaseServer as db} from '@/lib/supabase-server';
@@ -36,4 +36,9 @@ export async function POST(request:NextRequest){
   const whatsapp=await sendWhatsAppEventNow(eventKey);
   after(async()=>{await runMonitoring().catch(()=>{});});
   return NextResponse.json({queued:true,whatsapp},{status:202});
+}
+export async function DELETE(request:NextRequest){
+  const denied=requireAdminMutation(request);if(denied)return denied;
+  try{return NextResponse.json({success:true,removed:await clearObsoleteMonitoringEvents()});}
+  catch{return NextResponse.json({error:'Obsolete monitoring entries could not be cleared'},{status:503});}
 }

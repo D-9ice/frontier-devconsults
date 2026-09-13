@@ -35,6 +35,15 @@ test('WhatsApp sends the approved four-variable template to the owner',async()=>
   assert.equal(JSON.stringify(body).includes(env.WHATSAPP_ACCESS_TOKEN),false);
 });
 
+test('WhatsApp resolves the Cloud API sender from the business account before sending',async()=>{
+  const calls=[];
+  const env={WHATSAPP_GRAPH_API_VERSION:'v26.0',WHATSAPP_BUSINESS_ACCOUNT_ID:'2208100623381813',WHATSAPP_PHONE_NUMBER_ID:'1349391894915165',WHATSAPP_ACCESS_TOKEN:'token-that-is-long-enough-for-validation',WHATSAPP_OWNER_PHONE_E164:'233249078976',WHATSAPP_ALERT_TEMPLATE_NAME:'frontier_monitoring_update',WHATSAPP_ALERT_TEMPLATE_LANGUAGE:'en_US'};
+  const api=loadWhatsApp(env,async(url,options)=>{calls.push({url,options});if(url.includes('/message_templates?'))return {ok:true,json:async()=>({data:[{name:env.WHATSAPP_ALERT_TEMPLATE_NAME,status:'APPROVED',language:'en_US'}]})};if(url.endsWith('/phone_numbers?fields=id'))return {ok:true,json:async()=>({data:[{id:'9876543210'}]})};return {ok:true,json:async()=>({messages:[{id:'wamid.resolved'}]})};});
+  const result=await api.sendWhatsAppOwnerAlert({eventId:'event-2',subject:'Test',summary:'Test alert',createdAt:'2026-09-13T12:00:00Z',adminLink:'https://frontier-devconsults.com/admin/dashboard',isTest:true});
+  assert.equal(result.id,'wamid.resolved');
+  assert.equal(calls.at(-1).url,'https://graph.facebook.com/v26.0/9876543210/messages');
+});
+
 test('WhatsApp queue is channel-separated, deduplicated, retryable, and private',()=>{
   const sql=readFileSync('supabase/migrations/202609120021_whatsapp_owner_alerts.sql','utf8');
   assert.match(sql,/unique\s*\(event_id\)/i);
@@ -57,10 +66,14 @@ test('webhook verifies Meta signatures and updates delivery states',()=>{
 
 test('admin exposes separate email and WhatsApp status without client secrets',()=>{
   const panel=readFileSync('components/admin/MonitoringPanel.tsx','utf8');
+  const route=readFileSync('app/api/admin/monitoring/route.ts','utf8');
   const env=readFileSync('.env.example','utf8');
   assert.match(panel,/WhatsApp:/);
-  assert.match(panel,/configured channels/);
+  assert.match(panel,/Sending one test/);
+  assert.match(panel,/Clear obsolete entries/);
+  assert.match(route,/export async function DELETE/);
   assert.doesNotMatch(env,/NEXT_PUBLIC_WHATSAPP/);
   assert.match(env,/WHATSAPP_ACCESS_TOKEN=/);
   assert.match(env,/WHATSAPP_APP_SECRET=/);
+  assert.match(env,/WHATSAPP_BUSINESS_ACCOUNT_ID=/);
 });

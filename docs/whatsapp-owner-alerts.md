@@ -20,6 +20,7 @@ Frontier DevConsults uses the official Meta WhatsApp Cloud API. WhatsApp is a se
 
    - `WHATSAPP_GRAPH_API_VERSION`: the supported Graph API version, for example the exact version selected in Meta.
    - `WHATSAPP_PHONE_NUMBER_ID`: Meta's numeric sender phone-number ID.
+   - `WHATSAPP_BUSINESS_ACCOUNT_ID`: Meta's numeric WhatsApp Business Account ID; used to verify the sender and template.
    - `WHATSAPP_ACCESS_TOKEN`: the permanent system-user token.
    - `WHATSAPP_OWNER_PHONE_E164`: the owner's destination number in E.164 digits, without `+` or spaces.
    - `WHATSAPP_ALERT_TEMPLATE_NAME`: the approved template name.

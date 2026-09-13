@@ -42,7 +42,7 @@ export async function monitoringSummary() {
     db.from('monitoring_sessions').select('id,page,source,country,city,last_seen,views',{count:'exact'}).gte('last_seen',new Date(Date.now()-90000).toISOString()).limit(100),
     db.from('monitoring_views').select('page,source,country,city,created_at').gte('created_at',since).order('created_at',{ascending:false}).limit(100),
     db.from('monitoring_views').select('*',{count:'exact',head:true}).gte('created_at',since),
-    db.from('monitoring_events').select('id,kind,subject,details,record_type,record_id,status,attempts,provider_id,last_error,created_at,delivered_at,resolved_at,is_test').order('created_at',{ascending:false}).limit(100),
+    db.from('monitoring_events').select('id,kind,subject,details,record_type,record_id,status,attempts,provider_id,last_error,created_at,delivered_at,resolved_at,is_test').order('created_at',{ascending:false}).limit(50),
     db.from('monitoring_settings').select('*').eq('id',true).single(),
     ...Object.values(recordTables).map(table=>db!.from(table).select('*',{count:'exact',head:true}).gte('created_at',since)),
     db.from('contact_submissions').select('*',{count:'exact',head:true}).eq('responded',false).eq('archived',false),
@@ -110,6 +110,20 @@ export async function sendWhatsAppEventNow(eventKey:string) {
   }
 }
 
+export async function clearObsoleteMonitoringEvents() {
+  if(!db) throw new Error('Database unavailable');
+  const now=Date.now();
+  const removals=await Promise.all([
+    db.from('monitoring_events').delete().eq('is_test',true).select('id'),
+    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','security').eq('status','logged').lt('created_at',new Date(now-7*86400000).toISOString()).select('id'),
+    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','visitor_arrival').lt('created_at',new Date(now-7*86400000).toISOString()).select('id'),
+    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','summary').lt('created_at',new Date(now-30*86400000).toISOString()).select('id'),
+    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','incident').not('resolved_at','is',null).lt('created_at',new Date(now-7*86400000).toISOString()).select('id'),
+  ]);
+  if(removals.some(result=>result.error)) throw new Error('Obsolete monitoring entries could not be cleared');
+  return removals.reduce((total,result)=>total+(result.data?.length||0),0);
+}
+
 export async function runMonitoring(options: { forceDailySummary?: boolean } = {}) {
   if(!db) throw new Error('Database unavailable');
   // Bounded reconciliation rescues trigger failures without changing or losing enquiries.
@@ -152,6 +166,10 @@ export async function runMonitoring(options: { forceDailySummary?: boolean } = {
   await db.from('monitoring_limits').delete().lt('expires_at',new Date(Date.now()-86400000).toISOString());
   await db.from('monitoring_sessions').delete().lt('last_seen',new Date(Date.now()-30*86400000).toISOString());
   await db.from('monitoring_views').delete().lt('created_at',new Date(Date.now()-30*86400000).toISOString());
-  await db.from('monitoring_events').delete().eq('kind','security').eq('status','logged').lt('created_at',new Date(Date.now()-90*86400000).toISOString());
+  await db.from('monitoring_events').delete().eq('is_test',true).lt('created_at',new Date(Date.now()-86400000).toISOString());
+  await db.from('monitoring_events').delete().eq('kind','security').eq('status','logged').lt('created_at',new Date(Date.now()-30*86400000).toISOString());
+  await db.from('monitoring_events').delete().eq('kind','visitor_arrival').lt('created_at',new Date(Date.now()-7*86400000).toISOString());
+  await db.from('monitoring_events').delete().eq('kind','summary').lt('created_at',new Date(Date.now()-90*86400000).toISOString());
+  await db.from('monitoring_events').delete().not('resolved_at','is',null).lt('created_at',new Date(Date.now()-30*86400000).toISOString());
   return {processed,whatsappProcessed,notificationConfigured:summary.notificationConfigured,emailConfigured:summary.emailConfigured,whatsappConfigured:summary.whatsappConfigured};
 }
