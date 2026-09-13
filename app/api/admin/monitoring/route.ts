@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {requireAdmin,requireAdminMutation} from '@/lib/admin-auth';
-import {monitoringSummary,incident,runMonitoring,sendWhatsAppEventNow,clearObsoleteMonitoringEvents,enqueue,allow} from '@/lib/monitoring';
+import {monitoringSummary,incident,runMonitoring,sendWhatsAppEventNow,retryLatestWhatsAppTest,clearObsoleteMonitoringEvents,enqueue,allow} from '@/lib/monitoring';
 import {randomUUID} from 'node:crypto';
 import {after} from 'next/server';
 import {supabaseServer as db} from '@/lib/supabase-server';
@@ -41,4 +41,9 @@ export async function DELETE(request:NextRequest){
   const denied=requireAdminMutation(request);if(denied)return denied;
   try{return NextResponse.json({success:true,removed:await clearObsoleteMonitoringEvents()});}
   catch{return NextResponse.json({error:'Obsolete monitoring entries could not be cleared'},{status:503});}
+}
+export async function PUT(request:NextRequest){
+  const denied=requireAdminMutation(request);if(denied)return denied;
+  try{return NextResponse.json({whatsapp:await retryLatestWhatsAppTest()});}
+  catch{return NextResponse.json({error:'WhatsApp template approval could not be checked'},{status:503});}
 }

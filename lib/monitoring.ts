@@ -110,6 +110,15 @@ export async function sendWhatsAppEventNow(eventKey:string) {
   }
 }
 
+export async function retryLatestWhatsAppTest() {
+  if(!db) throw new Error('Database unavailable');
+  const {data:event,error}=await db.from('monitoring_events').select('id,event_key').eq('kind','test').order('created_at',{ascending:false}).limit(1).maybeSingle();
+  if(error||!event) throw new Error('No WhatsApp test is awaiting approval');
+  const {data:delivery}=await db.from('monitoring_whatsapp_deliveries').select('status').eq('event_id',event.id).maybeSingle();
+  if(delivery&&['accepted','sent','delivered','read'].includes(delivery.status)) return {configured:true,sent:true,error:null};
+  return sendWhatsAppEventNow(event.event_key);
+}
+
 export async function clearObsoleteMonitoringEvents() {
   if(!db) throw new Error('Database unavailable');
   const now=Date.now();
