@@ -1,74 +1,81 @@
 import 'server-only';
 
-type ContactAlert = {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  submittedAt: string;
+type WhatsAppConfig = {
+  accessToken: string;
+  apiVersion: string;
+  phoneNumberId: string;
+  ownerPhone: string;
+  templateName: string;
+  templateLanguage: string;
 };
 
-const requiredConfiguration = [
-  'WHATSAPP_ACCESS_TOKEN',
-  'WHATSAPP_PHONE_NUMBER_ID',
-  'WHATSAPP_ALERT_TO',
-  'WHATSAPP_CONTACT_TEMPLATE_NAME',
-] as const;
+export type WhatsAppAlert = {
+  eventId: string;
+  subject: string;
+  summary: string;
+  createdAt: string;
+  adminLink: string;
+  isTest: boolean;
+};
 
-function cleanTemplateValue(value: string, maxLength: number) {
-  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength) || 'Not provided';
+function clean(value: string | undefined) { return value?.trim() || ''; }
+
+export function getWhatsAppConfig(): WhatsAppConfig | null {
+  const config = {
+    accessToken: clean(process.env.WHATSAPP_ACCESS_TOKEN),
+    apiVersion: clean(process.env.WHATSAPP_GRAPH_API_VERSION),
+    phoneNumberId: clean(process.env.WHATSAPP_PHONE_NUMBER_ID),
+    ownerPhone: clean(process.env.WHATSAPP_OWNER_PHONE_E164).replace(/^\+/, ''),
+    templateName: clean(process.env.WHATSAPP_ALERT_TEMPLATE_NAME),
+    templateLanguage: clean(process.env.WHATSAPP_ALERT_TEMPLATE_LANGUAGE),
+  };
+  if (config.accessToken.length < 20
+    || !/^v\d+\.\d+$/.test(config.apiVersion)
+    || !/^\d+$/.test(config.phoneNumberId)
+    || !/^[1-9]\d{7,14}$/.test(config.ownerPhone)
+    || !/^[a-z0-9_]{1,512}$/.test(config.templateName)
+    || !/^[a-z]{2,3}(?:_[A-Z]{2})?$/.test(config.templateLanguage)) return null;
+  return config;
 }
 
-export function whatsAppAlertConfigured() {
-  return requiredConfiguration.every((name) => Boolean(process.env[name]?.trim()));
+function parameter(value: string, maximum: number) {
+  return value.replace(/\s+/g, ' ').trim().slice(0, maximum) || 'Not provided';
 }
 
-export async function sendWhatsAppContactAlert(alert: ContactAlert) {
-  if (!whatsAppAlertConfigured()) {
-    console.warn(`WhatsApp contact alert skipped: configure ${requiredConfiguration.join(', ')}.`);
-    return { delivered: false, skipped: true, messageId: null };
-  }
-
-  const version = process.env.WHATSAPP_GRAPH_API_VERSION?.trim() || 'v25.0';
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID!.trim();
-  const recipient = process.env.WHATSAPP_ALERT_TO!.replace(/\D/g, '');
-  const templateName = process.env.WHATSAPP_CONTACT_TEMPLATE_NAME!.trim();
-  const languageCode = process.env.WHATSAPP_CONTACT_TEMPLATE_LANGUAGE?.trim() || 'en_US';
-  const response = await fetch(`https://graph.facebook.com/${version}/${encodeURIComponent(phoneNumberId)}/messages`, {
+export async function sendWhatsAppOwnerAlert(alert: WhatsAppAlert) {
+  const config = getWhatsAppConfig();
+  if (!config) throw new Error('WhatsApp owner-alert configuration is incomplete.');
+  const response = await fetch(`https://graph.facebook.com/${config.apiVersion}/${config.phoneNumberId}/messages`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN!.trim()}`,
+      Authorization: `Bearer ${config.accessToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
-      to: recipient,
+      to: config.ownerPhone,
       type: 'template',
       template: {
-        name: templateName,
-        language: { code: languageCode },
+        name: config.templateName,
+        language: { code: config.templateLanguage },
         components: [{
           type: 'body',
           parameters: [
-            { type: 'text', text: cleanTemplateValue(alert.name, 100) },
-            { type: 'text', text: cleanTemplateValue(alert.email, 160) },
-            { type: 'text', text: cleanTemplateValue(alert.subject, 200) },
-            { type: 'text', text: cleanTemplateValue(alert.message, 900) },
-            { type: 'text', text: cleanTemplateValue(alert.submittedAt, 100) },
+            { type: 'text', text: parameter(`${alert.isTest ? '[MONITORING TEST] ' : ''}${alert.subject}`, 100) },
+            { type: 'text', text: parameter(alert.summary, 900) },
+            { type: 'text', text: parameter(alert.createdAt, 40) },
+            { type: 'text', text: parameter(alert.adminLink, 500) },
           ],
         }],
       },
+      biz_opaque_callback_data: `monitoring:${alert.eventId}`,
     }),
-    signal: AbortSignal.timeout(10_000),
+    cache: 'no-store',
+    signal: AbortSignal.timeout(8_000),
   });
-
-  const result = await response.json().catch(() => null) as { messages?: Array<{ id?: string }>; error?: { message?: string } } | null;
-  const messageId = result?.messages?.[0]?.id;
-  if (!response.ok || !messageId) {
-    const detail = result?.error?.message || `HTTP ${response.status}`;
-    throw new Error(`WhatsApp contact alert failed: ${detail}`);
-  }
-
-  return { delivered: true, skipped: false, messageId };
+  const result = await response.json().catch(() => null) as { messages?: Array<{ id?: string }> } | null;
+  const id = result?.messages?.[0]?.id;
+  if (!response.ok || !id) throw new Error(`WhatsApp API rejected the alert (HTTP ${response.status}).`);
+  return { id };
 }

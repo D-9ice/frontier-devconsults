@@ -3,8 +3,10 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import { supabaseServer as db } from '@/lib/supabase-server';
 import { sendAdminNotification } from '@/lib/email';
 import { formatEnquiryNotification } from '@/lib/submission-format';
+import { getWhatsAppConfig, sendWhatsAppOwnerAlert } from '@/lib/whatsapp';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
-export const site = 'https://www.frontier-devconsults.com';
+export const site = SITE_ORIGIN;
 export const recordTables = { contact: 'contact_submissions', build: 'build_requests', acquisition: 'application_acquisition_requests', specialized: 'specialized_engineering_requests' } as const;
 export function authorizedBearer(header: string | null, secret: string | undefined) {
   if (!secret || secret.length < 32 || !header?.startsWith('Bearer ')) return false;
@@ -50,9 +52,16 @@ export async function monitoringSummary() {
     db.from('monitoring_events').select('*',{count:'exact',head:true}).eq('kind','incident').is('resolved_at',null).eq('is_test',false),
   ]);
   if(results.some(r=>r.error)) throw new Error('Monitoring migration or database unavailable');
+  const emailConfigured=Boolean(process.env.RESEND_API_KEY&&process.env.EMAIL_FROM&&process.env.EMAIL_TO);
+  const whatsappConfigured=Boolean(getWhatsAppConfig());
+  let whatsappDeliveries:unknown[]=[];
+  if(whatsappConfigured) {
+    const result=await db.from('monitoring_whatsapp_deliveries').select('event_id,status,attempts,provider_id,last_error,accepted_at,delivered_at,read_at,updated_at').order('updated_at',{ascending:false}).limit(100);
+    if(!result.error) whatsappDeliveries=result.data||[];
+  }
   return {generatedAt:new Date().toISOString(),activeSessionCount:results[0].count||0,activeSessions:results[0].data, recentViews:results[1].data,views24h:results[2].count,events:results[3].data,settings:results[4].data,
     enquiries24h:Object.fromEntries(Object.keys(recordTables).map((k,i)=>[k,results[5+i].count||0])),unresolvedEnquiries:results.slice(9,13).reduce((n,r)=>n+(r.count||0),0),openIncidents:results[13].count||0,
-    notificationConfigured:Boolean(process.env.RESEND_API_KEY&&process.env.EMAIL_FROM&&process.env.EMAIL_TO),locationNotice:'Approximate hosting-provider location when available; sessions are anonymous and do not identify a person.'};
+    emailConfigured,whatsappConfigured,whatsappDeliveries,notificationConfigured:emailConfigured||whatsappConfigured,locationNotice:'Approximate hosting-provider location when available; sessions are anonymous and do not identify a person.'};
 }
 
 export async function runMonitoring(options: { forceDailySummary?: boolean } = {}) {
@@ -65,7 +74,7 @@ export async function runMonitoring(options: { forceDailySummary?: boolean } = {
     await enqueue({event_key:`summary:${new Date().toISOString().slice(0,10)}`,kind:'summary',subject:'Daily monitoring summary',details:{views24h:summary.views24h,enquiries24h:summary.enquiries24h,unresolvedEnquiries:summary.unresolvedEnquiries,openIncidents:summary.openIncidents}});
   }
   let processed=0;
-  if(summary.notificationConfigured) for(let i=0;i<3;i++) {
+  if(summary.emailConfigured) for(let i=0;i<3;i++) {
     if(!await allow('owner-email',10,60)) break;
     const {data,error}=await db.rpc('monitoring_claim');
     if(error) throw new Error('Notification claim unavailable');
@@ -92,9 +101,30 @@ export async function runMonitoring(options: { forceDailySummary?: boolean } = {
       } else await db.from('monitoring_events').update({last_error:`Delivery status lookup returned HTTP ${response.status}; verify email-status read access on the Resend key.`}).eq('id',event.id);
     } catch {await db.from('monitoring_events').update({last_error:'Delivery status lookup temporarily unavailable; acceptance is not confirmed delivery.'}).eq('id',event.id);}
   }
+  let whatsappProcessed=0;
+  if(summary.whatsappConfigured) {
+    const reconciled=await db.rpc('monitoring_whatsapp_reconcile');
+    if(reconciled.error) throw new Error('WhatsApp delivery reconciliation unavailable');
+    for(let i=0;i<3;i++) {
+      if(!await allow('owner-whatsapp',10,60)) break;
+      const {data,error}=await db.rpc('monitoring_whatsapp_claim');
+      if(error) throw new Error('WhatsApp delivery claim unavailable');
+      const delivery=data?.[0]; if(!delivery) break;
+      const link=delivery.record_id&&delivery.record_type in recordTables?`${site}/admin/monitoring/records/${delivery.record_type}/${encodeURIComponent(delivery.record_id)}`:`${site}/admin/dashboard`;
+      const text=formatEnquiryNotification(delivery.record_type,{subject:delivery.subject,...(delivery.details||{})},delivery.created_at,link);
+      try {
+        const result=await sendWhatsAppOwnerAlert({eventId:delivery.event_id,subject:delivery.subject,summary:text,createdAt:delivery.created_at,adminLink:link,isTest:delivery.is_test});
+        const {error:updateError}=await db.from('monitoring_whatsapp_deliveries').update({status:'accepted',provider_id:result.id,accepted_at:new Date().toISOString(),lease_until:null,last_error:null,updated_at:new Date().toISOString()}).eq('id',delivery.delivery_id).eq('lease_token',delivery.lease_token);
+        if(updateError) throw new Error('WhatsApp delivery status write failed');
+      } catch {
+        await db.from('monitoring_whatsapp_deliveries').update({status:delivery.attempts>=6?'failed':'retry',next_attempt_at:new Date(Date.now()+Math.min(3600000,30000*2**delivery.attempts)).toISOString(),lease_until:null,last_error:'WhatsApp delivery attempt failed; will retry up to six attempts. Check Meta access, template approval, and provider status.',updated_at:new Date().toISOString()}).eq('id',delivery.delivery_id).eq('lease_token',delivery.lease_token);
+      }
+      whatsappProcessed++;
+    }
+  }
   await db.from('monitoring_limits').delete().lt('expires_at',new Date(Date.now()-86400000).toISOString());
   await db.from('monitoring_sessions').delete().lt('last_seen',new Date(Date.now()-30*86400000).toISOString());
   await db.from('monitoring_views').delete().lt('created_at',new Date(Date.now()-30*86400000).toISOString());
   await db.from('monitoring_events').delete().eq('kind','security').eq('status','logged').lt('created_at',new Date(Date.now()-90*86400000).toISOString());
-  return {processed,notificationConfigured:summary.notificationConfigured};
+  return {processed,whatsappProcessed,notificationConfigured:summary.notificationConfigured,emailConfigured:summary.emailConfigured,whatsappConfigured:summary.whatsappConfigured};
 }

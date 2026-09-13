@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse, after } from 'next/server';
 import { incident, runMonitoring } from '@/lib/monitoring';
-import {sendWhatsAppContactAlert,whatsAppAlertConfigured} from '@/lib/whatsapp';
 import { validatePublicSubmission } from '@/lib/form-protection';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
 import { requireSameOrigin } from '@/lib/admin-auth';
@@ -65,7 +64,6 @@ export async function POST(request: NextRequest) {
     }
 
     after(async () => { await incident("contact-submission", true); await runMonitoring().catch(() => console.error("Monitoring worker unavailable")); });
-    if(whatsAppAlertConfigured()) after(async()=>{await sendWhatsAppContactAlert({name:value.name,email:value.email,subject:value.subject,message:value.message,submittedAt:new Date().toISOString()}).catch(()=>console.error('WhatsApp notification unavailable'));});
 
     return NextResponse.json(
       { 

@@ -31,7 +31,7 @@ function monitoringHarness(){
   };
   const module={exports:{}};
   const code=ts.transpileModule(readFileSync('lib/monitoring.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-  vm.runInNewContext(code,{module,exports:module.exports,require:n=>n==='server-only'?{}:n==='@/lib/supabase-server'?{supabaseServer:db}:n==='@/lib/email'?{sendAdminNotification:async m=>{calls.push(m);if(fail)throw Error('Labelled simulated provider failure');return {id:'provider-test-id',skipped:false};}}:n==='@/lib/submission-format'?formatterModule.exports:require(n),process:{env:{RESEND_API_KEY:'test-only',EMAIL_FROM:'test@example.com',EMAIL_TO:'owner@example.com'}},console,fetch:async()=>({ok:true,json:async()=>({last_event:'delivered'})}),AbortSignal,Buffer,Date});
+  vm.runInNewContext(code,{module,exports:module.exports,require:n=>n==='server-only'?{}:n==='@/lib/supabase-server'?{supabaseServer:db}:n==='@/lib/email'?{sendAdminNotification:async m=>{calls.push(m);if(fail)throw Error('Labelled simulated provider failure');return {id:'provider-test-id',skipped:false};}}:n==='@/lib/submission-format'?formatterModule.exports:n==='@/lib/whatsapp'?{getWhatsAppConfig:()=>null,sendWhatsAppOwnerAlert:async()=>{throw Error('WhatsApp disabled in email test');}}:n==='@/lib/site-url'?{SITE_ORIGIN:'https://frontier-devconsults.com'}:require(n),process:{env:{RESEND_API_KEY:'test-only',EMAIL_FROM:'test@example.com',EMAIL_TO:'owner@example.com'}},console,fetch:async()=>({ok:true,json:async()=>({last_event:'delivered'})}),AbortSignal,Buffer,Date});
   return {api:module.exports,events,calls,recover:()=>{fail=false;}};
 }
 test('owner event: failure retains queue, retry deduplicates and confirms provider delivery',async()=>{

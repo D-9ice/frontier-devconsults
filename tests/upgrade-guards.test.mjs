@@ -143,12 +143,15 @@ test('assistant restores launcher focus and placeholder verification is absent',
 test('contact alerts and mobile controls use the approved WhatsApp and plain-language UI', async () => {
   const route = await read('app/api/contact/route.ts');
   const whatsapp = await read('lib/whatsapp.ts');
+  const monitoring = await read('lib/monitoring.ts');
   const assistant = await read('components/AssistantWidget.tsx');
   const navigation = await read('components/Navigation.tsx');
-  assert.match(route, /sendWhatsAppContactAlert/);
+  assert.match(route, /runMonitoring/);
+  assert.match(monitoring, /sendWhatsAppOwnerAlert/);
+  assert.match(monitoring, /monitoring_whatsapp_claim/);
   assert.match(whatsapp, /messaging_product: 'whatsapp'/);
   assert.match(whatsapp, /type: 'template'/);
-  assert.match(whatsapp, /'WHATSAPP_ACCESS_TOKEN'/);
+  assert.match(whatsapp, /process\.env\.WHATSAPP_ACCESS_TOKEN/);
   assert.match(assistant, /<span>ASK<\/span><span>ME<\/span>/);
   assert.match(assistant, /UserRound/);
   assert.equal(assistant.includes('AI-generated website guidance'), false);
