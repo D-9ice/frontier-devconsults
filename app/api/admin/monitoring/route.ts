@@ -30,7 +30,7 @@ export async function PATCH(request:NextRequest) {
 }
 export async function POST(request:NextRequest){
   const denied=requireAdminMutation(request);if(denied)return denied;
-  if(!await allow('owner-test-alert-v2',2,3600))return NextResponse.json({error:'Test limit reached or monitoring unavailable'},{status:429});
+  if(!await allow('owner-test-alert-v3',2,3600))return NextResponse.json({error:'Test limit reached or monitoring unavailable'},{status:429});
   const eventKey=`owner-test:${randomUUID()}`;
   await enqueue({event_key:eventKey,kind:'test',subject:'Owner delivery verification',is_test:true,details:{message:'[MONITORING TEST] No customer enquiry. Confirm receipt and inspect delivery status in the dashboard.'}});
   const whatsapp=await sendWhatsAppEventNow(eventKey);
