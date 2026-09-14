@@ -123,7 +123,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Build a dedicated Hero & Office Media section in the admin dashboard.
   - Upload or select desktop and mobile assets separately.
   - Support image and video media types, device previews, drag-and-drop upload, and built-in fallback media.
-- [ ] Add a revision browser, explicit draft/publish workflow, and safe rollback-to-previous-version action.
+- [x] Add a revision browser and safe rollback-to-previous-version action.
+- [ ] Add an explicit draft/publish workflow.
 - [x] Update `app/page.tsx` to load the published hero settings from Supabase while retaining the current local hero images as a safe fallback.
 - [x] Preserve the existing responsive rules: wide desktop media on desktop and portrait media on mobile.
 - [x] Configure safe video behavior: muted, plays inline, no blocking download, poster fallback, and image fallback for reduced-data/reduced-motion environments.
@@ -142,7 +143,7 @@ This checklist reflects the current repository. It separates working features fr
 
 ## Priority 8 - Email Delivery and Forwarding
 
-- [ ] Decide how `info@frontier-devconsults.com` is hosted and forwarded to `frontierdevconsults@gmail.com`.
+- [x] Configure `info@frontier-devconsults.com` forwarding to `frontierdevconsults@gmail.com`.
   - This requires email/DNS configuration with the domain's email provider, Google Workspace, or a forwarding service. It cannot be completed by website code alone.
   - Configure MX/SPF/DKIM/DMARC records and a forward/alias rule from `info@frontier-devconsults.com` to `frontierdevconsults@gmail.com`.
   - Completion test: send an ordinary external email to `info@frontier-devconsults.com` and confirm it arrives at the Gmail inbox.
@@ -176,11 +177,27 @@ This checklist reflects the current repository. It separates working features fr
 - [ ] Test all public pages after a new app, project, price, or hero media item is published.
 - [ ] Test uploads on slow mobile data and verify file-size/error handling.
 - [ ] Test email delivery, forwarding, spam protection, and reply behavior.
-- [ ] Test admin access after logout, browser refresh, expired session, and invalid token attempts.
+- [x] Test admin access after logout, browser refresh, expired session, and invalid token attempts.
+  - Production administrator MFA was activated and successfully tested on 14 September 2026. Focused regression coverage confirms refresh validation, same-origin logout with cookie clearing, expiry rejection, invalid-signature rejection, and unauthorized `401` responses.
 - [ ] Run `npm run build` before every production deployment and resolve new security/dependency warnings.
 - [ ] Verify Vercel environment variables for Production, Preview, and Development.
 - [ ] Verify PWA cache refresh after visual/media changes.
 - [ ] Create a staging/preview deployment workflow before making major public content changes.
+
+## Priority 11 - WhatsApp Owner Alerts
+
+- [x] Configure the Meta WhatsApp Business account, application, system user, permanent access token, and required messaging permissions.
+- [x] Store the WhatsApp credentials securely in the production environment and redeploy the application.
+- [x] Connect owner-alert delivery to the monitoring dashboard with visible queued, pending, retry, rejected, and template-status feedback.
+- [x] Prevent accidental repeated labelled tests with an in-progress state, visible result feedback, and a two-per-hour limit.
+- [x] Limit the audit display to the latest 25 entries and provide an authenticated delete action.
+
+## Priority 12 - Search Engine Connections
+
+- [x] Verify `frontier-devconsults.com` as a Google Search Console domain property through DNS.
+- [x] Submit the production sitemap to Google Search Console and confirm successful processing (47 pages discovered on 14 September 2026).
+- [x] Connect IndexNow and confirm successful submission responses.
+- [x] Import the verified Google Search Console property and sitemap into Bing Webmaster Tools.
 
 ## Recommended Implementation Order
 

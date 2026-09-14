@@ -61,6 +61,23 @@ test('administrator login is throttled, fail-closed, MFA-capable and rotates ses
   assert.match(totp, /timingSafeEqual/);
 });
 
+test('admin session lifecycle handles refresh, logout, expiry and invalid tokens', async () => {
+  const auth = await read('lib/admin-auth.ts');
+  const layout = await read('app/admin/(protected)/layout.tsx');
+  const logout = await read('app/api/admin/logout/route.ts');
+  const session = await read('app/api/admin/session/route.ts');
+
+  assert.match(layout, /cookies\(\)/);
+  assert.match(layout, /isAdminSessionToken/);
+  assert.match(layout, /redirect\('\/'\)/);
+  assert.match(logout, /requireSameOrigin\(request\)/);
+  assert.match(logout, /clearAdminSession\(response\)/);
+  assert.match(auth, /session\.expiresAt > Date\.now\(\)/);
+  assert.match(auth, /crypto\.timingSafeEqual/);
+  assert.match(auth, /status: 401/);
+  assert.match(session, /authenticated: isAdminRequest\(request\)/);
+});
+
 test('file uploads use canonical names and post-upload signature and size verification', async () => {
   const server = await read('lib/admin-media.ts');
   const route = await read('app/api/admin/media/route.ts');
