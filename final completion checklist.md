@@ -180,7 +180,8 @@ This checklist reflects the current repository. It separates working features fr
 - [x] Test admin access after logout, browser refresh, expired session, and invalid token attempts.
   - Production administrator MFA was activated and successfully tested on 14 September 2026. Focused regression coverage confirms refresh validation, same-origin logout with cookie clearing, expiry rejection, invalid-signature rejection, and unauthorized `401` responses.
 - [ ] Run `npm run build` before every production deployment and resolve new security/dependency warnings.
-- [ ] Verify Vercel environment variables for Production, Preview, and Development.
+- [x] Verify Vercel environment variables for Production, Preview, and Development.
+  - Verified on 14 September 2026 without exposing secret values. Production-only credentials remain isolated to Production; shared application variables are scoped to Preview where required; local-safe public Supabase configuration and the development login fallback are available to Development. Optional SEO meta-tag and OpenAI tuning variables use DNS verification or application defaults when absent.
 - [ ] Verify PWA cache refresh after visual/media changes.
 - [ ] Create a staging/preview deployment workflow before making major public content changes.
 
