@@ -71,6 +71,8 @@ test('admin exposes separate email and WhatsApp status without client secrets',(
   assert.match(panel,/WhatsApp:/);
   assert.match(panel,/Sending one test/);
   assert.match(panel,/Clear latest 25 entries/);
+  assert.match(panel,/credentials:'same-origin'/);
+  assert.match(panel,/admin=expired/);
   assert.match(route,/export async function DELETE/);
   assert.match(route,/export async function PUT/);
   assert.match(panel,/checking automatically/);

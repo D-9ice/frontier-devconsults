@@ -22,6 +22,11 @@ export default function AdminShortcut() {
   };
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('admin') === 'expired') {
+      setError('Your admin session expired. Sign in again to continue.');
+      setIsOpen(true);
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target;
       if (target instanceof Element && target.closest('input, textarea, select, [contenteditable="true"]')) {

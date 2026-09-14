@@ -1,6 +1,6 @@
 // Service Worker for Frontier DevConsults PWA
-const CACHE_NAME = 'frontier-devconsults-v2';
-const RUNTIME_CACHE = 'runtime-cache-v2';
+const CACHE_NAME = 'frontier-devconsults-v3';
+const RUNTIME_CACHE = 'runtime-cache-v3';
 
 // Assets to cache on install
 const PRECACHE_ASSETS = [
@@ -43,8 +43,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip API requests from caching
-  if (event.request.url.includes('/api/')) {
+  // Admin and API requests must always use the live authenticated response.
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.pathname.startsWith('/admin') || requestUrl.pathname.startsWith('/api/')) {
     return;
   }
 
