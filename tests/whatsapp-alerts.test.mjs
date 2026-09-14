@@ -70,8 +70,10 @@ test('admin exposes separate email and WhatsApp status without client secrets',(
   const env=readFileSync('.env.example','utf8');
   assert.match(panel,/WhatsApp:/);
   assert.match(panel,/Sending one test/);
-  assert.match(panel,/Clear obsolete entries/);
+  assert.match(panel,/Clear latest 25 entries/);
   assert.match(route,/export async function DELETE/);
+  assert.match(route,/export async function PUT/);
+  assert.match(panel,/checking automatically/);
   assert.doesNotMatch(env,/NEXT_PUBLIC_WHATSAPP/);
   assert.match(env,/WHATSAPP_ACCESS_TOKEN=/);
   assert.match(env,/WHATSAPP_APP_SECRET=/);

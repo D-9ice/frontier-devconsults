@@ -119,18 +119,15 @@ export async function retryLatestWhatsAppTest() {
   return sendWhatsAppEventNow(event.event_key);
 }
 
-export async function clearObsoleteMonitoringEvents() {
+export async function clearLatestMonitoringEvents(maximum=25) {
   if(!db) throw new Error('Database unavailable');
-  const now=Date.now();
-  const removals=await Promise.all([
-    db.from('monitoring_events').delete().eq('is_test',true).select('id'),
-    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','security').eq('status','logged').lt('created_at',new Date(now-7*86400000).toISOString()).select('id'),
-    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','visitor_arrival').lt('created_at',new Date(now-7*86400000).toISOString()).select('id'),
-    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','summary').lt('created_at',new Date(now-30*86400000).toISOString()).select('id'),
-    db.from('monitoring_events').delete().eq('is_test',false).eq('kind','incident').not('resolved_at','is',null).lt('created_at',new Date(now-7*86400000).toISOString()).select('id'),
-  ]);
-  if(removals.some(result=>result.error)) throw new Error('Obsolete monitoring entries could not be cleared');
-  return removals.reduce((total,result)=>total+(result.data?.length||0),0);
+  const {data:events,error:readError}=await db.from('monitoring_events').select('id').order('created_at',{ascending:false}).limit(Math.min(Math.max(maximum,1),25));
+  if(readError) throw new Error('Recent monitoring entries could not be read');
+  const ids=(events||[]).map(event=>event.id);
+  if(!ids.length) return 0;
+  const {data,error}=await db.from('monitoring_events').delete().in('id',ids).select('id');
+  if(error) throw new Error('Recent monitoring entries could not be cleared');
+  return data?.length||0;
 }
 
 export async function runMonitoring(options: { forceDailySummary?: boolean } = {}) {
