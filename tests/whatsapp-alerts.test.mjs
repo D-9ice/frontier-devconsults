@@ -70,7 +70,7 @@ test('admin exposes separate email and WhatsApp status without client secrets',(
   const env=readFileSync('.env.example','utf8');
   assert.match(panel,/WhatsApp:/);
   assert.match(panel,/Sending one test/);
-  assert.match(panel,/Clear latest 25 entries/);
+  assert.match(panel,/'Deleting…':'Delete'/);
   assert.match(panel,/credentials:'same-origin'/);
   assert.match(panel,/admin=expired/);
   assert.match(route,/export async function DELETE/);
