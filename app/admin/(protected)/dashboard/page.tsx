@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, CircuitBoard, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
+import { BarChart3, CalendarClock, CircuitBoard, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import MonitoringPanel from '@/components/admin/MonitoringPanel';
 import AdminInboxAlerts from '@/components/admin/AdminInboxAlerts';
@@ -176,6 +176,11 @@ export default function AdminDashboard() {
               href="/admin/specialized-requests"
               icon={<CircuitBoard className="w-5 h-5" />}
               label="Specialized Requests"
+            />
+            <ActionButton
+              href="/admin/client-maintenance"
+              icon={<CalendarClock className="w-5 h-5" />}
+              label="Client Maintenance"
             />
             <ActionButton
               href="/admin/app-store"
