@@ -15,6 +15,20 @@ export async function sendBuyerConfirmation({ to, subject, text }: { to: string;
   return sendEmail({ to, subject, text, replyTo: notificationRecipient });
 }
 
+export async function sendClientMaintenanceEmail({
+  to,
+  subject,
+  text,
+  idempotencyKey,
+}: {
+  to: string;
+  subject: string;
+  text: string;
+  idempotencyKey?: string;
+}) {
+  return sendEmail({ to, subject, text, replyTo: notificationRecipient, idempotencyKey });
+}
+
 async function sendEmail({ to, subject, text, replyTo, idempotencyKey }: EmailMessage & { to: string }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
