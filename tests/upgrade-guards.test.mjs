@@ -41,9 +41,22 @@ test('application migrations preserve legacy records with safe defaults', async 
   assert.match(migration, /show_in_upwork_portfolio or invents evidence/i);
 });
 
-test('projects and case studies stay data-driven and follow App Store visibility', async () => {
-  const [home, caseStudies] = await Promise.all([read('app/page.tsx'), read('lib/case-studies.ts')]);
-  assert.match(caseStudies, /!includeDrafts && item\.app_id && !\(source as AppRecord\)\.showInProjects/);
+test('Projects and App Store managers remain independent', async () => {
+  const [home, caseStudies, appMutation, appAdmin, dashboard, projectsAdmin] = await Promise.all([
+    read('app/page.tsx'),
+    read('lib/case-studies.ts'),
+    read('app/api/admin/apps/[id]/route.ts'),
+    read('app/admin/(protected)/app-store/page.tsx'),
+    read('app/admin/(protected)/dashboard/page.tsx'),
+    read('app/admin/(protected)/projects/page.tsx'),
+  ]);
+  assert.match(caseStudies, /if \(!item\.project_id \|\| item\.app_id\) return \[\]/);
+  assert.match(caseStudies, /Choose an existing project from Projects Manager/);
+  assert.doesNotMatch(appMutation, /\/projects/);
+  assert.doesNotMatch(appAdmin, /Projects \/ case studies/);
+  assert.match(dashboard, /label="App Store Manager"/);
+  assert.match(dashboard, /label="Projects Manager"/);
+  assert.match(projectsAdmin, />Projects Manager<\/h1>/);
   for (const stale of ['Digital Savings Box', 'Circuit Designer AI', 'Lotus Hill Academy', 'GH-MARKET', 'Kelélé Bespoke Clothing']) {
     assert.equal(home.includes(stale), false, stale);
   }
