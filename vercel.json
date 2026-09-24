@@ -9,11 +9,5 @@
       "path": "/api/monitoring/run",
       "schedule": "17 23 * * *"
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/robots.txt",
-      "destination": "/api/robots"
-    }
   ]
 }
