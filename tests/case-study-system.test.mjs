@@ -4,14 +4,17 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('case studies link to one authoritative source and migrate records without duplication', async () => {
-  const migration = await read('supabase/migrations/202609120020_case_study_system.sql');
-  assert.match(migration, /case_studies_one_source/);
-  assert.match(migration, /project_id UUID UNIQUE REFERENCES public\.projects/);
-  assert.match(migration, /app_id UUID UNIQUE REFERENCES public\.apps/);
-  assert.match(migration, /NOT EXISTS \(\s*SELECT 1 FROM public\.case_studies c WHERE c\.slug = lower\(a\.slug\)/s);
-  assert.match(migration, /case_studies_client_sale_guard/);
-  assert.match(migration, /REVOKE ALL ON public\.case_studies FROM PUBLIC, anon, authenticated/);
+test('Projects Manager is the authoritative source for public case studies', async () => {
+  const [baseMigration, correction] = await Promise.all([
+    read('supabase/migrations/202609120020_case_study_system.sql'),
+    read('supabase/migrations/202609240025_restore_projects_manager_authority.sql'),
+  ]);
+  assert.match(baseMigration, /project_id UUID UNIQUE REFERENCES public\.projects/);
+  assert.match(baseMigration, /REVOKE ALL ON public\.case_studies FROM PUBLIC, anon, authenticated/);
+  assert.match(correction, /case_studies_projects_manager_only/);
+  assert.match(correction, /CHECK \(project_id IS NOT NULL AND app_id IS NULL\)/);
+  assert.match(correction, /DELETE FROM public\.case_studies/);
+  assert.match(correction, /app_id = NULL/);
 });
 
 test('public evidence is approval-controlled and testimonials require verified permission', async () => {
@@ -35,13 +38,16 @@ test('public case study pages use structured records and ownership-safe calls to
   assert.doesNotMatch(detail, /aggregateRating|reviewRating/);
 });
 
-test('admin publisher reuses guards, media upload, evidence states and section ordering', async () => {
+test('admin case-study details are project-only and retain evidence controls', async () => {
   const listRoute = await read('app/api/admin/case-studies/route.ts');
   const updateRoute = await read('app/api/admin/case-studies/[id]/route.ts');
   const editor = await read('components/admin/CaseStudyManager.tsx');
   assert.match(listRoute, /requireAdmin\(request\)/);
   assert.match(listRoute, /requireAdminMutation\(request\)/);
   assert.match(updateRoute, /requireAdminMutation\(request\)/);
+  assert.doesNotMatch(listRoute, /listApps/);
+  assert.match(editor, /Existing project/);
+  assert.doesNotMatch(editor, /Frontier products/);
   assert.match(editor, /<MediaUpload/);
   assert.match(editor, /bucket="project-media"/);
   assert.match(editor, /approved_for_publication/);
