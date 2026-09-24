@@ -41,6 +41,14 @@ test('application migrations preserve legacy records with safe defaults', async 
   assert.match(migration, /show_in_upwork_portfolio or invents evidence/i);
 });
 
+test('projects and case studies stay data-driven and follow App Store visibility', async () => {
+  const [home, caseStudies] = await Promise.all([read('app/page.tsx'), read('lib/case-studies.ts')]);
+  assert.match(caseStudies, /!includeDrafts && item\.app_id && !\(source as AppRecord\)\.showInProjects/);
+  for (const stale of ['Digital Savings Box', 'Circuit Designer AI', 'Lotus Hill Academy', 'GH-MARKET', 'Kelélé Bespoke Clothing']) {
+    assert.equal(home.includes(stale), false, stale);
+  }
+});
+
 test('public catalogue uses owner-published records and no synthetic production cards', async () => {
   const page = await read('app/app-store/page.tsx');
   assert.match(page, /listApps\(false\)/);
