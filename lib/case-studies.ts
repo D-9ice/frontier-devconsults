@@ -1,7 +1,6 @@
 import 'server-only';
 
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
-import type { AppRecord } from '@/lib/apps';
 import { listProjects, type Project } from '@/lib/projects';
 
 export const ownershipTypes = ['frontier_product', 'client_project'] as const;
@@ -14,7 +13,7 @@ export type OwnershipType = typeof ownershipTypes[number];
 export type CommercialState = typeof commercialStates[number];
 export type EvidenceStatus = typeof evidenceStatuses[number];
 export type EvidenceType = typeof evidenceTypes[number];
-export type CaseStudySourceType = 'project' | 'app';
+export type CaseStudySourceType = 'project';
 
 export type CaseStudyEvidence = {
   id: string;
@@ -45,7 +44,7 @@ export type CaseStudy = {
   projectId: string | null;
   appId: string | null;
   sourceType: CaseStudySourceType;
-  source: Project | AppRecord;
+  source: Project;
   slug: string;
   ownershipType: OwnershipType;
   commercialState: CommercialState;
@@ -110,8 +109,8 @@ export function filterPublicEvidence(items: CaseStudyEvidence[]) {
     && (item.type !== 'testimonial' || (item.publicationPermission && item.verificationState === 'verified' && Boolean(item.testimonialText))));
 }
 
-function mapRow(row: Record<string, unknown>, source: Project | AppRecord): CaseStudy {
-  const sourceType: CaseStudySourceType = row.project_id ? 'project' : 'app';
+function mapRow(row: Record<string, unknown>, source: Project): CaseStudy {
+  const sourceType: CaseStudySourceType = 'project';
   const technology = object(row.technology_architecture);
   return {
     id: String(row.id), projectId: optionalText(row.project_id), appId: optionalText(row.app_id), sourceType, source,
@@ -194,10 +193,6 @@ export async function getPublicCaseStudyBySlug(slug: string) {
   const item = (await listCaseStudies(false)).find((caseStudy) => caseStudy.slug === slug);
   if (!item) return null;
   return { ...item, evidence: filterPublicEvidence(item.evidence) };
-}
-
-export function caseStudyAcquisitionEnabled(_item: CaseStudy) {
-  return false;
 }
 
 export async function createCaseStudy(input: CaseStudyInput) {
