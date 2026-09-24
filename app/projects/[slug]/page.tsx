@@ -2,12 +2,8 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import AcquisitionLink from '@/components/AcquisitionLink';
-import AppArtwork from '@/components/AppArtwork';
 import ProjectArtwork from '@/components/ProjectArtwork';
-import { caseStudyAcquisitionEnabled, getPublicCaseStudyBySlug, type CaseStudy, type CaseStudyEvidence } from '@/lib/case-studies';
-import type { AppRecord } from '@/lib/apps';
-import type { Project } from '@/lib/projects';
+import { getPublicCaseStudyBySlug, type CaseStudy, type CaseStudyEvidence } from '@/lib/case-studies';
 import { SITE_ORIGIN } from '@/lib/site-url';
 
 type Props = { params: Promise<{ slug: string }> };
@@ -23,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ProjectDetail({ params }: Props) {
   const item = await getPublicCaseStudyBySlug((await params).slug).catch(() => null); if (!item) notFound();
   const name = sourceName(item); const blocks = buildBlocks(item); const url = `${SITE_ORIGIN}/projects/${item.slug}`;
-  const workSchema = item.sourceType === 'app' ? { '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url, author: { '@type': 'Organization', name: 'Frontier DevConsults' } } : { '@type': 'CreativeWork', name, description: item.executiveSummary, url, creator: { '@type': 'Organization', name: 'Frontier DevConsults' } };
+  const workSchema = item.ownershipType === 'frontier_product' ? { '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url, author: { '@type': 'Organization', name: 'Frontier DevConsults' } } : { '@type': 'CreativeWork', name, description: item.executiveSummary, url, creator: { '@type': 'Organization', name: 'Frontier DevConsults' } };
   const jsonLd = { '@context': 'https://schema.org', '@graph': [workSchema, { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE_ORIGIN }, { '@type': 'ListItem', position: 2, name: 'Projects', item: `${SITE_ORIGIN}/projects` }, { '@type': 'ListItem', position: 3, name, item: url }] }] };
   return <main className="min-h-screen bg-gray-50">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
@@ -56,14 +52,14 @@ function buildBlocks(item: CaseStudy): Record<string, React.ReactNode | null> {
   };
 }
 
-function CallToAction({ item }: { item: CaseStudy }) { if (caseStudyAcquisitionEnabled(item)) return <section className="rounded-2xl bg-blue-700 p-7 text-white"><h2 className="text-2xl font-bold">Explore this Frontier product</h2><p className="mt-2 text-blue-100">Review the currently configured acquisition, licensing, or customization options.</p><AcquisitionLink slug={(item.source as AppRecord).slug!} className="mt-5 inline-flex rounded-lg bg-white px-5 py-3 font-bold text-blue-800">View commercial options</AcquisitionLink></section>; if (item.ownershipType === 'client_project') return <section className="rounded-2xl bg-slate-900 p-7 text-white"><h2 className="text-2xl font-bold">Request a similar build</h2><p className="mt-2 text-slate-200">Tell Frontier DevConsults about the outcomes and engineering requirements you need.</p><Link href={`/request-build?project=${encodeURIComponent(sourceName(item))}`} className="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-3 font-bold text-white">Request a build</Link></section>; return null; }
-function SourceArtwork({ item }: { item: CaseStudy }) { return item.sourceType === 'app' ? <AppArtwork app={item.source as AppRecord} variant="detail" className="h-24 w-24 shrink-0 rounded-2xl" /> : <ProjectArtwork title={(item.source as Project).title} src={(item.source as Project).logoUrl} className="h-24 w-24 shrink-0" />; }
+function CallToAction({ item }: { item: CaseStudy }) { if (item.ownershipType === 'client_project') return <section className="rounded-2xl bg-slate-900 p-7 text-white"><h2 className="text-2xl font-bold">Request a similar build</h2><p className="mt-2 text-slate-200">Tell Frontier DevConsults about the outcomes and engineering requirements you need.</p><Link href={`/request-build?project=${encodeURIComponent(sourceName(item))}`} className="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-3 font-bold text-white">Request a build</Link></section>; return null; }
+function SourceArtwork({ item }: { item: CaseStudy }) { return <ProjectArtwork title={item.source.title} src={item.source.logoUrl} className="h-24 w-24 shrink-0" />; }
 function MediaEvidence({ evidence }: { evidence: CaseStudyEvidence }) { return <figure className="overflow-hidden rounded-xl border border-gray-200 bg-white">{evidence.type === 'project_video' ? <video src={evidence.sourceUrl!} controls playsInline className="aspect-video w-full bg-black object-contain" /> : <Image src={evidence.sourceUrl!} alt={evidence.title} width={1200} height={800} className="h-auto w-full object-contain" />}<figcaption className="p-4"><strong>{evidence.title}</strong>{evidence.description && <p className="mt-1 text-sm text-gray-600">{evidence.description}</p>}</figcaption></figure>; }
 function EvidenceCard({ evidence }: { evidence: CaseStudyEvidence }) { return <div className="rounded-xl border border-gray-200 bg-white p-5"><p className="text-xs font-bold uppercase tracking-wide text-blue-700">{evidence.type.replaceAll('_', ' ')}</p>{evidence.type === 'testimonial' && evidence.testimonialText ? <blockquote className="mt-3 text-lg leading-7 text-gray-800">“{evidence.testimonialText}”</blockquote> : <><h3 className="mt-2 font-bold text-gray-950">{evidence.title}</h3>{evidence.description && <Text value={evidence.description} />}</>}{evidence.type === 'testimonial' && <p className="mt-3 text-sm font-semibold text-gray-600">{[evidence.clientName, evidence.clientRole, evidence.clientCompany].filter(Boolean).join(' · ')}</p>}{evidence.externalUrl && <a href={evidence.externalUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex font-semibold text-blue-700">Open approved source →</a>}</div>; }
 function Block({ title, children }: { title: string; children: React.ReactNode }) { return <section><h2 className="text-2xl font-bold text-gray-950 sm:text-3xl">{title}</h2><div className="mt-5 leading-7 text-gray-700">{children}</div></section>; }
 function List({ title, items }: { title: string; items: string[] }) { return <Block title={title}><ul className="grid gap-3 sm:grid-cols-2">{items.map((item) => <li key={item} className="rounded-lg border border-gray-200 bg-white p-4">{item}</li>)}</ul></Block>; }
 function Text({ value }: { value: string }) { return <p className="mt-2 whitespace-pre-line">{value}</p>; }
 function Definition({ label, value, card = false }: { label: string; value?: string; card?: boolean }) { if (!value) return null; return <div className={card ? 'rounded-xl border border-gray-200 bg-white p-5' : 'mt-4'}><h3 className="font-bold capitalize text-gray-950">{label}</h3><Text value={value} /></div>; }
-function sourceName(item: CaseStudy) { return item.sourceType === 'app' ? (item.source as AppRecord).name : (item.source as Project).title; }
-function sourceLifecycle(item: CaseStudy) { return item.sourceType === 'app' ? (item.source as AppRecord).lifecycle.replaceAll('_', ' ') : (item.source as Project).status; }
-function approvedImage(item: CaseStudy) { return item.evidence.find((evidence) => ['screenshot', 'desktop_screenshot', 'architecture_diagram'].includes(evidence.type) && evidence.sourceUrl)?.sourceUrl || (item.sourceType === 'app' ? (item.source as AppRecord).ogImageUrl || (item.source as AppRecord).iconUrl : (item.source as Project).logoUrl) || undefined; }
+function sourceName(item: CaseStudy) { return item.source.title; }
+function sourceLifecycle(item: CaseStudy) { return item.source.status; }
+function approvedImage(item: CaseStudy) { return item.evidence.find((evidence) => ['screenshot', 'desktop_screenshot', 'architecture_diagram'].includes(evidence.type) && evidence.sourceUrl)?.sourceUrl || item.source.logoUrl || undefined; }

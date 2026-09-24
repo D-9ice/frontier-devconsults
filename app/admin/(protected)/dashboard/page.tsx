@@ -185,7 +185,7 @@ export default function AdminDashboard() {
             <ActionButton
               href="/admin/app-store"
               icon={<Smartphone className="w-5 h-5" />}
-              label="Manage App Store"
+              label="App Store Manager"
             />
             <ActionButton
               href="/admin/pricing"
@@ -200,7 +200,7 @@ export default function AdminDashboard() {
             <ActionButton
               href="/admin/projects"
               icon={<Code2 className="w-5 h-5" />}
-              label="Manage Projects"
+              label="Projects Manager"
             />
             <ActionButton
               href="/admin/settings"

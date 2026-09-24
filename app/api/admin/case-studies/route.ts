@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
 import { createCaseStudy, listCaseStudies, validateCaseStudy, type CaseStudyInput } from '@/lib/case-studies';
-import { listApps } from '@/lib/apps';
 import { listProjects } from '@/lib/projects';
 import { readBoundedJson } from '@/lib/request-security';
 import { submitIndexNow } from '@/lib/indexnow';
@@ -10,8 +9,8 @@ export async function GET(request: NextRequest) {
   const unauthorized = requireAdmin(request);
   if (unauthorized) return unauthorized;
   try {
-    const [caseStudies, projects, apps] = await Promise.all([listCaseStudies(true), listProjects(true), listApps(true)]);
-    return NextResponse.json({ caseStudies, sources: { projects, apps: apps.filter((app) => app.showInProjects) } });
+    const [caseStudies, projects] = await Promise.all([listCaseStudies(true), listProjects(true)]);
+    return NextResponse.json({ caseStudies, sources: { projects } });
   } catch (error) {
     console.error('Admin case studies fetch error:', error);
     return NextResponse.json({ error: 'Failed to load case studies.' }, { status: 500 });

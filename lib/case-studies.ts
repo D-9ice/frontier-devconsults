@@ -1,8 +1,6 @@
 import 'server-only';
 
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
-import { listApps, type AppRecord } from '@/lib/apps';
-import { isAcquisitionEnabled } from '@/lib/application-presentation';
 import { listProjects, type Project } from '@/lib/projects';
 
 export const ownershipTypes = ['frontier_product', 'client_project'] as const;
@@ -15,7 +13,7 @@ export type OwnershipType = typeof ownershipTypes[number];
 export type CommercialState = typeof commercialStates[number];
 export type EvidenceStatus = typeof evidenceStatuses[number];
 export type EvidenceType = typeof evidenceTypes[number];
-export type CaseStudySourceType = 'project' | 'app';
+export type CaseStudySourceType = 'project';
 
 export type CaseStudyEvidence = {
   id: string;
@@ -46,7 +44,7 @@ export type CaseStudy = {
   projectId: string | null;
   appId: string | null;
   sourceType: CaseStudySourceType;
-  source: Project | AppRecord;
+  source: Project;
   slug: string;
   ownershipType: OwnershipType;
   commercialState: CommercialState;
@@ -111,8 +109,8 @@ export function filterPublicEvidence(items: CaseStudyEvidence[]) {
     && (item.type !== 'testimonial' || (item.publicationPermission && item.verificationState === 'verified' && Boolean(item.testimonialText))));
 }
 
-function mapRow(row: Record<string, unknown>, source: Project | AppRecord): CaseStudy {
-  const sourceType: CaseStudySourceType = row.project_id ? 'project' : 'app';
+function mapRow(row: Record<string, unknown>, source: Project): CaseStudy {
+  const sourceType: CaseStudySourceType = 'project';
   const technology = object(row.technology_architecture);
   return {
     id: String(row.id), projectId: optionalText(row.project_id), appId: optionalText(row.app_id), sourceType, source,
@@ -136,7 +134,7 @@ function mapRow(row: Record<string, unknown>, source: Project | AppRecord): Case
 
 function row(input: CaseStudyInput) {
   return {
-    project_id: input.projectId, app_id: input.appId, slug: input.slug.trim().toLowerCase(), ownership_type: input.ownershipType,
+    project_id: input.projectId, app_id: null, slug: input.slug.trim().toLowerCase(), ownership_type: input.ownershipType,
     commercial_state: input.ownershipType === 'client_project' && !input.clientCommercialAuthorized ? 'not_for_sale' : input.commercialState,
     client_commercial_authorized: input.clientCommercialAuthorized, visibility: input.visibility,
     executive_summary: input.executiveSummary.trim(), intended_market: optionalText(input.intendedMarket), engineering_responsibility: optionalText(input.engineeringResponsibility),
@@ -156,7 +154,7 @@ function safeUrl(value: string | null | undefined) {
 }
 
 export function validateCaseStudy(input: Partial<CaseStudyInput>) {
-  if ((!input.projectId && !input.appId) || (input.projectId && input.appId)) return 'Choose exactly one existing project or product.';
+  if (!input.projectId || input.appId) return 'Choose an existing project from Projects Manager.';
   if (!input.slug?.trim() || !/^[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?$/.test(input.slug.trim())) return 'Use a lowercase, hyphenated case-study slug.';
   if (!ownershipTypes.includes(input.ownershipType as OwnershipType)) return 'Choose a valid ownership type.';
   if (!commercialStates.includes(input.commercialState as CommercialState)) return 'Choose a valid commercial state.';
@@ -176,22 +174,16 @@ export function validateCaseStudy(input: Partial<CaseStudyInput>) {
   return null;
 }
 
-async function sources(includeDrafts = true) {
-  const [projects, apps] = await Promise.all([listProjects(includeDrafts), listApps(includeDrafts)]);
-  return { projects, apps };
-}
-
 export async function listCaseStudies(includeDrafts = true) {
   let query = client().from('case_studies').select('*').order('updated_at', { ascending: false });
   if (!includeDrafts) query = query.eq('visibility', 'published');
-  const [{ data, error }, available] = await Promise.all([query, sources(includeDrafts)]);
+  const [{ data, error }, availableProjects] = await Promise.all([query, listProjects(includeDrafts)]);
   if (error) throw error;
-  const projects = new Map(available.projects.map((item) => [item.id, item]));
-  const apps = new Map(available.apps.map((item) => [item.id, item]));
+  const projects = new Map(availableProjects.map((item) => [item.id, item]));
   return (data || []).flatMap((item) => {
-    const source = item.project_id ? projects.get(String(item.project_id)) : apps.get(String(item.app_id));
+    if (!item.project_id || item.app_id) return [];
+    const source = projects.get(String(item.project_id));
     if (!source) return [];
-    if (!includeDrafts && item.app_id && !(source as AppRecord).showInProjects) return [];
     const mapped = mapRow(item, source);
     return [{ ...mapped, evidence: includeDrafts ? mapped.evidence : filterPublicEvidence(mapped.evidence) }];
   });
@@ -203,27 +195,82 @@ export async function getPublicCaseStudyBySlug(slug: string) {
   return { ...item, evidence: filterPublicEvidence(item.evidence) };
 }
 
-export function caseStudyAcquisitionEnabled(item: CaseStudy) {
-  if (item.sourceType !== 'app') return false;
-  if (item.ownershipType === 'client_project' && !item.clientCommercialAuthorized) return false;
-  if (['not_for_sale', 'not_currently_available'].includes(item.commercialState)) return false;
-  return isAcquisitionEnabled(item.source as AppRecord);
-}
-
 export async function createCaseStudy(input: CaseStudyInput) {
   const { data, error } = await client().from('case_studies').insert(row(input)).select('*').single();
   if (error) throw error;
-  const available = await sources();
-  const source = data.project_id ? available.projects.find((item) => item.id === data.project_id) : available.apps.find((item) => item.id === data.app_id);
-  if (!source) throw new Error('Case-study source was not found.');
+  const source = (await listProjects(true)).find((item) => item.id === data.project_id);
+  if (!source) throw new Error('Case-study project was not found.');
   return mapRow(data, source);
 }
 
 export async function updateCaseStudy(id: string, input: CaseStudyInput) {
   const { data, error } = await client().from('case_studies').update(row(input)).eq('id', id).select('*').single();
   if (error) throw error;
-  const available = await sources();
-  const source = data.project_id ? available.projects.find((item) => item.id === data.project_id) : available.apps.find((item) => item.id === data.app_id);
-  if (!source) throw new Error('Case-study source was not found.');
+  const source = (await listProjects(true)).find((item) => item.id === data.project_id);
+  if (!source) throw new Error('Case-study project was not found.');
   return mapRow(data, source);
+}
+
+function projectCaseStudySlug(project: Project) {
+  return (project.slug || '').trim().toLowerCase().replace(/_/g, '-');
+}
+
+export async function ensureProjectCaseStudy(project: Project) {
+  const slug = projectCaseStudySlug(project);
+  if (!slug) return null;
+
+  const { data: existing, error: existingError } = await client()
+    .from('case_studies')
+    .select('*')
+    .eq('project_id', project.id)
+    .maybeSingle();
+  if (existingError) throw existingError;
+
+  if (existing) {
+    const { data, error } = await client()
+      .from('case_studies')
+      .update({
+        slug,
+        visibility: project.visibility,
+        project_status: project.status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return mapRow(data, project);
+  }
+
+  const { data: slugOwner, error: slugError } = await client()
+    .from('case_studies')
+    .select('id, project_id, app_id')
+    .eq('slug', slug)
+    .maybeSingle();
+  if (slugError) throw slugError;
+  if (slugOwner) throw new Error('A case study with this project slug already exists.');
+
+  const { data, error } = await client()
+    .from('case_studies')
+    .insert({
+      project_id: project.id,
+      app_id: null,
+      slug,
+      ownership_type: 'client_project',
+      commercial_state: 'not_for_sale',
+      client_commercial_authorized: false,
+      visibility: project.visibility,
+      executive_summary: project.description,
+      capabilities: project.features,
+      technology_architecture: project.technologies.length ? { 'Recorded technologies': project.technologies } : {},
+      project_status: project.status,
+      evidence: [],
+      section_order: defaultSectionOrder,
+      published_at: project.visibility === 'published' ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return mapRow(data, project);
 }

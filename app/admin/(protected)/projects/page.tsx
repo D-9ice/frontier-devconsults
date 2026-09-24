@@ -137,11 +137,11 @@ export default function ProjectsPage() {
         </Link>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Manage Projects</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Projects Manager</h1>
             <p className="mt-2 text-gray-600">Create, publish, edit, reorder, or remove portfolio projects.</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link href="/admin/case-studies" className="inline-flex items-center justify-center rounded-lg border border-blue-600 px-5 py-3 font-semibold text-blue-700 hover:bg-blue-50">Case Study Publisher</Link>
+            <Link href="/admin/case-studies" className="inline-flex items-center justify-center rounded-lg border border-blue-600 px-5 py-3 font-semibold text-blue-700 hover:bg-blue-50">Case Study Details</Link>
             <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700">
               <Plus className="h-5 w-5" /> Add Project
             </button>

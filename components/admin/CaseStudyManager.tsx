@@ -30,10 +30,10 @@ const sections = ['overview', 'problem', 'objectives', 'challenges', 'approach',
 const commercialStates = ['available_for_acquisition', 'available_for_licensing', 'available_for_customization', 'partnership_available', 'not_currently_available', 'not_for_sale'];
 
 function blank(sourceValue = ''): Payload & { sourceValue: string } {
-  const [kind, id] = sourceValue.split(':');
+  const id = sourceValue.startsWith('project:') ? sourceValue.slice('project:'.length) : '';
   return {
-    sourceValue, projectId: kind === 'project' ? id : null, appId: kind === 'app' ? id : null, slug: '', ownershipType: kind === 'app' ? 'frontier_product' : 'client_project',
-    commercialState: kind === 'app' ? 'not_currently_available' : 'not_for_sale', clientCommercialAuthorized: false, visibility: 'draft', executiveSummary: '', intendedMarket: '',
+    sourceValue, projectId: id || null, appId: null, slug: '', ownershipType: 'client_project',
+    commercialState: 'not_for_sale', clientCommercialAuthorized: false, visibility: 'draft', executiveSummary: '', intendedMarket: '',
     engineeringResponsibility: '', problemOpportunity: '', objectives: [], challengesConstraints: [], engineeringApproach: '', architecture: {}, engineeringDecisions: [],
     capabilities: [], problemsSolutions: [], securityReliability: [], performanceScalability: '', userExperience: '', technologyArchitecture: {}, projectStatus: '', engineeringInsights: '',
     evidence: [], sectionOrder: [...sections], seoTitle: '', seoDescription: '',
@@ -48,7 +48,7 @@ const parseTech = (value: string) => Object.fromEntries(lines(value).flatMap((ro
 
 export function CaseStudyManager() {
   const [items, setItems] = useState<CaseStudy[]>([]);
-  const [sources, setSources] = useState<{ projects: Source[]; apps: Source[] }>({ projects: [], apps: [] });
+  const [sources, setSources] = useState<{ projects: Source[] }>({ projects: [] });
   const [editing, setEditing] = useState<CaseStudy | null>(null);
   const [form, setForm] = useState(blank());
   const [notice, setNotice] = useState('');
@@ -62,12 +62,12 @@ export function CaseStudyManager() {
   };
   useEffect(() => { void load().catch((error) => setNotice(error.message)); }, []);
 
-  const used = useMemo(() => new Set(items.map((item) => item.projectId ? `project:${item.projectId}` : `app:${item.appId}`)), [items]);
-  const edit = (item: CaseStudy) => { setEditing(item); setForm({ ...item, sourceValue: item.projectId ? `project:${item.projectId}` : `app:${item.appId}`, architecture: item.architecture || {}, technologyArchitecture: item.technologyArchitecture || {} }); setNotice(''); };
+  const used = useMemo(() => new Set(items.flatMap((item) => item.projectId ? [`project:${item.projectId}`] : [])), [items]);
+  const edit = (item: CaseStudy) => { setEditing(item); setForm({ ...item, sourceValue: item.projectId ? `project:${item.projectId}` : '', architecture: item.architecture || {}, technologyArchitecture: item.technologyArchitecture || {} }); setNotice(''); };
   const create = () => { setEditing(null); setForm(blank()); setNotice(''); };
   const changeSource = (value: string) => {
-    const source = [...sources.projects.map((item) => ({ ...item, kind: 'project' })), ...sources.apps.map((item) => ({ ...item, kind: 'app' }))].find((item) => `${item.kind}:${item.id}` === value);
-    const next = blank(value); if (source) { next.slug = (source.slug || source.title || source.name || '').toLowerCase().replace(/_/g, '-').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+    const source = sources.projects.find((item) => `project:${item.id}` === value);
+    const next = blank(value); if (source) { next.slug = (source.slug || source.title || '').toLowerCase().replace(/_/g, '-').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
     setForm(next);
   };
   const save = async (event: FormEvent) => {
@@ -77,7 +77,7 @@ export function CaseStudyManager() {
     try {
       const response = await fetch(editing ? `/api/admin/case-studies/${editing.id}` : '/api/admin/case-studies', { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Unable to save case study.');
-      await load(); setEditing(data); setForm({ ...data, sourceValue: data.projectId ? `project:${data.projectId}` : `app:${data.appId}` }); setNotice('Case study saved.');
+      await load(); setEditing(data); setForm({ ...data, sourceValue: data.projectId ? `project:${data.projectId}` : '' }); setNotice('Case study saved.');
     } catch (error) { setNotice(error instanceof Error ? error.message : 'Unable to save case study.'); } finally { setSaving(false); }
   };
   const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm((current) => ({ ...current, [key]: value }));
@@ -93,7 +93,7 @@ export function CaseStudyManager() {
     <form onSubmit={save} className="space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
       {notice && <p role="status" className={`rounded-lg p-3 ${notice.includes('saved') ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-900'}`}>{notice}</p>}
       <fieldset className="grid gap-4 sm:grid-cols-2"><legend className="mb-3 text-xl font-bold">Publication controls</legend>
-        <Field label="Existing project or product"><select required disabled={Boolean(editing)} value={form.sourceValue} onChange={(event) => changeSource(event.target.value)} className="input"><option value="">Choose a source</option><optgroup label="Client/portfolio projects">{sources.projects.map((source) => <option key={source.id} value={`project:${source.id}`} disabled={used.has(`project:${source.id}`)}>{source.title}</option>)}</optgroup><optgroup label="Frontier products">{sources.apps.map((source) => <option key={source.id} value={`app:${source.id}`} disabled={used.has(`app:${source.id}`)}>{source.name}</option>)}</optgroup></select></Field>
+        <Field label="Existing project"><select required disabled={Boolean(editing)} value={form.sourceValue} onChange={(event) => changeSource(event.target.value)} className="input"><option value="">Choose a project</option>{sources.projects.map((source) => <option key={source.id} value={`project:${source.id}`} disabled={used.has(`project:${source.id}`)}>{source.title}</option>)}</select></Field>
         <Field label="Public slug"><input required value={form.slug} onChange={(event) => set('slug', event.target.value)} className="input" /></Field>
         <Field label="Ownership"><select value={form.ownershipType} onChange={(event) => { const ownership = event.target.value; setForm((current) => ({ ...current, ownershipType: ownership, commercialState: ownership === 'client_project' && !current.clientCommercialAuthorized ? 'not_for_sale' : current.commercialState })); }} className="input"><option value="frontier_product">Frontier-owned product</option><option value="client_project">Client-built project</option></select></Field>
         <Field label="Commercial state"><select value={form.commercialState} disabled={form.ownershipType === 'client_project' && !form.clientCommercialAuthorized} onChange={(event) => set('commercialState', event.target.value)} className="input">{commercialStates.map((value) => <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>)}</select></Field>

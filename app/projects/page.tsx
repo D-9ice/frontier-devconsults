@@ -1,13 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BriefcaseBusiness, CheckCircle2, ShieldCheck } from 'lucide-react';
-import AcquisitionLink from '@/components/AcquisitionLink';
-import AppArtwork from '@/components/AppArtwork';
 import ProjectArtwork from '@/components/ProjectArtwork';
 import { compactSummary } from '@/lib/application-presentation';
-import { caseStudyAcquisitionEnabled, listCaseStudies, type CaseStudy } from '@/lib/case-studies';
-import type { AppRecord } from '@/lib/apps';
-import type { Project } from '@/lib/projects';
+import { listCaseStudies, type CaseStudy } from '@/lib/case-studies';
 
 export const dynamic = 'force-dynamic';
 const description = 'Evidence-driven software, embedded systems, AI, web, and mobile engineering case studies from Frontier DevConsults in Accra, Ghana.';
@@ -34,11 +30,10 @@ function CaseStudyCard({ item }: { item: CaseStudy }) {
 }
 
 function CommercialCta({ item }: { item: CaseStudy }) {
-  if (caseStudyAcquisitionEnabled(item)) return <AcquisitionLink slug={(item.source as AppRecord).slug!} className="rounded-lg border border-blue-600 px-4 py-2 font-bold text-blue-700 hover:bg-blue-50">Explore acquisition</AcquisitionLink>;
   if (item.ownershipType === 'client_project') return <Link href={`/request-build?project=${encodeURIComponent(sourceName(item))}`} className="rounded-lg border border-blue-600 px-4 py-2 font-bold text-blue-700 hover:bg-blue-50">Request a similar build</Link>;
   return null;
 }
-function SourceArtwork({ item }: { item: CaseStudy }) { return item.sourceType === 'app' ? <AppArtwork app={item.source as AppRecord} variant="card" className="h-16 w-16 shrink-0 rounded-xl" /> : <ProjectArtwork title={(item.source as Project).title} src={(item.source as Project).logoUrl} className="h-16 w-16 shrink-0" />; }
-function sourceName(item: CaseStudy) { return item.sourceType === 'app' ? (item.source as AppRecord).name : (item.source as Project).title; }
-function sourceLifecycle(item: CaseStudy) { return item.sourceType === 'app' ? (item.source as AppRecord).lifecycle.replaceAll('_', ' ') : (item.source as Project).status; }
+function SourceArtwork({ item }: { item: CaseStudy }) { return <ProjectArtwork title={item.source.title} src={item.source.logoUrl} className="h-16 w-16 shrink-0" />; }
+function sourceName(item: CaseStudy) { return item.source.title; }
+function sourceLifecycle(item: CaseStudy) { return item.source.status; }
 function Empty() { return <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center"><BriefcaseBusiness className="mx-auto h-10 w-10 text-gray-400" /><h2 className="mt-4 text-2xl font-bold text-gray-900">No published case studies yet</h2><p className="mt-2 text-gray-600">Approved case studies will appear here after publication.</p></div>; }
