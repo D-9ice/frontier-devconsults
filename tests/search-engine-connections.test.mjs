@@ -28,11 +28,12 @@ test('sitemap uses the canonical HTTPS origin and includes static and dynamic pu
 });
 
 test('robots permits public crawling, protects private routes, and references the production sitemap', async () => {
-  const robots = await read('app/robots.ts');
+  const [robots, vercel] = await Promise.all([read('app/robots.ts'), read('vercel.json')]);
   assert.match(robots, /allow: '\/'/);
   assert.match(robots, /'\/admin\/'/);
   assert.match(robots, /'\/api\/'/);
   assert.match(robots, /\$\{SITE_ORIGIN\}\/sitemap\.xml/);
+  assert.equal(JSON.parse(vercel).rewrites, undefined);
   await assert.rejects(access(new URL('public/robots.txt', root)));
 });
 

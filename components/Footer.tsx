@@ -44,8 +44,8 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <Globe className="w-5 h-5 text-blue-500" />
-                <a href="https://www.frontier-devconsults.com" className="hover:text-blue-500 transition-colors">
-                  www.frontier-devconsults.com
+                <a href="https://frontier-devconsults.com" className="hover:text-blue-500 transition-colors">
+                  frontier-devconsults.com
                 </a>
               </div>
             </div>

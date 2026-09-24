@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     const { id } = await params; if (!isUuid(id)) return NextResponse.json({ error: 'Invalid app ID.' }, { status: 400 });
     const [before, related] = await Promise.all([
       listApps(true).then((items) => items.find((app) => app.id === id)),
-      listCaseStudies(false).then((items) => items.filter((item) => item.appId === id)),
+      listCaseStudies(true).then((items) => items.filter((item) => item.appId === id)),
     ]);
     const saved = await updateApp(id, input as never);
     if (before && hasMeaningfulPublicChange(before, saved)) {
@@ -38,7 +38,7 @@ export async function DELETE(request: NextRequest, { params }: RouteContext) {
     const { id } = await params; if (!isUuid(id)) return NextResponse.json({ error: 'Invalid app ID.' }, { status: 400 });
     const [before, related] = await Promise.all([
       listApps(true).then((items) => items.find((app) => app.id === id)),
-      listCaseStudies(false).then((items) => items.filter((item) => item.appId === id)),
+      listCaseStudies(true).then((items) => items.filter((item) => item.appId === id)),
     ]);
     await deleteApp(id);
     if (before?.visibility === 'published') {
