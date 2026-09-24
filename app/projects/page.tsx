@@ -4,7 +4,6 @@ import { BriefcaseBusiness, CheckCircle2, ShieldCheck } from 'lucide-react';
 import ProjectArtwork from '@/components/ProjectArtwork';
 import { compactSummary } from '@/lib/application-presentation';
 import { listCaseStudies, type CaseStudy } from '@/lib/case-studies';
-import type { Project } from '@/lib/projects';
 
 export const dynamic = 'force-dynamic';
 const description = 'Evidence-driven software, embedded systems, AI, web, and mobile engineering case studies from Frontier DevConsults in Accra, Ghana.';
