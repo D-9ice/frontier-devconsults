@@ -3,6 +3,7 @@ import { createProject, listProjects, validateProjectInput } from '@/lib/project
 import { requireAdmin, requireAdminMutation } from '@/lib/admin-auth';
 import { readBoundedJson } from '@/lib/request-security';
 import { submitIndexNow } from '@/lib/indexnow';
+import { ensureProjectCaseStudy } from '@/lib/case-studies';
 
 export async function GET(request: NextRequest) {
   const unauthorized = requireAdmin(request);
@@ -24,7 +25,13 @@ export async function POST(request: NextRequest) {
     const validationError = validateProjectInput(input);
     if (validationError) return NextResponse.json({ error: validationError }, { status: 400 });
     const saved = await createProject(input as never);
-    if (saved.visibility === 'published' && saved.featured) await submitIndexNow(['/']);
+    const caseStudy = await ensureProjectCaseStudy(saved);
+    if (saved.visibility === 'published') {
+      const urls = ['/projects'];
+      if (caseStudy?.slug) urls.push(`/projects/${caseStudy.slug}`);
+      if (saved.featured) urls.push('/');
+      await submitIndexNow(urls);
+    }
     return NextResponse.json(saved, { status: 201 });
   } catch (error) {
     console.error('Admin project create error:', error);
