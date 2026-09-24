@@ -32,7 +32,7 @@ SELECT
   a.demo_url,
   a.download_link,
   CASE a.slug
-    WHEN 'g-tube' THEN 'red'
+    WHEN 'g-tube' THEN 'blue'
     WHEN 'fine-health' THEN 'green'
     WHEN 'premium-space' THEN 'purple'
     WHEN 'c-zan-guest-house' THEN 'orange'
