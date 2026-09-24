@@ -191,6 +191,7 @@ export async function listCaseStudies(includeDrafts = true) {
   return (data || []).flatMap((item) => {
     const source = item.project_id ? projects.get(String(item.project_id)) : apps.get(String(item.app_id));
     if (!source) return [];
+    if (!includeDrafts && item.app_id && !(source as AppRecord).showInProjects) return [];
     const mapped = mapRow(item, source);
     return [{ ...mapped, evidence: includeDrafts ? mapped.evidence : filterPublicEvidence(mapped.evidence) }];
   });
