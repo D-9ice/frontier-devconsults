@@ -41,6 +41,13 @@ export default function RequestBuildPage() {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const project = query.get('project')?.trim();
+    if (!project) return;
+    setFormData((current) => current.projectName ? current : { ...current, projectName: `Similar to ${project}` });
+  }, []);
+
+  useEffect(() => {
     fetch('/api/pricing', { cache: 'no-store' })
       .then((response) => response.ok ? response.json() : null)
       .then((settings) => {
