@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, XCircle } from 'lucide-react';
 import RequestBuildForm from '@/components/RequestBuildForm';
 
@@ -16,6 +16,18 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const subject = query.get('subject')?.trim();
+    const message = query.get('message')?.trim();
+    if (!subject && !message) return;
+    setFormData((current) => ({
+      ...current,
+      subject: subject || current.subject,
+      message: message || current.message,
+    }));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
