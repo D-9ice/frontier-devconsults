@@ -52,7 +52,21 @@ function buildBlocks(item: CaseStudy): Record<string, React.ReactNode | null> {
   };
 }
 
-function CallToAction({ item }: { item: CaseStudy }) { if (item.ownershipType === 'client_project') return <section className="rounded-2xl bg-slate-900 p-7 text-white"><h2 className="text-2xl font-bold">Request a similar build</h2><p className="mt-2 text-slate-200">Tell Frontier DevConsults about the outcomes and engineering requirements you need.</p><Link href={`/request-build?project=${encodeURIComponent(sourceName(item))}`} className="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-3 font-bold text-white">Request a build</Link></section>; return null; }
+function CallToAction({ item }: { item: CaseStudy }) {
+  if (item.ownershipType === 'client_project') return <section className="rounded-2xl bg-slate-900 p-7 text-white"><h2 className="text-2xl font-bold">Request a similar build</h2><p className="mt-2 text-slate-200">Tell Frontier DevConsults about the outcomes and engineering requirements you need.</p><Link href={similarBuildHref(item)} className="mt-5 inline-flex rounded-lg bg-blue-600 px-5 py-3 font-bold text-white">Request a Similar Build</Link></section>;
+  if (item.ownershipType === 'frontier_product') return <section className="rounded-2xl bg-gradient-to-br from-blue-950 to-slate-950 p-7 text-white"><h2 className="text-2xl font-bold">Acquire this application or request a similar build</h2><p className="mt-2 max-w-3xl text-slate-200">This is a Frontier-owned product. You can open a commercial acquisition discussion for the existing application, or request a separate solution built around similar engineering capabilities.</p><div className="mt-5 flex flex-wrap gap-3">{item.commercialState !== 'not_for_sale' && <Link href={acquisitionHref(item)} className="inline-flex rounded-lg bg-emerald-500 px-5 py-3 font-bold text-slate-950 hover:bg-emerald-400">{acquisitionLabel(item)}</Link>}<Link href={similarBuildHref(item)} className="inline-flex rounded-lg border border-white/50 px-5 py-3 font-bold text-white hover:bg-white/10">Request a Similar Build</Link></div></section>;
+  return null;
+}
+function acquisitionLabel(item: CaseStudy) { return item.commercialState === 'available_for_acquisition' ? 'Acquire This Application' : 'Request Acquisition'; }
+function acquisitionHref(item: CaseStudy) {
+  const name = sourceName(item);
+  const query = new URLSearchParams({
+    subject: `Acquisition request — ${name}`,
+    message: `I am interested in acquiring ${name}. Please contact me to discuss the acquisition scope, commercial terms, due diligence, and next steps.`,
+  });
+  return `/contact?${query.toString()}`;
+}
+function similarBuildHref(item: CaseStudy) { return `/request-build?project=${encodeURIComponent(sourceName(item))}`; }
 function SourceArtwork({ item }: { item: CaseStudy }) { return <ProjectArtwork title={item.source.title} src={item.source.logoUrl} className="h-24 w-24 shrink-0" />; }
 function MediaEvidence({ evidence }: { evidence: CaseStudyEvidence }) { return <figure className="overflow-hidden rounded-xl border border-gray-200 bg-white">{evidence.type === 'project_video' ? <video src={evidence.sourceUrl!} controls playsInline className="aspect-video w-full bg-black object-contain" /> : <Image src={evidence.sourceUrl!} alt={evidence.title} width={1200} height={800} className="h-auto w-full object-contain" />}<figcaption className="p-4"><strong>{evidence.title}</strong>{evidence.description && <p className="mt-1 text-sm text-gray-600">{evidence.description}</p>}</figcaption></figure>; }
 function EvidenceCard({ evidence }: { evidence: CaseStudyEvidence }) { return <div className="rounded-xl border border-gray-200 bg-white p-5"><p className="text-xs font-bold uppercase tracking-wide text-blue-700">{evidence.type.replaceAll('_', ' ')}</p>{evidence.type === 'testimonial' && evidence.testimonialText ? <blockquote className="mt-3 text-lg leading-7 text-gray-800">“{evidence.testimonialText}”</blockquote> : <><h3 className="mt-2 font-bold text-gray-950">{evidence.title}</h3>{evidence.description && <Text value={evidence.description} />}</>}{evidence.type === 'testimonial' && <p className="mt-3 text-sm font-semibold text-gray-600">{[evidence.clientName, evidence.clientRole, evidence.clientCompany].filter(Boolean).join(' · ')}</p>}{evidence.externalUrl && <a href={evidence.externalUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex font-semibold text-blue-700">Open approved source →</a>}</div>; }
