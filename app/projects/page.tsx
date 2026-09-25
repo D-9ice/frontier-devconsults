@@ -30,9 +30,24 @@ function CaseStudyCard({ item }: { item: CaseStudy }) {
 }
 
 function CommercialCta({ item }: { item: CaseStudy }) {
-  if (item.ownershipType === 'client_project') return <Link href={`/request-build?project=${encodeURIComponent(sourceName(item))}`} className="rounded-lg border border-blue-600 px-4 py-2 font-bold text-blue-700 hover:bg-blue-50">Request a similar build</Link>;
+  const similar = <Link href={similarBuildHref(item)} className="rounded-lg border border-blue-600 px-4 py-2 font-bold text-blue-700 hover:bg-blue-50">Request a Similar Build</Link>;
+  if (item.ownershipType === 'client_project') return similar;
+  if (item.ownershipType === 'frontier_product') return <>
+    {item.commercialState !== 'not_for_sale' && <Link href={acquisitionHref(item)} className="rounded-lg bg-emerald-600 px-4 py-2 font-bold text-white hover:bg-emerald-700">{acquisitionLabel(item)}</Link>}
+    {similar}
+  </>;
   return null;
 }
+function acquisitionLabel(item: CaseStudy) { return item.commercialState === 'available_for_acquisition' ? 'Acquire This Application' : 'Request Acquisition'; }
+function acquisitionHref(item: CaseStudy) {
+  const name = sourceName(item);
+  const query = new URLSearchParams({
+    subject: `Acquisition request — ${name}`,
+    message: `I am interested in acquiring ${name}. Please contact me to discuss the acquisition scope, commercial terms, due diligence, and next steps.`,
+  });
+  return `/contact?${query.toString()}`;
+}
+function similarBuildHref(item: CaseStudy) { return `/request-build?project=${encodeURIComponent(sourceName(item))}`; }
 function SourceArtwork({ item }: { item: CaseStudy }) { return <ProjectArtwork title={item.source.title} src={item.source.logoUrl} className="h-16 w-16 shrink-0" />; }
 function sourceName(item: CaseStudy) { return item.source.title; }
 function sourceLifecycle(item: CaseStudy) { return item.source.status; }
