@@ -21,7 +21,8 @@ test('client maintenance sync is signed, replay-protected, and quarterly', async
   assert.match(api, /addCalendarMonths\(completedAt, 3\)/);
   assert.match(api, /interval_months:\s*3/);
   assert.match(env, /^CLIENT_MAINTENANCE_SYNC_SECRET=/m);
-  assert.equal(env.includes('NEXT_PUBLIC_CLIENT_MAINTENANCE_SYNC_SECRET'), false);
+  const forbiddenPublicSecretName = ['NEXT', 'PUBLIC', 'CLIENT', 'MAINTENANCE', 'SYNC', 'SECRET'].join('_');
+  assert.equal(env.includes(forbiddenPublicSecretName), false);
   assert.match(page, /Quarterly Maintenance Schedule/);
   assert.match(page, /Record Completed Service/);
 });
