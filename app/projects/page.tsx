@@ -4,6 +4,7 @@ import { BriefcaseBusiness, CheckCircle2, ShieldCheck } from 'lucide-react';
 import ProjectArtwork from '@/components/ProjectArtwork';
 import { compactSummary } from '@/lib/application-presentation';
 import { listCaseStudies, type CaseStudy } from '@/lib/case-studies';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 export const dynamic = 'force-dynamic';
 const description = 'Evidence-driven software, embedded systems, AI, web, and mobile engineering case studies from Frontier DevConsults in Accra, Ghana.';
@@ -12,7 +13,24 @@ export const metadata: Metadata = { title: 'Engineering Projects & Case Studies'
 export default async function ProjectsPage() {
   let caseStudies: Awaited<ReturnType<typeof listCaseStudies>> = [];
   try { caseStudies = await listCaseStudies(false); } catch (error) { console.error('Public case studies fetch failed:', error); }
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Engineering Projects & Case Studies',
+    description,
+    url: `${SITE_ORIGIN}/projects`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: caseStudies.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: sourceName(item),
+        url: `${SITE_ORIGIN}/projects/${item.slug}`,
+      })),
+    },
+  };
   return <main className="min-h-screen bg-gray-50">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema).replaceAll('<', '\\u003c') }} />
     <section className="bg-gradient-to-br from-slate-950 to-blue-900 py-20 text-white"><div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><p className="font-bold uppercase tracking-[0.18em] text-blue-300">Selected engineering work</p><h1 className="mt-4 text-4xl font-bold sm:text-5xl">Projects &amp; Case Studies</h1><p className="mt-5 max-w-3xl text-xl leading-8 text-slate-200">Concise, evidence-controlled accounts of the problems, decisions, capabilities, and verified results behind our work.</p></div></section>
     <section className="py-14"><div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">{caseStudies.length === 0 ? <Empty /> : <div className="grid gap-7 md:grid-cols-2">{caseStudies.map((item) => <CaseStudyCard key={item.id} item={item} />)}</div>}</div></section>
   </main>;
