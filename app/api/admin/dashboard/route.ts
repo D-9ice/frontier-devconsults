@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
       specializedCountResult,
       specializedResult,
     ] = await Promise.all([
-      supabaseServer.from('visitors').select('*', { count: 'exact', head: true }),
-      supabaseServer.from('visitors').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
+      supabaseServer.from('monitoring_sessions').select('*', { count: 'exact', head: true }),
+      supabaseServer.from('monitoring_views').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
       supabaseServer.from('contact_submissions').select('*', { count: 'exact', head: true }),
       supabaseServer.from('build_requests').select('*', { count: 'exact', head: true }),
       supabaseServer.from('contact_submissions').select('*', { count: 'exact', head: true }).eq('responded', false),

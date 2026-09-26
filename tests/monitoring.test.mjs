@@ -71,12 +71,22 @@ test('acquisition alerts are readable and include the authenticated record link'
   assert.match(message,/admin\/monitoring\/records\/acquisition/);
   assert.doesNotMatch(message,/\{\s*"/);
 });
-test('daily Vercel fallback is authenticated and consent-aware visitor tracking is mounted',()=>{
+test('daily Vercel fallback is authenticated and analytics are mounted once on normal public chrome',()=>{
   const route=readFileSync('app/api/monitoring/run/route.ts','utf8');
   const layout=readFileSync('app/layout.tsx','utf8');
+  const chrome=readFileSync('components/SiteChrome.tsx','utf8');
+  const settings=readFileSync('app/admin/(protected)/settings/page.tsx','utf8');
+  const dashboardApi=readFileSync('app/api/admin/dashboard/route.ts','utf8');
   const vercel=JSON.parse(readFileSync('vercel.json','utf8'));
   assert.match(route,/process\.env\.CRON_SECRET/);
   assert.match(route,/runMonitoring\(\{forceDailySummary:true\}\)/);
-  assert.match(layout,/<VisitorTracker \/>/);
+  assert.doesNotMatch(layout,/VisitorTracker/);
+  assert.equal((chrome.match(/<VisitorTracker \/>/g)||[]).length,1);
+  assert.match(chrome,/<GoogleAnalytics \/>/);
+  assert.match(chrome,/<AnalyticsConsentBanner \/>/);
+  assert.match(settings,/if \(!res\.ok\) throw new Error/);
+  assert.match(dashboardApi,/from\('monitoring_sessions'\)/);
+  assert.match(dashboardApi,/from\('monitoring_views'\)/);
+  assert.doesNotMatch(dashboardApi,/from\('visitors'\)/);
   assert.deepEqual(vercel.crons,[{path:'/api/monitoring/run',schedule:'17 23 * * *'}]);
 });

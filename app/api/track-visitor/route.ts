@@ -23,7 +23,6 @@ export async function POST(request: NextRequest) {
     if (error) return ignored();
     if (!body.heartbeat) {
       await db.from('monitoring_views').insert({session_id:body.session,page,source,country,city});
-      await db.from('visitors').insert({page,referrer:source,user_agent:null});
     }
     if (!previous) {
       const {data:settings}=await db.from('monitoring_settings').select('visitor_alerts').eq('id',true).single();

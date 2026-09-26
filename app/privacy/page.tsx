@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const lastUpdated = 'September 8, 2026';
+  const lastUpdated = 'September 26, 2026';
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -71,6 +71,7 @@ export default function PrivacyPage() {
             <ul>
               <li><strong>Supabase:</strong> database and application-data storage.</li>
               <li><strong>Vercel:</strong> website hosting, delivery, and technical logs.</li>
+              <li><strong>Google Analytics 4:</strong> optional website measurement only after analytics consent and only while the service is configured. Google may process device, browser, page, referral, and related measurement data under its applicable terms.</li>
               <li><strong>OpenAI:</strong> processing Frontier Assistant conversation text. Assistant API requests are configured not to be stored by the application, although OpenAI's applicable service terms still govern its processing.</li>
               <li><strong>Resend:</strong> transactional and administrative email delivery while that service is configured.</li>
               <li><strong>Meta/WhatsApp:</strong> direct WhatsApp links and administrative contact alerts when configured.</li>
@@ -108,9 +109,10 @@ export default function PrivacyPage() {
           </PolicySection>
 
           <PolicySection title="10. Browser Storage, Analytics, and External Links">
-            <p>Optional visitor analytics require opt-in below. Anonymous session identifiers stay in browser session storage; page views, referring domains and approximate hosting-provider city/country are retained for up to 30 days. These records do not identify who a visitor is. Identifiable bots and authenticated administrators are excluded. Essential security monitoring and enquiry handling continue regardless of this preference.</p>
+            <p>Optional visitor analytics require opt-in. Frontier's first-party analytics use an anonymous browser-session identifier and retain page views, referring domains and approximate hosting-provider city/country for up to 30 days. Identifiable bots, authenticated administrators, Do Not Track, and Global Privacy Control are excluded.</p>
+            <p>When Google Analytics 4 is configured, its measurement script is also loaded only after the same analytics consent. Declining analytics prevents both optional systems from starting. Essential security monitoring and enquiry handling continue regardless of this preference.</p>
             <AnalyticsPreferences />
-            <p>The website uses limited session storage and collects first-party usage and attribution events as described above. Your browser can clear session storage and restrict similar technologies, although doing so may reset preferences or affect some functionality.</p>
+            <p>The website uses limited browser storage for consent and session state. Google Analytics may use cookies or comparable browser identifiers after consent. You can change the analytics preference here at any time; disabling analytics removes the Frontier session identifier and prevents further optional events from being sent by the site.</p>
             <p>Our website also links to external services and live client websites. Their privacy practices are governed by their own policies, and we are not responsible for their content or processing.</p>
           </PolicySection>
 

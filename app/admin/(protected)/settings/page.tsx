@@ -7,24 +7,28 @@ import { ArrowLeft, Settings as SettingsIcon, Globe, Mail, Shield, Database } fr
 export default function SettingsPage() {
   const [dbStatus, setDbStatus] = useState<{
     connected: boolean;
-    totalVisitors: number;
+    views24h: number;
     loading: boolean;
-  }>({ connected: false, totalVisitors: 0, loading: true });
+  }>({ connected: false, views24h: 0, loading: true });
   useEffect(() => {
     // Check database connection status
-    fetch('/api/track-visitor')
-      .then(res => res.json())
+    fetch('/api/track-visitor', { cache: 'no-store' })
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Database health check failed');
+        return data;
+      })
       .then(data => {
         setDbStatus({
           connected: true,
-          totalVisitors: data.totalVisitors || 0,
+          views24h: data.views24h || 0,
           loading: false,
         });
       })
       .catch(() => {
         setDbStatus({
           connected: false,
-          totalVisitors: 0,
+          views24h: 0,
           loading: false,
         });
       });
@@ -70,7 +74,7 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="https://www.frontier-devconsults.com"
+                  defaultValue="https://frontier-devconsults.com"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 bg-white"
                   disabled
                 />
@@ -147,9 +151,9 @@ export default function SettingsPage() {
               </div>
             ) : dbStatus.connected ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-800 font-semibold mb-2">✅ Database Connected - {dbStatus.totalVisitors} visitors tracked</p>
+                <p className="text-green-800 font-semibold mb-2">✅ Database Connected — {dbStatus.views24h} page views in the last 24 hours</p>
                 <p className="text-green-700 text-sm">
-                  Supabase is connected and actively tracking visitor data, form submissions, and dynamic content.
+                  Supabase monitoring queries are succeeding. Optional visitor analytics record activity only after consent; forms and dynamic content use the same protected server connection.
                 </p>
               </div>
             ) : (

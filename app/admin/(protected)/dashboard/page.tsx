@@ -104,13 +104,13 @@ export default function AdminDashboard() {
         <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             icon={<Eye className="w-8 h-8" />}
-            title="Total Visitors"
+            title="Visitor Sessions (30d)"
             value={loadingData ? '...' : stats.totalVisitors}
             color="indigo"
           />
           <StatCard
             icon={<Eye className="w-8 h-8" />}
-            title="Today's Visits"
+            title="Today's Page Views"
             value={loadingData ? '...' : stats.visitsToday}
             color="cyan"
           />

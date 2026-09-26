@@ -3,7 +3,6 @@ import "@fontsource-variable/inter";
 import "./globals.css";
 import PWAInstaller from "@/components/PWAInstaller";
 import SiteChrome from "@/components/SiteChrome";
-import VisitorTracker from "@/components/VisitorTracker";
 import { SITE_ORIGIN } from "@/lib/site-url";
 
 const siteDescription = 'Custom software, Flutter mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Frontier DevConsults in Accra, Ghana—serving Africa and worldwide.';
@@ -105,7 +104,6 @@ export default function RootLayout({
     <html lang="en-GH" className="scroll-smooth">
       <body className="antialiased">
         <PWAInstaller />
-        <VisitorTracker />
         <SiteChrome assistantEnabled={Boolean(process.env.OPENAI_API_KEY)}>{children}</SiteChrome>
       </body>
     </html>
