@@ -127,7 +127,7 @@ export default function TermsPage() {
               <p className="mb-2 text-gray-800"><strong>Frontier DevConsults</strong></p>
               <p className="mb-1 text-gray-600">Email: info@frontier-devconsults.com</p>
               <p className="mb-1 text-gray-600">WhatsApp &amp; Phone: +233 249 078 976</p>
-              <p className="mb-1 text-gray-600">Website: www.frontier-devconsults.com</p>
+              <p className="mb-1 text-gray-600">Website: frontier-devconsults.com</p>
               <p className="text-gray-600">Location: Greater Accra, Ghana</p>
             </div>
           </TermsSection>

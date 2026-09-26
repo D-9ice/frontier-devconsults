@@ -224,6 +224,7 @@ export default async function Home() {
                 status={project.status}
                 tags={project.technologies}
                 logoUrl={project.logoUrl || undefined}
+                href={project.slug ? `/projects/${encodeURIComponent(project.slug.replaceAll('_', '-'))}` : '/projects'}
               />
             )) : <div className="md:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-600">No featured projects are currently published.</div>}
           </div>
@@ -353,9 +354,10 @@ interface ProjectCardProps {
   status: 'Production' | 'Development' | 'Planning';
   tags: string[];
   logoUrl?: string;
+  href: string;
 }
 
-function ProjectCard({ title, category, description, status, tags, logoUrl }: ProjectCardProps) {
+function ProjectCard({ title, category, description, status, tags, logoUrl, href }: ProjectCardProps) {
   const statusColors = {
     Production: 'bg-green-100 text-green-700',
     Development: 'bg-blue-100 text-blue-700',
@@ -382,6 +384,9 @@ function ProjectCard({ title, category, description, status, tags, logoUrl }: Pr
           </span>
         ))}
       </div>
+      <Link href={href} className="mt-5 inline-flex items-center font-bold text-blue-700 hover:text-blue-800">
+        View Case Study <ArrowRight className="ml-2 h-4 w-4" />
+      </Link>
     </div>
   );
 }

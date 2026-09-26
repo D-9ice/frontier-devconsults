@@ -28,7 +28,7 @@ export default async function AppDetailPage({ params }: Props) {
   if (!app) notFound();
   const detail = toPublicAppDetail(app);
   const { cta, name } = detail;
-  const schema = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name, description: detail.description, applicationCategory: detail.solutionKindLabel, operatingSystem: detail.artifactPlatform || undefined, url: `${SITE_ORIGIN}/app-store/${detail.slug}`, image: detail.ogImageUrl || detail.artworkUrl || undefined };
+  const schema = { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name, description: detail.description, applicationCategory: detail.solutionKindLabel, operatingSystem: detail.artifactPlatform || undefined, url: `${SITE_ORIGIN}/app-store/${detail.slug}`, image: detail.ogImageUrl || detail.artworkUrl || undefined, dateModified: app.updatedAt, author: { '@type': 'Organization', '@id': `${SITE_ORIGIN}/#organization`, name: 'Frontier DevConsults' } };
   const breadcrumbs = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Digital Products', item: `${SITE_ORIGIN}/app-store` }, { '@type': 'ListItem', position: 2, name, item: `${SITE_ORIGIN}/app-store/${detail.slug}` }] };
 
   return <main id="main-content" className="min-h-screen bg-gray-50">
