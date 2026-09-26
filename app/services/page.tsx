@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Bot, CircuitBoard, Code2, Database, Smartphone, Workflow } from 'lucide-react';
-export const metadata: Metadata = { title: 'Software & Engineering Services in Ghana', description: 'Custom software, Flutter mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Frontier DevConsults in Accra, Ghana.', alternates: { canonical: '/services' } };
+import { SITE_ORIGIN } from '@/lib/site-url';
+export const metadata: Metadata = { title: 'Software & Engineering Services Ghana', description: 'Custom software, Flutter mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Frontier DevConsults in Accra, Ghana.', alternates: { canonical: '/services' } };
 const services = [
   { icon: <CircuitBoard />, title: 'Custom Specialized Solutions', text: 'Integrated electronics, electrical, embedded, control, monitoring, IoT, energy, diagnostics, and software systems engineered around specialized operational requirements.', href: '/services/custom-specialized-solutions', cta: 'Explore specialized solutions' },
   { icon: <Code2 />, title: 'Custom software development', text: 'Purpose-built business systems, integrations, workflows, and operational tools developed from Ghana for local and international organizations.', href: '/services/custom-software-development-ghana', cta: 'Explore custom software development' },
@@ -13,4 +14,20 @@ const services = [
   { icon: <CircuitBoard />, title: 'Electrical & electronics engineering', text: 'Circuit analysis, power electronics, PCB/controller diagnostics, and technical engineering support.' },
   { icon: <Workflow />, title: 'Modernization & technical consulting', text: 'Focused architecture, delivery planning, troubleshooting, and improvement of existing digital systems.' },
 ];
-export default function ServicesPage() { return <main className="min-h-screen bg-gray-50"><section className="bg-gradient-to-br from-slate-950 to-blue-900 py-20 text-white"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="font-bold uppercase tracking-[0.18em] text-blue-300">What we do</p><h1 className="mt-4 text-4xl font-bold sm:text-5xl">Software and engineering services</h1><p className="mt-5 max-w-3xl text-xl leading-8 text-slate-200">Practical technical delivery for organizations that need a clear path from requirements to a working, supportable solution.</p></div></section><section className="py-14"><div className="mx-auto max-w-6xl px-4 sm:px-6"><div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{services.map((service) => <article key={service.title} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-700">{service.icon}</div><h2 className="mt-5 text-xl font-bold text-gray-900">{service.title}</h2><p className="mt-3 leading-7 text-gray-600">{service.text}</p>{service.href && <Link href={service.href} className="mt-5 inline-flex font-bold text-blue-700">{service.cta}</Link>}</article>)}</div><div className="mt-12 rounded-2xl bg-blue-700 p-8 text-white"><h2 className="text-2xl font-bold">Discuss a direct engagement</h2><p className="mt-2 text-blue-100">A written quotation confirms scope, deliverables, currency, schedule, and support terms.</p><Link href="/contact#request-build" className="mt-5 inline-flex rounded-lg bg-white px-5 py-3 font-bold text-blue-800">Request a quotation</Link></div></div></section></main>; }
+export default function ServicesPage() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Software and engineering services',
+    url: `${SITE_ORIGIN}/services`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: services.filter((service) => service.href).map((service, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: service.title,
+        url: `${SITE_ORIGIN}${service.href}`,
+      })),
+    },
+  };
+  return <main className="min-h-screen bg-gray-50"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replaceAll('<', '\\u003c') }} /><section className="bg-gradient-to-br from-slate-950 to-blue-900 py-20 text-white"><div className="mx-auto max-w-6xl px-4 sm:px-6"><p className="font-bold uppercase tracking-[0.18em] text-blue-300">What we do</p><h1 className="mt-4 text-4xl font-bold sm:text-5xl">Software and engineering services</h1><p className="mt-5 max-w-3xl text-xl leading-8 text-slate-200">Practical technical delivery for organizations that need a clear path from requirements to a working, supportable solution.</p></div></section><section className="py-14"><div className="mx-auto max-w-6xl px-4 sm:px-6"><div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{services.map((service) => <article key={service.title} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-700">{service.icon}</div><h2 className="mt-5 text-xl font-bold text-gray-900">{service.title}</h2><p className="mt-3 leading-7 text-gray-600">{service.text}</p>{service.href && <Link href={service.href} className="mt-5 inline-flex font-bold text-blue-700">{service.cta}</Link>}</article>)}</div><div className="mt-12 rounded-2xl bg-blue-700 p-8 text-white"><h2 className="text-2xl font-bold">Discuss a direct engagement</h2><p className="mt-2 text-blue-100">A written quotation confirms scope, deliverables, currency, schedule, and support terms.</p><Link href="/contact#request-build" className="mt-5 inline-flex rounded-lg bg-white px-5 py-3 font-bold text-blue-800">Request a quotation</Link></div></div></section></main>; }

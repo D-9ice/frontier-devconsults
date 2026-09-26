@@ -20,8 +20,8 @@ export default async function ProjectDetail({ params }: Props) {
   const item = await getPublicCaseStudyBySlug((await params).slug).catch(() => null); if (!item) notFound();
   const name = sourceName(item); const blocks = buildBlocks(item); const url = `${SITE_ORIGIN}/projects/${item.slug}`;
   const workSchema = item.ownershipType === 'frontier_product'
-    ? { '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url, dateModified: item.updatedAt, author: { '@type': 'Organization', '@id': `${SITE_ORIGIN}/#organization`, name: 'Frontier DevConsults' } }
-    : { '@type': 'CreativeWork', name, description: item.executiveSummary, url, dateModified: item.updatedAt, creator: { '@type': 'Organization', '@id': `${SITE_ORIGIN}/#organization`, name: 'Frontier DevConsults' } };
+    ? { '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url, dateModified: item.updatedAt, author: { '@type': 'Organization', '@id': `${SITE_ORIGIN}/#organization`, name: 'Frontier DevConsults', url: SITE_ORIGIN, logo: `${SITE_ORIGIN}/logos/frontier-emblem.webp` } }
+    : { '@type': 'CreativeWork', name, description: item.executiveSummary, url, dateModified: item.updatedAt, creator: { '@type': 'Organization', '@id': `${SITE_ORIGIN}/#organization`, name: 'Frontier DevConsults', url: SITE_ORIGIN, logo: `${SITE_ORIGIN}/logos/frontier-emblem.webp` } };
   const jsonLd = { '@context': 'https://schema.org', '@graph': [workSchema, { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE_ORIGIN }, { '@type': 'ListItem', position: 2, name: 'Projects', item: `${SITE_ORIGIN}/projects` }, { '@type': 'ListItem', position: 3, name, item: url }] }] };
   return <main className="min-h-screen bg-gray-50">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />

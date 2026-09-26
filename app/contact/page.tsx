@@ -3,8 +3,25 @@
 import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, XCircle } from 'lucide-react';
 import RequestBuildForm from '@/components/RequestBuildForm';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 export default function ContactPage() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'Contact Frontier DevConsults',
+    url: `${SITE_ORIGIN}/contact`,
+    mainEntity: {
+      '@type': ['Organization', 'ProfessionalService'],
+      '@id': `${SITE_ORIGIN}/#organization`,
+      name: 'Frontier DevConsults',
+      url: SITE_ORIGIN,
+      logo: `${SITE_ORIGIN}/logos/frontier-emblem.webp`,
+      email: 'info@frontier-devconsults.com',
+      telephone: '+233-249-078-976',
+      address: { '@type': 'PostalAddress', addressLocality: 'Accra', addressRegion: 'Greater Accra', addressCountry: 'Ghana' },
+    },
+  };
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -67,7 +84,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50"><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replaceAll('<', '\\u003c') }} />
       {/* Header */}
       <section className="bg-gradient-to-br from-slate-900 to-blue-900 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

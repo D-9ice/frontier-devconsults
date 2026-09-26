@@ -5,14 +5,14 @@ import PWAInstaller from "@/components/PWAInstaller";
 import SiteChrome from "@/components/SiteChrome";
 import { SITE_ORIGIN } from "@/lib/site-url";
 
-const siteDescription = 'Custom software, Flutter mobile apps, web platforms, AI integration, embedded systems, and IoT engineering from Frontier DevConsults in Accra, Ghana—serving Africa and worldwide.';
+const siteDescription = 'Custom software, Flutter apps, web platforms, AI integration, embedded systems and IoT engineering from Frontier DevConsults in Accra, Ghana.';
 const googleVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 const bingVerification = process.env.BING_SITE_VERIFICATION?.trim();
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: 'Custom Software & Embedded Systems Development | Accra, Ghana',
+    default: 'Custom Software & Engineering | Accra, Ghana',
     template: '%s | Frontier DevConsults'
   },
   description: siteDescription,

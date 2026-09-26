@@ -1,17 +1,33 @@
 import { Code2, Smartphone, Globe, Award, Users, Zap, Cpu, Database, CircuitBoard, Workflow } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 export const metadata: Metadata = {
-  title: 'About Our Software & Engineering Company in Ghana',
+  title: 'Software & Engineering Company Ghana',
   description: 'Learn about Frontier DevConsults, a founder-led software, electronics, embedded systems, and AI engineering company based in Greater Accra, Ghana.',
   alternates: { canonical: '/about' },
   openGraph: { title: 'About Frontier DevConsults', description: 'Founder-led software and engineering delivery from Greater Accra, Ghana, serving organizations across Africa and worldwide.', url: '/about', type: 'website' },
 };
 
 export default function AboutPage() {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About Frontier DevConsults',
+    url: `${SITE_ORIGIN}/about`,
+    mainEntity: {
+      '@type': ['Organization', 'ProfessionalService'],
+      '@id': `${SITE_ORIGIN}/#organization`,
+      name: 'Frontier DevConsults',
+      url: SITE_ORIGIN,
+      logo: `${SITE_ORIGIN}/logos/frontier-emblem.webp`,
+      address: { '@type': 'PostalAddress', addressLocality: 'Accra', addressRegion: 'Greater Accra', addressCountry: 'Ghana' },
+    },
+  };
   return (
     <main className="min-h-screen bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replaceAll('<', '\\u003c') }} />
       {/* Header */}
       <section className="bg-gradient-to-br from-slate-900 to-blue-900 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

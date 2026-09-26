@@ -86,7 +86,7 @@ export default async function ServiceLandingPage({ params }: { params: Promise<{
     {
       '@context': 'https://schema.org', '@type': 'Service', name: service.title, serviceType: service.eyebrow,
       url: canonical, description: service.description,
-      provider: { '@type': ['Organization', 'ProfessionalService'], '@id': `${baseUrl}/#organization`, name: 'Frontier DevConsults', url: baseUrl },
+      provider: { '@type': ['Organization', 'ProfessionalService'], '@id': `${baseUrl}/#organization`, name: 'Frontier DevConsults', url: baseUrl, logo: `${baseUrl}/logos/frontier-emblem.webp` },
       areaServed: [{ '@type': 'Country', name: 'Ghana' }, { '@type': 'Place', name: 'Africa' }, { '@type': 'Place', name: 'Worldwide' }],
       offers: service.capabilities.map((name) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name } })),
     },
@@ -118,6 +118,13 @@ export default async function ServiceLandingPage({ params }: { params: Promise<{
           <h2 className="text-2xl font-bold text-gray-950">What a successful engagement produces</h2>
           <ul className="mt-5 space-y-4 text-gray-700">{service.outcomes.map((item) => <li key={item} className="flex gap-3"><span className="font-bold text-blue-700">✓</span><span>{item}</span></li>)}</ul>
         </article>
+      </div>
+    </section>
+    <section className="bg-white py-14">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="text-3xl font-bold text-gray-950">How delivery works</h2>
+        <p className="mt-4 max-w-4xl text-lg leading-8 text-gray-700">Each engagement begins with requirements, users, operating constraints, integrations, security expectations, deployment conditions, and acceptance criteria. Frontier DevConsults then defines the architecture and delivery stages before implementation. This keeps technical decisions tied to the actual business or engineering problem rather than to a generic template.</p>
+        <p className="mt-4 max-w-4xl text-lg leading-8 text-gray-700">Implementation is reviewed against the agreed scope, tested in the appropriate environments, and prepared for handover with the deployment, ownership, support, and maintenance responsibilities made explicit. Where third-party platforms, regulated processes, hardware, or external providers are involved, those dependencies and limitations are documented as part of the engagement.</p>
       </div>
     </section>
     <section className="bg-blue-50 py-14">
