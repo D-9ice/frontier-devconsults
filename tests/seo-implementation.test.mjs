@@ -8,7 +8,7 @@ const read = (path) => readFile(new URL(path, root), 'utf8');
 test('homepage has Ghana-first commercial metadata and truthful organization schema', async () => {
   const layout = await read('app/layout.tsx');
   const home = await read('app/page.tsx');
-  assert.match(layout, /Custom Software & Embedded Systems Development \| Accra, Ghana/);
+  assert.match(layout, /Custom Software & Engineering \\| Accra, Ghana/);
   assert.match(layout, /lang="en-GH"/);
   assert.match(layout, /canonical: '\/'/);
   assert.doesNotMatch(layout, /['"]front['"]|['"]dev['"]/i);
