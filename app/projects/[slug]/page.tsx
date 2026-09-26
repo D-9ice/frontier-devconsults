@@ -12,14 +12,16 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const item = await getPublicCaseStudyBySlug((await params).slug).catch(() => null);
   if (!item) return { title: 'Case study not found', robots: { index: false, follow: false } };
-  const name = sourceName(item); const title = item.seoTitle || `${name} Engineering Case Study`; const description = (item.seoDescription || item.executiveSummary).slice(0, 320); const url = `/projects/${item.slug}`; const image = approvedImage(item);
+  const name = sourceName(item); const title = item.seoTitle || `${name} Engineering Case Study`; const description = (item.seoDescription || item.executiveSummary).replace(/\s+/g, ' ').trim().slice(0, 160); const url = `/projects/${item.slug}`; const image = approvedImage(item);
   return { title, description, alternates: { canonical: url }, openGraph: { title, description, url, type: 'article', ...(image ? { images: [{ url: image }] } : {}) }, twitter: { card: 'summary_large_image', title, description, ...(image ? { images: [image] } : {}) } };
 }
 
 export default async function ProjectDetail({ params }: Props) {
   const item = await getPublicCaseStudyBySlug((await params).slug).catch(() => null); if (!item) notFound();
   const name = sourceName(item); const blocks = buildBlocks(item); const url = `${SITE_ORIGIN}/projects/${item.slug}`;
-  const workSchema = item.ownershipType === 'frontier_product' ? { '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url, author: { '@type': 'Organization', name: 'Frontier DevConsults' } } : { '@type': 'CreativeWork', name, description: item.executiveSummary, url, creator: { '@type': 'Organization', name: 'Frontier DevConsults' } };
+  const workSchema = item.ownershipType === 'frontier_product'
+    ? { '@type': 'SoftwareApplication', name, description: item.executiveSummary, applicationCategory: item.source.category, url, dateModified: item.updatedAt, author: { '@type': 'Organization', '@id': `${SITE_ORIGIN}/#organization`, name: 'Frontier DevConsults' } }
+    : { '@type': 'CreativeWork', name, description: item.executiveSummary, url, dateModified: item.updatedAt, creator: { '@type': 'Organization', '@id': `${SITE_ORIGIN}/#organization`, name: 'Frontier DevConsults' } };
   const jsonLd = { '@context': 'https://schema.org', '@graph': [workSchema, { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE_ORIGIN }, { '@type': 'ListItem', position: 2, name: 'Projects', item: `${SITE_ORIGIN}/projects` }, { '@type': 'ListItem', position: 3, name, item: url }] }] };
   return <main className="min-h-screen bg-gray-50">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
