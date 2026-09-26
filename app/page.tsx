@@ -224,7 +224,7 @@ export default async function Home() {
                 status={project.status}
                 tags={project.technologies}
                 logoUrl={project.logoUrl || undefined}
-                href={`/projects/${encodeURIComponent(project.slug)}`}
+                href={`/projects/${encodeURIComponent(project.slug.replaceAll('_', '-'))}`}
               />
             )) : <div className="md:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-600">No featured projects are currently published.</div>}
           </div>
