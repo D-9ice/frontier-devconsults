@@ -71,7 +71,7 @@ export default function PrivacyPage() {
             <ul>
               <li><strong>Supabase:</strong> database and application-data storage.</li>
               <li><strong>Vercel:</strong> website hosting, delivery, and technical logs.</li>
-              <li><strong>Google Analytics 4:</strong> optional website measurement only after analytics consent and only while the service is configured. Google may process device, browser, page, referral, and related measurement data under its applicable terms.</li>
+              <li><strong>Google Analytics 4:</strong> website measurement using Advanced Consent Mode. Analytics storage starts denied; Google may receive cookieless measurement pings for aggregate reporting. If you choose to allow analytics storage, Google Analytics may also use its first-party analytics identifiers under its applicable terms.</li>
               <li><strong>OpenAI:</strong> processing Frontier Assistant conversation text. Assistant API requests are configured not to be stored by the application, although OpenAI's applicable service terms still govern its processing.</li>
               <li><strong>Resend:</strong> transactional and administrative email delivery while that service is configured.</li>
               <li><strong>Meta/WhatsApp:</strong> direct WhatsApp links and administrative contact alerts when configured.</li>
@@ -109,10 +109,10 @@ export default function PrivacyPage() {
           </PolicySection>
 
           <PolicySection title="10. Browser Storage, Analytics, and External Links">
-            <p>Optional visitor analytics require opt-in. Frontier's first-party analytics use an anonymous browser-session identifier and retain page views, referring domains and approximate hosting-provider city/country for up to 30 days. Identifiable bots, authenticated administrators, Do Not Track, and Global Privacy Control are excluded.</p>
-            <p>When Google Analytics 4 is configured, its measurement script is also loaded only after the same analytics consent. Declining analytics prevents both optional systems from starting. Essential security monitoring and enquiry handling continue regardless of this preference.</p>
+            <p>Frontier's privacy-minimized first-party usage measurement operates by default so we can understand page usage, traffic sources and broad geographic patterns. It uses a session-only anonymous identifier, does not create an advertising profile, and retains page views, referring domains and approximate hosting-provider city/country for up to 30 days. Identifiable bots, authenticated administrators, Do Not Track and Global Privacy Control are excluded. You may opt out below.</p>
+            <p>When Google Analytics 4 is configured, it uses Advanced Consent Mode. Analytics storage starts in a denied state, so GA4 can operate in cookieless measurement mode without setting its analytics identifier until you choose to allow analytics storage. Advertising storage and advertising-personalization signals remain denied by the site.</p>
             <AnalyticsPreferences />
-            <p>The website uses limited browser storage for consent and session state. Google Analytics may use cookies or comparable browser identifiers after consent. You can change the analytics preference here at any time; disabling analytics removes the Frontier session identifier and prevents further optional events from being sent by the site.</p>
+            <p>The website uses limited browser storage for session state and privacy preferences. Allowing Google Analytics storage may enable first-party analytics cookies or comparable identifiers. Your choices can be changed here at any time. Essential security monitoring and enquiry handling are separate from these usage-measurement preferences.</p>
             <p>Our website also links to external services and live client websites. Their privacy practices are governed by their own policies, and we are not responsible for their content or processing.</p>
           </PolicySection>
 

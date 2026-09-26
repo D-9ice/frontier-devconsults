@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 
 const measurementId = process.env.NEXT_PUBLIC_GA_ID?.trim();
 
@@ -10,54 +9,63 @@ type AnalyticsWindow = Window & {
   gtag?: (...args: unknown[]) => void;
 };
 
-function allowed() {
-  return localStorage.getItem('frontier-analytics-consent') === 'granted'
-    && navigator.doNotTrack !== '1'
-    && !(navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl;
+type PrivacyNavigator = Navigator & { globalPrivacyControl?: boolean };
+
+function privacySignalActive() {
+  return navigator.doNotTrack === '1' || Boolean((navigator as PrivacyNavigator).globalPrivacyControl);
+}
+
+function analyticsStorageGranted() {
+  return !privacySignalActive() && localStorage.getItem('frontier-analytics-consent') === 'granted';
 }
 
 export default function GoogleAnalytics() {
-  const pathname = usePathname();
-  const initialized = useRef(false);
-
   useEffect(() => {
-    if (!measurementId) return;
-    const start = () => {
-      const analyticsWindow = window as AnalyticsWindow;
-      if (!allowed()) {
-        analyticsWindow.gtag?.('consent', 'update', { analytics_storage: 'denied' });
-        return;
-      }
+    if (!measurementId || privacySignalActive()) return;
 
-      analyticsWindow.dataLayer ||= [];
-      analyticsWindow.gtag ||= (...args: unknown[]) => { analyticsWindow.dataLayer!.push(args); };
+    const analyticsWindow = window as AnalyticsWindow;
+    analyticsWindow.dataLayer ||= [];
+    analyticsWindow.gtag ||= (...args: unknown[]) => {
+      analyticsWindow.dataLayer!.push(args);
+    };
 
-      if (!initialized.current) {
-        analyticsWindow.gtag('consent', 'default', { analytics_storage: 'granted' });
-        analyticsWindow.gtag('js', new Date());
-        analyticsWindow.gtag('config', measurementId, { send_page_view: false, anonymize_ip: true });
+    // GA4 Advanced Consent Mode: measurement starts automatically with
+    // analytics storage denied. No GA analytics cookie is permitted until the
+    // visitor explicitly enables it. Cookieless measurement pings can still
+    // contribute to aggregate reporting.
+    analyticsWindow.gtag('consent', 'default', {
+      analytics_storage: analyticsStorageGranted() ? 'granted' : 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      wait_for_update: 500,
+    });
+    analyticsWindow.gtag('set', 'ads_data_redaction', true);
+    analyticsWindow.gtag('js', new Date());
+    analyticsWindow.gtag('config', measurementId, {
+      anonymize_ip: true,
+    });
 
-        if (!document.querySelector(`script[data-frontier-ga="${measurementId}"]`)) {
-          const script = document.createElement('script');
-          script.async = true;
-          script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
-          script.dataset.frontierGa = measurementId;
-          document.head.appendChild(script);
-        }
-        initialized.current = true;
-      }
+    if (!document.querySelector(`script[data-frontier-ga="${measurementId}"]`)) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
+      script.dataset.frontierGa = measurementId;
+      document.head.appendChild(script);
+    }
 
-      analyticsWindow.gtag('event', 'page_view', {
-        page_title: document.title,
-        page_location: window.location.href,
-        page_path: window.location.pathname,
+    const updateConsent = () => {
+      analyticsWindow.gtag?.('consent', 'update', {
+        analytics_storage: analyticsStorageGranted() ? 'granted' : 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
       });
     };
 
-    start();
-    window.addEventListener('frontier-consent-changed', start);
-    return () => window.removeEventListener('frontier-consent-changed', start);
-  }, [pathname]);
+    window.addEventListener('frontier-consent-changed', updateConsent);
+    return () => window.removeEventListener('frontier-consent-changed', updateConsent);
+  }, []);
 
   return null;
 }

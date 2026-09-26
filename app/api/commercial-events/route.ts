@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = await readBoundedJson(request, { maxBytes: 12 * 1024, allowedKeys }); if (!parsed.ok) return parsed.response;
     const body = parsed.value;
-    if(body.consent!==true) return NextResponse.json({recorded:false});
     const eventName = clean(body.eventName, 80);
     if (!allowedEvents.includes(eventName)) return NextResponse.json({ error: 'Invalid event.' }, { status: 400 });
     if (!await allow(`commercial-event:${sourceHash(request)}`, 60, 60)) {

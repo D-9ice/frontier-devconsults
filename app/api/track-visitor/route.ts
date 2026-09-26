@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const parsed = await readBoundedJson(request, { maxBytes: 8 * 1024, allowedKeys: ['consent', 'session', 'page', 'referrer', 'heartbeat'] });
     if (!parsed.ok) return ignored();
     const body = parsed.value;
-    if (!db || body.consent !== true || typeof body.session !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.session) || typeof body.page !== 'string' || !/^\/(?!\/)/.test(body.page) || body.page.startsWith('/admin') || body.page.length>250) return ignored();
+    if (!db || typeof body.session !== 'string' || !/^[0-9a-f-]{36}$/i.test(body.session) || typeof body.page !== 'string' || !/^\/(?!\/)/.test(body.page) || body.page.startsWith('/admin') || body.page.length>250) return ignored();
     const page = body.page.split(/[?#]/)[0];
     const key = sourceHash(request);
     if (!await allow(`visitor:${key}`,120,60)) return ignored();

@@ -83,7 +83,7 @@ test('daily Vercel fallback is authenticated and analytics are mounted once on n
   assert.doesNotMatch(layout,/VisitorTracker/);
   assert.equal((chrome.match(/<VisitorTracker \/>/g)||[]).length,1);
   assert.match(chrome,/<GoogleAnalytics \/>/);
-  assert.match(chrome,/<AnalyticsConsentBanner \/>/);
+  assert.doesNotMatch(chrome,/<AnalyticsConsentBanner \/>/);
   assert.match(settings,/if \(!res\.ok\) throw new Error/);
   assert.match(dashboardApi,/from\('monitoring_sessions'\)/);
   assert.match(dashboardApi,/from\('monitoring_views'\)/);
