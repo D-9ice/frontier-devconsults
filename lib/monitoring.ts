@@ -172,6 +172,7 @@ export async function runMonitoring(options: { forceDailySummary?: boolean } = {
   await db.from('monitoring_limits').delete().lt('expires_at',new Date(Date.now()-86400000).toISOString());
   await db.from('monitoring_sessions').delete().lt('last_seen',new Date(Date.now()-30*86400000).toISOString());
   await db.from('monitoring_views').delete().lt('created_at',new Date(Date.now()-30*86400000).toISOString());
+  await db.from('visitors').delete().lt('created_at',new Date(Date.now()-30*86400000).toISOString());
   await db.from('monitoring_events').delete().eq('is_test',true).lt('created_at',new Date(Date.now()-86400000).toISOString());
   await db.from('monitoring_events').delete().eq('kind','security').eq('status','logged').lt('created_at',new Date(Date.now()-30*86400000).toISOString());
   await db.from('monitoring_events').delete().eq('kind','visitor_arrival').lt('created_at',new Date(Date.now()-7*86400000).toISOString());
