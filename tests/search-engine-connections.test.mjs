@@ -18,7 +18,7 @@ test('Google and Bing verification use optional genuine server environment value
 test('sitemap uses the canonical HTTPS origin and includes static and dynamic public routes', async () => {
   const [site, sitemap] = await Promise.all([read('lib/site-url.ts'), read('app/sitemap.ts')]);
   assert.match(site, /SITE_ORIGIN = 'https:\/\/frontier-devconsults\.com'/);
-  for (const route of ['/privacy', '/terms', '/contact', '/request-build', '/services', '/projects', '/app-store']) {
+  for (const route of ['/privacy', '/terms', '/contact', '/request-build', '/services', '/projects', '/app-store', '/licenses/g-tube']) {
     assert.equal(sitemap.includes(`\`${'${baseUrl}'}${route}\``), true, route);
   }
   assert.match(sitemap, /listApps\(false\)/);
@@ -68,10 +68,11 @@ test('structured data uses canonical production URLs and legitimate schema types
   const files = await Promise.all([
     read('app/page.tsx'), read('app/services/[slug]/page.tsx'),
     read('app/services/custom-specialized-solutions/page.tsx'), read('app/app-store/[slug]/page.tsx'),
-    read('app/projects/[slug]/page.tsx'),
+    read('app/projects/[slug]/page.tsx'), read('app/projects/page.tsx'), read('app/app-store/page.tsx'),
   ]);
   const joined = files.join('\n');
-  for (const type of ['Organization', 'WebSite', 'Service', 'SoftwareApplication', 'BreadcrumbList']) assert.equal(joined.includes(`'${type}'`), true, type);
+  for (const type of ['Organization', 'WebSite', 'Service', 'SoftwareApplication', 'BreadcrumbList', 'CollectionPage', 'ItemList']) assert.equal(joined.includes(`'${type}'`), true, type);
+  assert.match(joined, /dateModified/);
   assert.doesNotMatch(joined, /https:\/\/www\.frontier-devconsults\.com|localhost/);
   assert.doesNotMatch(joined, /aggregateRating|reviewCount|award/);
 });
