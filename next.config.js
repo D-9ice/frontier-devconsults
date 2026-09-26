@@ -7,13 +7,13 @@ const contentSecurityPolicy = [
   "frame-ancestors 'none'",
   "frame-src 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
   "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   `img-src 'self' data: blob: https://${publicSupabaseHost}`,
   `media-src 'self' https://${publicSupabaseHost}`,
-  `connect-src 'self' https://${publicSupabaseHost}`,
+  `connect-src 'self' https://${publicSupabaseHost} https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com`,
   "worker-src 'self' blob:",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
@@ -32,6 +32,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: publicSupabaseHost,
         pathname: '/storage/v1/object/public/app-media/**',
+      },
+      {
+        protocol: 'https',
+        hostname: publicSupabaseHost,
+        pathname: '/storage/v1/object/public/project-media/**',
       },
     ],
   },
@@ -138,7 +143,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
+            value: 'no-cache, no-store, max-age=0, must-revalidate',
           },
           {
             key: 'Service-Worker-Allowed',

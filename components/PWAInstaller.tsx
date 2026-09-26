@@ -4,59 +4,41 @@ import { useEffect } from 'react';
 
 export default function PWAInstaller() {
   useEffect(() => {
-    // Register service worker for PWA functionality
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('Service Worker registered:', registration.scope);
-          })
-          .catch((error) => {
-            console.error('Service Worker registration failed:', error);
-          });
-      });
+      let reloading = false;
+      const onControllerChange = () => {
+        if (reloading || sessionStorage.getItem('frontier-sw-refreshed') === '1') return;
+        reloading = true;
+        sessionStorage.setItem('frontier-sw-refreshed', '1');
+        window.location.reload();
+      };
+
+      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+
+      const register = async () => {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' });
+          await registration.update();
+        } catch (error) {
+          console.error('Service Worker registration failed:', error);
+        }
+      };
+
+      if (document.readyState === 'complete') void register();
+      else window.addEventListener('load', register, { once: true });
+
+      const refreshOnVisible = () => {
+        if (document.visibilityState === 'visible') {
+          void navigator.serviceWorker.getRegistration('/').then((registration) => registration?.update());
+        }
+      };
+      document.addEventListener('visibilitychange', refreshOnVisible);
+
+      return () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+        document.removeEventListener('visibilitychange', refreshOnVisible);
+      };
     }
-
-    // Handle install prompt
-    let deferredPrompt: any;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-
-      // Show install button/banner (optional)
-      // You can create a custom install UI here
-      console.log('PWA install prompt available');
-    });
-
-    window.addEventListener('appinstalled', () => {
-      console.log('PWA installed successfully');
-      deferredPrompt = null;
-    });
-
-    // Check if app is installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('Running as installed PWA');
-    }
-
-    // Handle online/offline status
-    const handleOnline = () => {
-      console.log('Back online');
-      // You can show a toast notification here
-    };
-
-    const handleOffline = () => {
-      console.log('Gone offline');
-      // You can show a toast notification here
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
   }, []);
 
   return null;

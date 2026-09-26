@@ -1,106 +1,68 @@
-// Service Worker for Frontier DevConsults PWA
-const CACHE_NAME = 'frontier-devconsults-v3';
-const RUNTIME_CACHE = 'runtime-cache-v3';
+// Frontier DevConsults service worker.
+// Dynamic HTML, Next.js RSC payloads and mutable public media must always come from the network.
+const CACHE_NAME = 'frontier-devconsults-v4';
+const STATIC_CACHE = 'frontier-static-v4';
+const OFFLINE_URL = '/offline';
 
-// Assets to cache on install
-const PRECACHE_ASSETS = [
-  '/',
-  '/projects',
-  '/pricing',
-  '/about',
-  '/contact',
-  '/offline',
-];
-
-// Install event - cache essential assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then((cache) => cache.add(OFFLINE_URL))
       .then(() => self.skipWaiting())
   );
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys()
+      .then((names) => Promise.all(names.map((name) => {
+        if (name !== CACHE_NAME && name !== STATIC_CACHE) return caches.delete(name);
+        return Promise.resolve(false);
+      })))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch event - network first, fall back to cache
-self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-
-  // Admin and API requests must always use the live authenticated response.
-  const requestUrl = new URL(event.request.url);
-  if (requestUrl.pathname.startsWith('/admin') || requestUrl.pathname.startsWith('/api/')) {
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200 && event.request.method === 'GET') {
-          const responseToCache = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          return cachedResponse || caches.match('/offline');
-        });
-      })
-  );
-});
-
-// Background sync for form submissions
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-forms') {
-    event.waitUntil(syncForms());
-  }
-});
-
-async function syncForms() {
-  // Retrieve pending form submissions from IndexedDB
-  // and send them when connection is restored
-  try {
-    const cache = await caches.open(RUNTIME_CACHE);
-    // Implementation for syncing pending forms
-    console.log('Syncing pending forms...');
-  } catch (error) {
-    console.error('Form sync failed:', error);
-  }
+function isNextDataRequest(request, url) {
+  return request.headers.get('RSC') === '1'
+    || request.headers.has('Next-Router-Prefetch')
+    || url.searchParams.has('_rsc');
 }
 
-// Push notifications (optional)
-self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data ? event.data.text() : 'New update from Frontier DevConsults',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    vibrate: [200, 100, 200],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    }
-  };
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) return;
 
-  event.waitUntil(
-    self.registration.showNotification('Frontier DevConsults', options)
-  );
+  const url = new URL(request.url);
+
+  // Authenticated/admin/API traffic is never intercepted.
+  if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/')) return;
+
+  // Never cache pages or Next.js data. This prevents mobile/PWA clients from
+  // showing an older Projects page, hero configuration or other stale UI.
+  if (request.mode === 'navigate' || request.destination === 'document' || isNextDataRequest(request, url)) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(OFFLINE_URL))
+    );
+    return;
+  }
+
+  // Mutable public images/media (including hero assets) must stay fresh.
+  if (request.destination === 'image' || request.destination === 'video') {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Only immutable Next.js build assets are cached.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.open(STATIC_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        const response = await fetch(request);
+        if (response.ok) await cache.put(request, response.clone());
+        return response;
+      })
+    );
+  }
 });
