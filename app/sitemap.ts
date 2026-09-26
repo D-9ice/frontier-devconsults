@@ -5,8 +5,7 @@ import { SITE_ORIGIN } from '@/lib/site-url';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_ORIGIN;
-  const staticLastModified = new Date('2026-08-31T00:00:00.000Z');
-  const seoLastModified = new Date('2026-09-12T00:00:00.000Z');
+  const contentLastModified = new Date('2026-09-26T00:00:00.000Z');
   let appRoutes: MetadataRoute.Sitemap = [];
   let caseStudyRoutes: MetadataRoute.Sitemap = [];
   try {
@@ -20,75 +19,81 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     {
       url: baseUrl,
-      lastModified: seoLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'weekly',
       priority: 1,
     },
     {
       url: `${baseUrl}/projects`,
-      lastModified: staticLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/services`,
-      lastModified: seoLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/services/custom-specialized-solutions`,
-      lastModified: staticLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'monthly',
       priority: 0.9,
     },
     ...['custom-software-development-ghana', 'flutter-mobile-app-development-ghana', 'web-application-development-ghana', 'ai-integration-africa', 'embedded-iot-engineering'].map((slug) => ({
       url: `${baseUrl}/services/${slug}`,
-      lastModified: seoLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'monthly' as const,
       priority: 0.9,
     })),
     {
       url: `${baseUrl}/pricing`,
-      lastModified: staticLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/app-store`,
-      lastModified: staticLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: seoLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/contact`,
-      lastModified: seoLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/request-build`,
-      lastModified: seoLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: staticLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: staticLastModified,
+      lastModified: contentLastModified,
       changeFrequency: 'yearly',
       priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/licenses/g-tube`,
+      lastModified: contentLastModified,
+      changeFrequency: 'monthly',
+      priority: 0.5,
     },
     ...appRoutes,
     ...caseStudyRoutes,
