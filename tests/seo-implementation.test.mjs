@@ -30,6 +30,12 @@ test('indexable static pages have self-referencing canonicals and private utilit
   assert.match(await read('app/offline/layout.tsx'), /index: false/);
 });
 
+test('homepage links featured projects to canonical case-study routes', async () => {
+  const home = await read('app/page.tsx');
+  assert.match(home, /project\.slug\.replaceAll\('_', '-'\)/);
+  assert.match(home, /View Case Study/);
+});
+
 test('commercial service clusters have landing pages, internal links, schema, and sitemap entries', async () => {
   const slugs = ['custom-software-development-ghana', 'flutter-mobile-app-development-ghana', 'web-application-development-ghana', 'ai-integration-africa', 'embedded-iot-engineering'];
   const route = await read('app/services/[slug]/page.tsx');
