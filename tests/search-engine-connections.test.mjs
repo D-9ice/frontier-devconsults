@@ -23,8 +23,19 @@ test('sitemap uses the canonical HTTPS origin and includes static and dynamic pu
   }
   assert.match(sitemap, /listApps\(false\)/);
   assert.match(sitemap, /listCaseStudies\(false\)/);
+  assert.match(sitemap, /appStoreLastModified/);
+  assert.match(sitemap, /projectsLastModified/);
+  assert.match(sitemap, /homeLastModified/);
   assert.doesNotMatch(sitemap, /\$\{baseUrl\}\/(?:admin|api|acquire|offline|upwork-portfolio)/);
   assert.doesNotMatch(sitemap, /https:\/\/www\.|localhost/);
+});
+
+test('legacy case-study URLs redirect directly to canonical App Store products', async () => {
+  const config = await read('next.config.ts');
+  for (const slug of ['ai-chitect', 'digital-susu-box', 'family-tree', 'frontier-electronics', 'my-cash-manager', 'scripture-alive', 'livesource-technologies']) {
+    assert.equal(config.includes(`'${slug}'`), true, slug);
+  }
+  assert.match(config, /destination: `https:\/\/frontier-devconsults\.com\/app-store\/\$\{slug\}`/);
 });
 
 test('robots permits public crawling, protects private routes, and references the production sitemap', async () => {

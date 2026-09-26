@@ -8,13 +8,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const contentLastModified = new Date('2026-09-26T00:00:00.000Z');
   let appRoutes: MetadataRoute.Sitemap = [];
   let caseStudyRoutes: MetadataRoute.Sitemap = [];
+  let appStoreLastModified = staticLastModified;
+  let projectsLastModified = staticLastModified;
   try {
     const [apps, caseStudies] = await Promise.all([listApps(false), listCaseStudies(false)]);
     appRoutes = apps.filter((app) => app.slug).flatMap((app) => [
       { url: `${baseUrl}/app-store/${app.slug}`, lastModified: new Date(app.updatedAt), changeFrequency: 'weekly' as const, priority: 0.7 },
     ]);
     caseStudyRoutes = caseStudies.map((item) => ({ url: `${baseUrl}/projects/${item.slug}`, lastModified: new Date(item.updatedAt), changeFrequency: 'monthly' as const, priority: 0.7 }));
+    appStoreLastModified = latestContentDate(apps.map((app) => app.updatedAt), staticLastModified);
+    projectsLastModified = latestContentDate(caseStudies.map((item) => item.updatedAt), staticLastModified);
   } catch { /* Static routes remain available when the content store is offline. */ }
+
+  const homeLastModified = new Date(Math.max(seoLastModified.getTime(), appStoreLastModified.getTime(), projectsLastModified.getTime()));
 
   return [
     {
@@ -98,4 +104,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...appRoutes,
     ...caseStudyRoutes,
   ]
+}
+
+
+function latestContentDate(values: string[], fallback: Date) {
+  const timestamps = values.map((value) => Date.parse(value)).filter(Number.isFinite);
+  return timestamps.length ? new Date(Math.max(fallback.getTime(), ...timestamps)) : fallback;
 }

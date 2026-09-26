@@ -1,6 +1,19 @@
 import type { NextConfig } from "next";
 
 const supabaseHost = 'dfvrmaiqiyhtturtxykf.supabase.co';
+const legacyProjectRedirects = [
+  'ai-chitect',
+  'digital-susu-box',
+  'family-tree',
+  'frontier-electronics',
+  'my-cash-manager',
+  'scripture-alive',
+  'livesource-technologies',
+].map((slug) => ({
+  source: `/projects/${slug}`,
+  destination: `https://frontier-devconsults.com/app-store/${slug}`,
+  permanent: true,
+}));
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -32,12 +45,15 @@ const nextConfig: NextConfig = {
     ],
   },
   async redirects() {
-    return [{
-      source: '/:path*',
-      has: [{ type: 'host', value: 'www.frontier-devconsults.com' }],
-      destination: 'https://frontier-devconsults.com/:path*',
-      permanent: true,
-    }];
+    return [
+      ...legacyProjectRedirects,
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.frontier-devconsults.com' }],
+        destination: 'https://frontier-devconsults.com/:path*',
+        permanent: true,
+      },
+    ];
   },
   async headers() {
     return [{
