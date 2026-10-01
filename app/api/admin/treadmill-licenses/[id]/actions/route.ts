@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminMutation } from '@/lib/admin-auth';
 import { cleanText, isUuid, readBoundedJson } from '@/lib/request-security';
 import {
+  recordTreadmillAdminAudit,
   revokeEngineeringSessions,
   rotateEngineeringCredential,
   updateActivationStatus,
@@ -29,22 +30,26 @@ export async function POST(request: NextRequest, context: Context) {
     if (action === 'suspend') {
       const license = await updateTreadmillLicense(id, { status: 'suspended' });
       await revokeEngineeringSessions(id);
+      await recordTreadmillAdminAudit({ licenseId: id, action: 'license_suspended' });
       return NextResponse.json({ license });
     }
 
     if (action === 'allow') {
       const license = await updateTreadmillLicense(id, { status: 'active' });
+      await recordTreadmillAdminAudit({ licenseId: id, action: 'license_allowed' });
       return NextResponse.json({ license });
     }
 
     if (action === 'revoke') {
       const license = await updateTreadmillLicense(id, { status: 'revoked' });
       await revokeEngineeringSessions(id);
+      await recordTreadmillAdminAudit({ licenseId: id, action: 'license_revoked' });
       return NextResponse.json({ license });
     }
 
     if (action === 'rotate-engineering-credential') {
       const result = await rotateEngineeringCredential(id);
+      await recordTreadmillAdminAudit({ licenseId: id, action: 'engineering_credential_rotated' });
       return NextResponse.json({
         ...result,
         warning: 'This new Engineering credential is shown only once.',
@@ -53,6 +58,7 @@ export async function POST(request: NextRequest, context: Context) {
 
     if (action === 'revoke-engineering-sessions') {
       await revokeEngineeringSessions(id);
+      await recordTreadmillAdminAudit({ licenseId: id, action: 'engineering_sessions_revoked' });
       return NextResponse.json({ ok: true });
     }
 
@@ -64,6 +70,12 @@ export async function POST(request: NextRequest, context: Context) {
         return NextResponse.json({ error: 'Invalid activation status.' }, { status: 400 });
       }
       const activation = await updateActivationStatus(id, activationId, status);
+      await recordTreadmillAdminAudit({
+        licenseId: id,
+        activationId,
+        action: 'activation_status_changed',
+        details: { status },
+      });
       return NextResponse.json({ activation });
     }
 
