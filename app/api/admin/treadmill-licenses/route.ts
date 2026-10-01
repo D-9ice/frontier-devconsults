@@ -4,6 +4,7 @@ import { readBoundedJson, cleanText } from '@/lib/request-security';
 import {
   createTreadmillLicense,
   isLicenseType,
+  recordTreadmillAdminAudit,
   listTreadmillLicenses,
   treadmillLicenseStats,
 } from '@/lib/treadmill-licenses';
@@ -86,6 +87,17 @@ export async function POST(request: NextRequest) {
       brandProfile,
       modules,
       notes,
+    });
+
+    await recordTreadmillAdminAudit({
+      licenseId: result.license.id,
+      action: 'license_created',
+      details: {
+        customerName,
+        licenseType: input.licenseType,
+        maxInstallations,
+        expiresAt: expiresAt ? expiresAt.toISOString() : null,
+      },
     });
 
     return NextResponse.json({
