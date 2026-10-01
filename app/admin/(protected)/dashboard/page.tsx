@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BarChart3, CalendarClock, CircuitBoard, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
+import { BarChart3, CalendarClock, CircuitBoard, DollarSign, FileText, Users, Settings, LogOut, Smartphone, Code2, Eye, EyeOff, Key, KeyRound, LoaderCircle, MessageSquare, FolderKanban, Images, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import MonitoringPanel from '@/components/admin/MonitoringPanel';
 import AdminInboxAlerts from '@/components/admin/AdminInboxAlerts';
@@ -17,6 +17,10 @@ type DashboardStats = {
   openSpecializedRequests: number;
   totalVisitors: number;
   visitsToday: number;
+  treadmillActiveLicenses: number;
+  treadmillActiveInstallations: number;
+  treadmillExpiringSoon: number;
+  treadmillFailedAuth24h: number;
 };
 
 type Activity = {
@@ -37,6 +41,10 @@ const emptyStats: DashboardStats = {
   openSpecializedRequests: 0,
   totalVisitors: 0,
   visitsToday: 0,
+  treadmillActiveLicenses: 0,
+  treadmillActiveInstallations: 0,
+  treadmillExpiringSoon: 0,
+  treadmillFailedAuth24h: 0,
 };
 
 export default function AdminDashboard() {
@@ -156,6 +164,18 @@ export default function AdminDashboard() {
             value={loadingData ? '...' : stats.openSpecializedRequests}
             color="blue"
           />
+          <StatCard
+            icon={<KeyRound className="w-8 h-8" />}
+            title="Treadmill Licenses"
+            value={loadingData ? '...' : stats.treadmillActiveLicenses}
+            color="teal"
+          />
+          <StatCard
+            icon={<Smartphone className="w-8 h-8" />}
+            title="Treadmill Installations"
+            value={loadingData ? '...' : stats.treadmillActiveInstallations}
+            color="indigo"
+          />
         </div>
 
         {/* Quick Actions */}
@@ -181,6 +201,11 @@ export default function AdminDashboard() {
               href="/admin/client-maintenance"
               icon={<CalendarClock className="w-5 h-5" />}
               label="Client Maintenance"
+            />
+            <ActionButton
+              href="/admin/treadmill-licenses"
+              icon={<KeyRound className="w-5 h-5" />}
+              label="Treadmill Licensing"
             />
             <ActionButton
               href="/admin/app-store"
