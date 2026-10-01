@@ -1,17 +1,35 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json",
-};
+const PRODUCTION_ORIGINS = new Set([
+  "https://frontier-universal-treadmill-console.vercel.app",
+  "https://agyekum-treadmill-console.vercel.app",
+]);
+
+function isAllowedOrigin(origin: string) {
+  if (PRODUCTION_ORIGINS.has(origin)) return true;
+  return /^https:\/\/frontier-universal-treadmill-co-[a-z0-9-]+-frontier-devconsults\.vercel\.app$/i.test(origin);
+}
+
+function corsHeadersFor(req: Request) {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = isAllowedOrigin(origin)
+    ? origin
+    : "https://frontier-universal-treadmill-console.vercel.app";
+
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json",
+    "Vary": "Origin",
+  };
+}
 
 const encoder = new TextEncoder();
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: corsHeaders });
+function json(req: Request, data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: corsHeadersFor(req) });
 }
 
 function normalizeSecret(value: unknown) {
@@ -37,14 +55,18 @@ function randomToken(bytes = 32) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    const origin = req.headers.get("origin") || "";
+    if (!isAllowedOrigin(origin)) {
+      return new Response("Forbidden", { status: 403, headers: corsHeadersFor(req) });
+    }
+    return new Response("ok", { headers: corsHeadersFor(req) });
   }
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  if (req.method !== "POST") return json(req, { error: "Method not allowed" }, 405);
 
   const secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
   const secretKey = secretKeys.default || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  if (!secretKey || !supabaseUrl) return json({ error: "Licensing service unavailable" }, 503);
+  if (!secretKey || !supabaseUrl) return json(req, { error: "Licensing service unavailable" }, 503);
 
   const admin = createClient(supabaseUrl, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -54,13 +76,13 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return json({ error: "Invalid request body" }, 400);
+    return json(req, { error: "Invalid request body" }, 400);
   }
 
   const action = String(body.action || "");
   const installationId = String(body.installationId || "").trim();
   if (!installationId || installationId.length < 12 || installationId.length > 160) {
-    return json({ error: "Invalid installation identifier" }, 400);
+    return json(req, { error: "Invalid installation identifier" }, 400);
   }
 
   const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -107,13 +129,13 @@ Deno.serve(async (req) => {
 
   if (action === "activate") {
     if (await recentFailureCount("license_activate") >= 10) {
-      return json({ error: "Too many failed activation attempts. Try again later." }, 429);
+      return json(req, { error: "Too many failed activation attempts. Try again later." }, 429);
     }
 
     const licenseKey = normalizeSecret(body.licenseKey);
     if (licenseKey.length < 16 || licenseKey.length > 120) {
       await logEvent("license_activate", false, { reason: "invalid_format" });
-      return json({ error: "Invalid license key" }, 401);
+      return json(req, { error: "Invalid license key" }, 401);
     }
 
     const licenseHash = await sha256Hex(licenseKey);
@@ -125,13 +147,13 @@ Deno.serve(async (req) => {
 
     if (licenseError || !license) {
       await logEvent("license_activate", false, { reason: "not_found" });
-      return json({ error: "License key not recognized" }, 401);
+      return json(req, { error: "License key not recognized" }, 401);
     }
 
     const invalidReason = validateLicense(license);
     if (invalidReason) {
       await logEvent("license_activate", false, { reason: invalidReason }, license.id);
-      return json({ error: invalidReason }, 403);
+      return json(req, { error: invalidReason }, 403);
     }
 
     let { data: activation } = await admin
@@ -150,7 +172,7 @@ Deno.serve(async (req) => {
 
       if ((count || 0) >= license.max_installations) {
         await logEvent("license_activate", false, { reason: "activation_limit" }, license.id);
-        return json({ error: "License activation limit reached. Contact Frontier DevConsults." }, 409);
+        return json(req, { error: "License activation limit reached. Contact Frontier DevConsults." }, 409);
       }
 
       const { data: created, error: createError } = await admin
@@ -166,12 +188,12 @@ Deno.serve(async (req) => {
         .select("*")
         .single();
 
-      if (createError || !created) return json({ error: "Activation could not be created" }, 500);
+      if (createError || !created) return json(req, { error: "Activation could not be created" }, 500);
       activation = created;
     } else {
       if (activation.status !== "active") {
         await logEvent("license_activate", false, { reason: "activation_inactive" }, license.id, activation.id);
-        return json({ error: "This installation has been deactivated" }, 403);
+        return json(req, { error: "This installation has been deactivated" }, 403);
       }
 
       const { data: updated } = await admin
@@ -197,7 +219,7 @@ Deno.serve(async (req) => {
 
     await logEvent("license_activate", true, { license_type: license.license_type }, license.id, activation.id);
 
-    return json({
+    return json(req, {
       ok: true,
       activation: {
         activationId: activation.id,
@@ -218,7 +240,7 @@ Deno.serve(async (req) => {
   if (action === "validate") {
     const licenseId = String(body.licenseId || "");
     const activationId = String(body.activationId || "");
-    if (!licenseId || !activationId) return json({ error: "Missing activation identity" }, 400);
+    if (!licenseId || !activationId) return json(req, { error: "Missing activation identity" }, 400);
 
     const { data: license } = await admin
       .from("treadmill_licenses")
@@ -237,7 +259,7 @@ Deno.serve(async (req) => {
     const invalidReason = validateLicense(license);
     if (invalidReason || !activation || activation.status !== "active") {
       await logEvent("license_validate", false, { reason: invalidReason || "activation_invalid" }, licenseId || null, activationId || null);
-      return json({ error: invalidReason || "Activation is no longer valid" }, 403);
+      return json(req, { error: invalidReason || "Activation is no longer valid" }, 403);
     }
 
     await admin
@@ -253,7 +275,7 @@ Deno.serve(async (req) => {
 
     await logEvent("license_validate", true, {}, license.id, activation.id);
 
-    return json({
+    return json(req, {
       ok: true,
       activation: {
         activationId: activation.id,
@@ -273,7 +295,7 @@ Deno.serve(async (req) => {
 
   if (action === "engineering-auth") {
     if (await recentFailureCount("engineering_auth") >= 8) {
-      return json({ error: "Too many failed engineering login attempts. Try again later." }, 429);
+      return json(req, { error: "Too many failed engineering login attempts. Try again later." }, 429);
     }
 
     const licenseId = String(body.licenseId || "");
@@ -297,13 +319,13 @@ Deno.serve(async (req) => {
     const invalidReason = validateLicense(license);
     if (invalidReason || !activation || activation.status !== "active") {
       await logEvent("engineering_auth", false, { reason: invalidReason || "activation_invalid" }, licenseId || null, activationId || null);
-      return json({ error: invalidReason || "Active license required" }, 403);
+      return json(req, { error: invalidReason || "Active license required" }, 403);
     }
 
     const codeHash = await sha256Hex(serviceCode);
     if (!serviceCode || codeHash !== license.engineering_code_hash) {
       await logEvent("engineering_auth", false, { reason: "invalid_service_code" }, license.id, activation.id);
-      return json({ error: "Invalid Frontier engineering credential" }, 401);
+      return json(req, { error: "Invalid Frontier engineering credential" }, 401);
     }
 
     const rawToken = randomToken(40);
@@ -322,7 +344,7 @@ Deno.serve(async (req) => {
 
     await logEvent("engineering_auth", true, {}, license.id, activation.id);
 
-    return json({
+    return json(req, {
       ok: true,
       engineeringSession: {
         token: rawToken,
@@ -333,7 +355,7 @@ Deno.serve(async (req) => {
 
   if (action === "engineering-validate") {
     const token = String(body.token || "");
-    if (!token) return json({ error: "Missing engineering session" }, 400);
+    if (!token) return json(req, { error: "Missing engineering session" }, 400);
     const tokenHash = await sha256Hex(token);
 
     const { data: session } = await admin
@@ -344,22 +366,22 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!session || session.revoked_at || new Date(session.expires_at) <= new Date()) {
-      return json({ error: "Engineering session expired or invalid" }, 401);
+      return json(req, { error: "Engineering session expired or invalid" }, 401);
     }
-    return json({ ok: true, expiresAt: session.expires_at });
+    return json(req, { ok: true, expiresAt: session.expires_at });
   }
 
   if (action === "engineering-revoke") {
     const token = String(body.token || "");
-    if (!token) return json({ ok: true });
+    if (!token) return json(req, { ok: true });
     const tokenHash = await sha256Hex(token);
     await admin
       .from("treadmill_engineering_sessions")
       .update({ revoked_at: new Date().toISOString() })
       .eq("token_hash", tokenHash)
       .eq("installation_id", installationId);
-    return json({ ok: true });
+    return json(req, { ok: true });
   }
 
-  return json({ error: "Unknown licensing action" }, 400);
+  return json(req, { error: "Unknown licensing action" }, 400);
 });
