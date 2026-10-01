@@ -70,7 +70,7 @@ export function isLicenseStatus(value: unknown): value is TreadmillLicenseStatus
 
 function withEffectiveStatus<T extends { status: string; expires_at?: string | null }>(license: T): T {
   if (license.status === 'active' && license.expires_at && new Date(license.expires_at) <= new Date()) {
-    return { ...license, status: 'expired' };
+    return { ...license, status: 'expired' } as T;
   }
   return license;
 }
