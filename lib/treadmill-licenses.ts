@@ -68,6 +68,13 @@ export function isLicenseStatus(value: unknown): value is TreadmillLicenseStatus
   return typeof value === 'string' && LICENSE_STATUSES.has(value as TreadmillLicenseStatus);
 }
 
+function withEffectiveStatus<T extends { status: string; expires_at?: string | null }>(license: T): T {
+  if (license.status === 'active' && license.expires_at && new Date(license.expires_at) <= new Date()) {
+    return { ...license, status: 'expired' };
+  }
+  return license;
+}
+
 export async function listTreadmillLicenses() {
   const db = requireServer();
   const { data, error } = await db
@@ -75,12 +82,12 @@ export async function listTreadmillLicenses() {
     .select('id, license_key_last4, customer_name, license_type, status, max_installations, valid_from, expires_at, revalidate_days, offline_grace_days, signing_key_id, brand_profile, modules, notes, created_at, updated_at, treadmill_license_activations(id, installation_id, hardware_device_id, status, first_activated_at, last_validated_at, last_seen_at, app_version)')
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data || []).map((item) => withEffectiveStatus(item));
 }
 
 export async function getTreadmillLicense(id: string) {
   const db = requireServer();
-  const [{ data: license, error: licenseError }, { data: events, error: eventsError }, { data: sessions, error: sessionsError }] = await Promise.all([
+  const [{ data: license, error: licenseError }, { data: events, error: eventsError }, { data: sessions, error: sessionsError }, { data: adminAudit, error: adminAuditError }] = await Promise.all([
     db
       .from('treadmill_licenses')
       .select('id, license_key_last4, customer_name, license_type, status, max_installations, valid_from, expires_at, revalidate_days, offline_grace_days, signing_key_id, brand_profile, modules, notes, created_at, updated_at, treadmill_license_activations(id, installation_id, hardware_device_id, status, first_activated_at, last_validated_at, last_seen_at, app_version, metadata)')
@@ -98,11 +105,23 @@ export async function getTreadmillLicense(id: string) {
       .eq('license_id', id)
       .order('created_at', { ascending: false })
       .limit(50),
+    db
+      .from('treadmill_admin_audit')
+      .select('id, activation_id, actor, action, details, created_at')
+      .eq('license_id', id)
+      .order('created_at', { ascending: false })
+      .limit(100),
   ]);
   if (licenseError) throw licenseError;
   if (eventsError) throw eventsError;
   if (sessionsError) throw sessionsError;
-  return { license, events: events || [], engineeringSessions: sessions || [] };
+  if (adminAuditError) throw adminAuditError;
+  return {
+    license: withEffectiveStatus(license),
+    events: events || [],
+    engineeringSessions: sessions || [],
+    adminAudit: adminAudit || [],
+  };
 }
 
 export async function createTreadmillLicense(input: {
@@ -235,12 +254,29 @@ export async function updateActivationStatus(
   return data;
 }
 
+export async function recordTreadmillAdminAudit(input: {
+  licenseId?: string | null;
+  activationId?: string | null;
+  action: string;
+  details?: Record<string, unknown>;
+}) {
+  const db = requireServer();
+  const { error } = await db.from('treadmill_admin_audit').insert({
+    license_id: input.licenseId || null,
+    activation_id: input.activationId || null,
+    actor: 'admin',
+    action: input.action,
+    details: input.details || {},
+  });
+  if (error) throw error;
+}
+
 export async function treadmillLicenseStats() {
   const db = requireServer();
   const now = new Date().toISOString();
   const [licenses, activeLicenses, expiring, activations, failedAuth] = await Promise.all([
     db.from('treadmill_licenses').select('*', { count: 'exact', head: true }),
-    db.from('treadmill_licenses').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    db.from('treadmill_licenses').select('*', { count: 'exact', head: true }).eq('status', 'active').or('expires_at.is.null,expires_at.gt.' + now),
     db.from('treadmill_licenses').select('*', { count: 'exact', head: true }).eq('status', 'active').gte('expires_at', now).lte('expires_at', new Date(Date.now() + 30 * 86400000).toISOString()),
     db.from('treadmill_license_activations').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     db.from('treadmill_license_events').select('*', { count: 'exact', head: true }).eq('success', false).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
