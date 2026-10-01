@@ -101,7 +101,7 @@ const initialForm = {
   brandName: '',
   consoleName: 'Frontier Universal Treadmill Console',
   shortName: '',
-  logoUrl: '/frontier-universal-treadmill-console.webp',
+  logoUrl: '/frontier-universal-treadmill-console-logo.webp',
   accentColor: '#10B981',
   devicePrefix: 'FRONTIER-TM',
   deploymentLabel: '',
@@ -176,7 +176,7 @@ export default function TreadmillLicensingAdminPage() {
     try {
       const customer = form.customerName.trim();
       const shortName = form.shortName.trim() || customer.slice(0, 12).toUpperCase();
-      const logo = form.logoUrl.trim() || '/frontier-universal-treadmill-console.webp';
+      const logo = form.logoUrl.trim() || '/frontier-universal-treadmill-console-logo.webp';
       const payload = {
         customerName: customer,
         licenseType: form.licenseType,
