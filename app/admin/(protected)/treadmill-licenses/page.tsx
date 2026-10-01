@@ -15,7 +15,6 @@ import {
   LoaderCircle,
   Plus,
   RefreshCw,
-  RotateCcwKey,
   ShieldCheck,
   ShieldOff,
   TimerReset,
@@ -388,7 +387,7 @@ function LicenseDetail({ detail, busy, onAction, onPatch }: { detail: Detail; bu
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><h3 className="font-black">Engineering Access</h3><p className="text-sm text-gray-600">{String(activeSessions) + ' active Engineering session(s)'}</p></div>
           <div className="flex gap-2">
-            <Control icon={<RotateCcwKey className="h-4 w-4" />} label="Rotate Credential" tone="blue" disabled={Boolean(busy)} onClick={() => void onAction(license.id, 'rotate-engineering-credential', {}, 'Rotate the Engineering credential and revoke existing Engineering sessions?')} />
+            <Control icon={<KeyRound className="h-4 w-4" />} label="Rotate Credential" tone="blue" disabled={Boolean(busy)} onClick={() => void onAction(license.id, 'rotate-engineering-credential', {}, 'Rotate the Engineering credential and revoke existing Engineering sessions?')} />
             <Control icon={<ShieldOff className="h-4 w-4" />} label="Revoke Sessions" tone="gray" disabled={Boolean(busy)} onClick={() => void onAction(license.id, 'revoke-engineering-sessions')} />
           </div>
         </div>
@@ -495,7 +494,7 @@ function CreateModal({ form, setForm, saving, onClose, onSubmit }: { form: typeo
         <form onSubmit={onSubmit} className="space-y-6 p-6">
           <div className="grid gap-4 md:grid-cols-2">
             <Text label="Customer / Company" value={form.customerName} onChange={(value) => update('customerName', value)} required />
-            <label className="text-sm font-bold text-gray-700">License Type<select value={form.licenseType} onChange={(event) => update('licenseType', event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal"><option value="evaluation">Evaluation</option><option value="commercial">Commercial</option><option value="dealer">Dealer</option><option value="site">Site</option><option value="development">Development</option></select></label>
+            <label className="text-sm font-bold text-gray-700">License Type<select value={form.licenseType} onChange={(event) => update('licenseType', event.target.value as LicenseType)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal"><option value="evaluation">Evaluation</option><option value="commercial">Commercial</option><option value="dealer">Dealer</option><option value="site">Site</option><option value="development">Development</option></select></label>
             <NumberInput label="Maximum Installations" value={form.maxInstallations} min={1} max={10000} onChange={(value) => update('maxInstallations', value)} />
             <label className="text-sm font-bold text-gray-700">Expiry Date<input type="date" value={form.expiresAt} onChange={(event) => update('expiresAt', event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal" /></label>
             <NumberInput label="Online Revalidation (days)" value={form.revalidateDays} min={1} max={90} onChange={(value) => update('revalidateDays', value)} />
