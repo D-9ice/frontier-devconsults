@@ -4,6 +4,7 @@ import { cleanText, isUuid, readBoundedJson } from '@/lib/request-security';
 import {
   getTreadmillLicense,
   isLicenseStatus,
+  recordTreadmillAdminAudit,
   updateTreadmillLicense,
 } from '@/lib/treadmill-licenses';
 
@@ -107,6 +108,7 @@ export async function PATCH(request: NextRequest, context: Context) {
 
   try {
     const license = await updateTreadmillLicense(id, patch);
+    await recordTreadmillAdminAudit({ licenseId: id, action: 'license_updated', details: patch });
     return NextResponse.json({ license }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Treadmill license update error:', error);
