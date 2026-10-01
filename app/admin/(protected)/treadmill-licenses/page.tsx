@@ -82,6 +82,14 @@ type Detail = {
     revoked_at: string | null;
     created_at: string;
   }>;
+  adminAudit: Array<{
+    id: number;
+    activation_id: string | null;
+    actor: string;
+    action: string;
+    details: Record<string, unknown>;
+    created_at: string;
+  }>;
 };
 
 const initialForm = {
@@ -217,6 +225,28 @@ export default function TreadmillLicensingAdminPage() {
     }
   }
 
+  async function patchLicense(licenseId: string, patch: Record<string, unknown>) {
+    setBusy(licenseId + ':update');
+    setNotice('');
+    try {
+      const response = await fetch('/api/admin/treadmill-licenses/' + licenseId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'License update failed.');
+      setNoticeError(false);
+      setNotice('License terms updated.');
+      await refresh();
+    } catch (error) {
+      setNoticeError(true);
+      setNotice(error instanceof Error ? error.message : 'License update failed.');
+    } finally {
+      setBusy('');
+    }
+  }
+
   async function action(licenseId: string, actionName: string, extra: Record<string, unknown> = {}, confirmation?: string) {
     if (confirmation && !window.confirm(confirmation)) return;
     setBusy(licenseId + ':' + actionName);
@@ -314,7 +344,7 @@ export default function TreadmillLicensingAdminPage() {
             ) : detailLoading ? (
               <div className="flex items-center gap-2 text-gray-600"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading license detail...</div>
             ) : detail ? (
-              <LicenseDetail detail={detail} busy={busy} onAction={action} />
+              <LicenseDetail detail={detail} busy={busy} onAction={action} onPatch={patchLicense} />
             ) : null}
           </section>
         </div>
@@ -326,7 +356,7 @@ export default function TreadmillLicensingAdminPage() {
   );
 }
 
-function LicenseDetail({ detail, busy, onAction }: { detail: Detail; busy: string; onAction: (licenseId: string, actionName: string, extra?: Record<string, unknown>, confirmation?: string) => Promise<void> }) {
+function LicenseDetail({ detail, busy, onAction, onPatch }: { detail: Detail; busy: string; onAction: (licenseId: string, actionName: string, extra?: Record<string, unknown>, confirmation?: string) => Promise<void>; onPatch: (licenseId: string, patch: Record<string, unknown>) => Promise<void> }) {
   const license = detail.license;
   const activations = license.treadmill_license_activations || [];
   const activeSessions = detail.engineeringSessions.filter((item) => !item.revoked_at && new Date(item.expires_at) > new Date()).length;
@@ -351,6 +381,8 @@ function LicenseDetail({ detail, busy, onAction }: { detail: Detail; busy: strin
         <Mini label="Offline grace" value={String(license.offline_grace_days) + ' days'} />
         <Mini label="Expiry" value={license.expires_at ? displayDate(license.expires_at) : 'No fixed expiry'} />
       </div>
+
+      <LicenseTermsEditor license={license} busy={Boolean(busy)} onSave={(patch) => void onPatch(license.id, patch)} />
 
       <section className="rounded-xl border border-gray-200 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -387,7 +419,19 @@ function LicenseDetail({ detail, busy, onAction }: { detail: Detail; busy: strin
       </section>
 
       <section>
-        <div className="mb-3 flex items-center gap-2"><Activity className="h-5 w-5 text-violet-700" /><h3 className="text-lg font-black">Recent License Events</h3></div>
+        <div className="mb-3 flex items-center gap-2"><Activity className="h-5 w-5 text-violet-700" /><h3 className="text-lg font-black">Administrative Audit Trail</h3></div>
+        <div className="max-h-64 overflow-auto rounded-xl border border-gray-200">
+          {detail.adminAudit.length === 0 ? <p className="p-5 text-sm text-gray-500">No administrative actions recorded.</p> : detail.adminAudit.map((entry) => (
+            <div key={entry.id} className="flex items-start justify-between gap-3 border-b border-gray-100 p-3 text-sm last:border-b-0">
+              <div><p className="font-bold">{pretty(entry.action)}</p><p className="mt-0.5 text-xs text-gray-500">Actor: {entry.actor}</p></div>
+              <p className="text-xs text-gray-500">{displayDateTime(entry.created_at)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center gap-2"><Activity className="h-5 w-5 text-violet-700" /><h3 className="text-lg font-black">Console License Events</h3></div>
         <div className="max-h-72 overflow-auto rounded-xl border border-gray-200">
           {detail.events.length === 0 ? <p className="p-5 text-sm text-gray-500">No license events recorded.</p> : detail.events.map((event) => (
             <div key={event.id} className="flex items-start justify-between gap-3 border-b border-gray-100 p-3 text-sm last:border-b-0">
@@ -398,6 +442,42 @@ function LicenseDetail({ detail, busy, onAction }: { detail: Detail; busy: strin
         </div>
       </section>
     </div>
+  );
+}
+
+function LicenseTermsEditor({ license, busy, onSave }: { license: License; busy: boolean; onSave: (patch: Record<string, unknown>) => void }) {
+  const [maxInstallations, setMaxInstallations] = useState(license.max_installations);
+  const [revalidateDays, setRevalidateDays] = useState(license.revalidate_days);
+  const [offlineGraceDays, setOfflineGraceDays] = useState(license.offline_grace_days);
+  const [expiresAt, setExpiresAt] = useState(license.expires_at ? license.expires_at.slice(0, 10) : '');
+  const [modules, setModules] = useState((license.modules || []).join(', '));
+  const [notes, setNotes] = useState(license.notes || '');
+
+  useEffect(() => {
+    setMaxInstallations(license.max_installations);
+    setRevalidateDays(license.revalidate_days);
+    setOfflineGraceDays(license.offline_grace_days);
+    setExpiresAt(license.expires_at ? license.expires_at.slice(0, 10) : '');
+    setModules((license.modules || []).join(', '));
+    setNotes(license.notes || '');
+  }, [license.id, license.max_installations, license.revalidate_days, license.offline_grace_days, license.expires_at, license.modules, license.notes]);
+
+  return (
+    <section className="rounded-xl border border-gray-200 p-4">
+      <h3 className="font-black">License Terms & Renewal</h3>
+      <p className="mt-1 text-sm text-gray-600">Change installation allowance, expiry, revalidation cadence, offline grace and licensed modules.</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <NumberInput label="Installations" value={maxInstallations} min={1} max={10000} onChange={setMaxInstallations} />
+        <NumberInput label="Revalidate Days" value={revalidateDays} min={1} max={90} onChange={setRevalidateDays} />
+        <NumberInput label="Offline Grace" value={offlineGraceDays} min={1} max={365} onChange={setOfflineGraceDays} />
+        <label className="text-sm font-bold text-gray-700">Expiry Date<input type="date" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal" /></label>
+      </div>
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <Text label="Licensed Modules" value={modules} onChange={setModules} />
+        <label className="text-sm font-bold text-gray-700">Administrative Notes<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={2} className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 font-normal" /></label>
+      </div>
+      <button type="button" disabled={busy} onClick={() => onSave({ maxInstallations, revalidateDays, offlineGraceDays, expiresAt: expiresAt || null, modules: modules.split(',').map((item) => item.trim()).filter(Boolean), notes: notes || null })} className="mt-4 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50">Save License Terms</button>
+    </section>
   );
 }
 
