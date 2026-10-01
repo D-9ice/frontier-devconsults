@@ -27,6 +27,7 @@ test('GA4 uses advanced consent mode with storage denied by default', async () =
   assert.match(ga, /ad_user_data: 'denied'/);
   assert.match(ga, /ad_personalization: 'denied'/);
   assert.match(ga, /googletagmanager\.com\/gtag\/js/);
+  assert.doesNotMatch(ga, /if \(!measurementId \|\| privacySignalActive\(\)\) return/);
   assert.doesNotMatch(commercial, /frontier-analytics-consent.*granted/);
   assert.match(commercial, /frontier-first-party-opt-out/);
 });

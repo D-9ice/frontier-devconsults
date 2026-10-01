@@ -21,7 +21,7 @@ function analyticsStorageGranted() {
 
 export default function GoogleAnalytics() {
   useEffect(() => {
-    if (!measurementId || privacySignalActive()) return;
+    if (!measurementId) return;
 
     const analyticsWindow = window as AnalyticsWindow;
     analyticsWindow.dataLayer ||= [];
