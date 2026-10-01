@@ -402,7 +402,7 @@ function LicenseDetail({ detail, busy, onAction }: { detail: Detail; busy: strin
 }
 
 function CreateModal({ form, setForm, saving, onClose, onSubmit }: { form: typeof initialForm; setForm: (value: typeof initialForm) => void; saving: boolean; onClose: () => void; onSubmit: (event: FormEvent) => void }) {
-  function update(key: keyof typeof initialForm, value: string | number) {
+  function update<K extends keyof typeof initialForm>(key: K, value: (typeof initialForm)[K]) {
     setForm({ ...form, [key]: value });
   }
   return (
