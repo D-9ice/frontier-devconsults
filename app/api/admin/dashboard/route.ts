@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { isSupabaseServerConfigured, supabaseServer } from '@/lib/supabase-server';
+import { treadmillLicenseStats } from '@/lib/treadmill-licenses';
 
 type Activity = {
   id: string;
@@ -67,6 +68,8 @@ export async function GET(request: NextRequest) {
     const error = results.find((result) => result.error)?.error;
     if (error) throw error;
 
+    const treadmillStats = await treadmillLicenseStats();
+
     const recentActivity: Activity[] = [
       ...((contactsResult.data || []).map((item) => ({
         id: `contact-${item.id}`,
@@ -128,6 +131,10 @@ export async function GET(request: NextRequest) {
         appsInDevelopment: appsInDevelopmentResult.count || 0,
         pendingAcquisitions: acquisitionCountResult.count || 0,
         openSpecializedRequests: specializedCountResult.count || 0,
+        treadmillActiveLicenses: treadmillStats.activeLicenses,
+        treadmillActiveInstallations: treadmillStats.activeInstallations,
+        treadmillExpiringSoon: treadmillStats.expiringSoon,
+        treadmillFailedAuth24h: treadmillStats.failedAuth24h,
       },
       recentActivity,
     });
