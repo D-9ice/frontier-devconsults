@@ -29,6 +29,9 @@ test('public case study pages use structured records and ownership-safe calls to
   const listing = await read('app/projects/page.tsx');
   const detail = await read('app/projects/[slug]/page.tsx');
   assert.match(listing, /listCaseStudies\(false\)/);
+  assert.match(listing, /item\.source\.description/);
+  assert.match(listing, /item\.source\.features/);
+  assert.match(listing, /item\.source\.technologies/);
   assert.doesNotMatch(listing, /AcquisitionLink|caseStudyAcquisitionEnabled|listApps/);
   assert.match(listing, /Acquire This Application/);
   assert.match(listing, /Request a Similar Build/);
