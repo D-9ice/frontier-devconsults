@@ -59,12 +59,19 @@ function CallToAction({ item }: { item: CaseStudy }) {
   if (item.ownershipType === 'frontier_product') return <section className="rounded-2xl bg-gradient-to-br from-blue-950 to-slate-950 p-7 text-white"><h2 className="text-2xl font-bold">Acquire this application or request a similar build</h2><p className="mt-2 max-w-3xl text-slate-200">This is a Frontier-owned product. You can open a commercial acquisition discussion for the existing application, or request a separate solution built around similar engineering capabilities.</p><div className="mt-5 flex flex-wrap gap-3">{item.commercialState !== 'not_for_sale' && <Link href={acquisitionHref(item)} className="inline-flex rounded-lg bg-emerald-500 px-5 py-3 font-bold text-slate-950 hover:bg-emerald-400">{acquisitionLabel(item)}</Link>}<Link href={similarBuildHref(item)} className="inline-flex rounded-lg border border-white/50 px-5 py-3 font-bold text-white hover:bg-white/10">Request a Similar Build</Link></div></section>;
   return null;
 }
-function acquisitionLabel(item: CaseStudy) { return item.commercialState === 'available_for_acquisition' ? 'Acquire This Application' : 'Request Acquisition'; }
+function acquisitionLabel(item: CaseStudy) {
+  if (item.commercialState === 'available_for_acquisition') return 'Acquire This Application';
+  if (item.commercialState === 'available_for_licensing') return 'Discuss Licensing';
+  return 'Request Acquisition';
+}
 function acquisitionHref(item: CaseStudy) {
   const name = sourceName(item);
+  const licensing = item.commercialState === 'available_for_licensing';
   const query = new URLSearchParams({
-    subject: `Acquisition request — ${name}`,
-    message: `I am interested in acquiring ${name}. Please contact me to discuss the acquisition scope, commercial terms, due diligence, and next steps.`,
+    subject: licensing ? `Licensing discussion — ${name}` : `Acquisition request — ${name}`,
+    message: licensing
+      ? `I am interested in licensing ${name}. Please contact me to discuss license options, deployment scope, customization, commercial terms, and next steps.`
+      : `I am interested in acquiring ${name}. Please contact me to discuss the acquisition scope, commercial terms, due diligence, and next steps.`,
   });
   return `/contact?${query.toString()}`;
 }
