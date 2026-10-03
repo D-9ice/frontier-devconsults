@@ -37,11 +37,12 @@ export default async function ProjectsPage() {
 }
 
 function CaseStudyCard({ item }: { item: CaseStudy }) {
-  const name = sourceName(item); const technology = [...new Set(Object.values(item.technologyArchitecture).flat())].slice(0, 5);
+  const name = sourceName(item);
+  const technology = item.source.technologies.slice(0, 5);
   return <article className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
     <div className="flex gap-4"><SourceArtwork item={item} /><div><p className="text-xs font-bold uppercase tracking-wide text-blue-700">{item.ownershipType === 'frontier_product' ? 'Frontier-owned product' : 'Client-built project'}</p><h2 className="mt-1 text-2xl font-bold text-gray-950">{name}</h2><p className="mt-1 text-sm font-semibold text-gray-600">{item.source.category} · {item.projectStatus || sourceLifecycle(item)}</p></div></div>
-    <p className="mt-5 leading-7 text-gray-700">{compactSummary(item.executiveSummary, 300)}</p>
-    {item.capabilities.length > 0 && <ul className="mt-5 space-y-2">{item.capabilities.slice(0, 5).map((capability) => <li key={capability} className="flex gap-2 text-sm text-gray-700"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />{capability}</li>)}</ul>}
+    <p className="mt-5 leading-7 text-gray-700">{compactSummary(item.source.description, 300)}</p>
+    {item.source.features.length > 0 && <ul className="mt-5 space-y-2">{item.source.features.slice(0, 5).map((capability) => <li key={capability} className="flex gap-2 text-sm text-gray-700"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />{capability}</li>)}</ul>}
     {technology.length > 0 && <div className="mt-5 flex flex-wrap gap-2">{technology.map((value) => <span key={value} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{value}</span>)}</div>}
     <div className="mt-auto pt-6"><p className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-600"><ShieldCheck className="h-4 w-4 text-green-700" /> {item.evidence.length} approved evidence {item.evidence.length === 1 ? 'item' : 'items'}</p><div className="flex flex-wrap gap-3"><Link href={`/projects/${encodeURIComponent(item.slug)}`} className="rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700">View Case Study</Link><CommercialCta item={item} /></div></div>
   </article>;
