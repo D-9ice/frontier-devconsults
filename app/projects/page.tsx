@@ -56,12 +56,19 @@ function CommercialCta({ item }: { item: CaseStudy }) {
   </>;
   return null;
 }
-function acquisitionLabel(item: CaseStudy) { return item.commercialState === 'available_for_acquisition' ? 'Acquire This Application' : 'Request Acquisition'; }
+function acquisitionLabel(item: CaseStudy) {
+  if (item.commercialState === 'available_for_acquisition') return 'Acquire This Application';
+  if (item.commercialState === 'available_for_licensing') return 'Discuss Licensing';
+  return 'Request Acquisition';
+}
 function acquisitionHref(item: CaseStudy) {
   const name = sourceName(item);
+  const licensing = item.commercialState === 'available_for_licensing';
   const query = new URLSearchParams({
-    subject: `Acquisition request — ${name}`,
-    message: `I am interested in acquiring ${name}. Please contact me to discuss the acquisition scope, commercial terms, due diligence, and next steps.`,
+    subject: licensing ? `Licensing discussion — ${name}` : `Acquisition request — ${name}`,
+    message: licensing
+      ? `I am interested in licensing ${name}. Please contact me to discuss license options, deployment scope, customization, commercial terms, and next steps.`
+      : `I am interested in acquiring ${name}. Please contact me to discuss the acquisition scope, commercial terms, due diligence, and next steps.`,
   });
   return `/contact?${query.toString()}`;
 }
