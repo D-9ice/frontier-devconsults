@@ -24,3 +24,22 @@ test('Frontier Engineering OS replaces standalone AI PCB Matrix while preserving
   assert.match(config, /source: '\/projects\/pcb-matrix'/);
   assert.match(config, /destination: '\/projects\/frontier-engineering-os'/);
 });
+
+
+test('Frontier Engineering OS is positioned for general Electrical & Electronics Engineering', async () => {
+  const migration = await read('supabase/migrations/202610030030_frontier_engineering_os_general_electrical_scope.sql');
+
+  assert.match(migration, /Electrical and Electronics Engineering operating environment/);
+  assert.match(migration, /electrical machines/i);
+  assert.match(migration, /generators/i);
+  assert.match(migration, /transformers/i);
+  assert.match(migration, /solar/i);
+  assert.match(migration, /energy-storage/i);
+  assert.match(migration, /three-phase/i);
+  assert.match(migration, /industrial plant/i);
+  assert.match(migration, /power quality/i);
+  assert.match(migration, /protection/i);
+  assert.match(migration, /control and instrumentation/i);
+  assert.match(migration, /future purpose-built measurement modules/i);
+  assert.match(migration, /has not yet been fabricated, calibrated or certified/i);
+});
