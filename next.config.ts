@@ -50,6 +50,21 @@ const nextConfig: NextConfig = {
     return [
       ...legacyProjectRedirects,
       {
+        source: '/app-store/pcb-matrix',
+        destination: '/app-store/frontier-engineering-os',
+        permanent: true,
+      },
+      {
+        source: '/acquire/pcb-matrix',
+        destination: '/acquire/frontier-engineering-os',
+        permanent: true,
+      },
+      {
+        source: '/projects/pcb-matrix',
+        destination: '/projects/frontier-engineering-os',
+        permanent: true,
+      },
+      {
         source: '/:path*',
         has: [{ type: 'host', value: 'www.frontier-devconsults.com' }],
         destination: 'https://frontier-devconsults.com/:path*',
