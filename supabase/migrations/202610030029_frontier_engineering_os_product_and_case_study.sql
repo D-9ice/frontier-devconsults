@@ -186,12 +186,50 @@ The original AI PCB Matrix vision is being carried forward inside Frontier Engin
   updated_at = now()
 WHERE slug = 'pcb-matrix' OR name = 'AI PCB Matrix';
 
+UPDATE public.projects
+SET
+  title = 'Frontier Engineering OS',
+  category = 'Engineering Platform / Instrumentation / AI / PCB & EDA',
+  status = 'Development',
+  visibility = 'published',
+  featured = TRUE,
+  sort_order = 13,
+  description = 'Frontier Engineering OS is Frontier DevConsults'' unified electronic engineering workbench: a single extensible environment for measurement, diagnostics, multi-instrument operation, engineering data, AI-assisted troubleshooting, project records, component intelligence, PCB/EDA workflows, manufacturing preparation and technical reporting. The current software foundation is operational as an installable PWA and simulator-first engineering workspace. The Gen-1 physical instrumentation architecture is defined but not yet fabricated or certified. The original AI PCB Matrix vision is retained inside the platform as Autonomous PCB Design Intelligence R&D, with the long-term objective of progressing from natural-language requirements to engineer-reviewed production-ready PCB outputs.',
+  technologies = ARRAY[
+    'React 19','TypeScript 7','Vite 8','Tailwind CSS 4','Progressive Web App',
+    'Hardware Abstraction Layer','Frontier Instrument Protocol','WebUSB integration foundation',
+    'STM32H743 Gen-1 architecture','ESP32-S3 Gen-1 architecture','AMD Artix-7 XC7A35T Gen-1 architecture',
+    'ADS1262','AD9238-65','AD9744','GitHub Actions','SystemVerilog reference RTL','CMake/GCC firmware reference'
+  ],
+  features = ARRAY[
+    'Multi-instrument engineering workbench',
+    'Digital multimeter, oscilloscope, spectrum, logic, AWG and data-logger interfaces',
+    'Projects and engineering sessions',
+    'Frontier Intelligence diagnostics framework',
+    'Verified engineering knowledge base',
+    'Controlled recursive AI-training data architecture',
+    'PCB & EDA workspace',
+    'Component subsystem',
+    'Engineering calculators',
+    'Manufacturing and fabrication workflow',
+    'Engineering reports',
+    'Hardware abstraction and capability discovery',
+    'Gen-1 modular instrumentation hardware architecture',
+    'Installable PWA',
+    'AI PCB Matrix integrated as Autonomous PCB Design Intelligence R&D'
+  ],
+  live_link = 'https://frontier-engineering-os-liard.vercel.app',
+  download_link = NULL,
+  color = 'blue',
+  updated_at = now()
+WHERE slug = 'frontier-engineering-os';
+
 INSERT INTO public.projects (
   title, slug, category, status, visibility, featured, sort_order, description,
   technologies, features, logo_url, live_link, download_link, color, gallery_urls,
   published_at, updated_at
 )
-VALUES (
+SELECT
   'Frontier Engineering OS',
   'frontier-engineering-os',
   'Engineering Platform / Instrumentation / AI / PCB & EDA',
@@ -230,21 +268,9 @@ VALUES (
   ARRAY[]::text[],
   now(),
   now()
-)
-ON CONFLICT (slug) DO UPDATE SET
-  title = EXCLUDED.title,
-  category = EXCLUDED.category,
-  status = EXCLUDED.status,
-  visibility = EXCLUDED.visibility,
-  featured = EXCLUDED.featured,
-  sort_order = EXCLUDED.sort_order,
-  description = EXCLUDED.description,
-  technologies = EXCLUDED.technologies,
-  features = EXCLUDED.features,
-  live_link = EXCLUDED.live_link,
-  download_link = EXCLUDED.download_link,
-  color = EXCLUDED.color,
-  updated_at = now();
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.projects WHERE slug = 'frontier-engineering-os'
+);
 
 INSERT INTO public.case_studies (
   project_id, app_id, slug, ownership_type, commercial_state, client_commercial_authorized,
